@@ -137,7 +137,7 @@ export class MappingRunnerComponent implements OnDestroy {
 
     effect(() => {
       const mapping = this.mapping();
-      console.log(mapping);
+      console.log('runner mapping', mapping);
       this.graphSet = undefined;
     });
   }

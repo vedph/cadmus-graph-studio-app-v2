@@ -89,6 +89,7 @@ export class MappingTreeComponent implements OnDestroy {
     effect(() => {
       const mapping = this.mapping();
       if (mapping) {
+        console.log('tree mapping', mapping);
         this._service.reset(mapping.id);
       }
     });
