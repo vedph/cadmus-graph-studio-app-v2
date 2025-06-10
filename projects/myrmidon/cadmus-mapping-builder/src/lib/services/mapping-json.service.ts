@@ -235,19 +235,48 @@ export class MappingJsonService {
     return result;
   }
 
+  /**
+   * Determine if a mapping is a reference to a named mapping that should be expanded.
+   */
+  private isNamedReference(
+    mapping: NodeMapping,
+    namedMapping: NodeMapping
+  ): boolean {
+    // If the mapping has substantial content beyond just a name, it's not a reference
+    if (
+      mapping.output?.nodes ||
+      mapping.output?.triples ||
+      mapping.children?.length
+    ) {
+      return false;
+    }
+
+    // If source/sid are just placeholders or match the named mapping, it's likely a reference
+    if (!mapping.source || mapping.source === namedMapping.source) {
+      return true;
+    }
+
+    return false;
+  }
+
   private getMappedTriples(triples?: string[]): MappedTriple[] | undefined {
     if (!triples) {
       return undefined;
     }
     return triples.map((t) => {
-      const parts = t.split(' ');
-      return parts[2].startsWith('"')
-        ? {
-            s: parts[0],
-            p: parts[1],
-            ol: parts[2],
-          }
-        : { s: parts[0], p: parts[1], o: parts[2] };
+      // More robust parsing - split on first two spaces only
+      const firstSpace = t.indexOf(' ');
+      const secondSpace = t.indexOf(' ', firstSpace + 1);
+
+      if (firstSpace === -1 || secondSpace === -1) {
+        throw new Error(`Invalid triple format: ${t}`);
+      }
+
+      const s = t.substring(0, firstSpace);
+      const p = t.substring(firstSpace + 1, secondSpace);
+      const o = t.substring(secondSpace + 1);
+
+      return o.startsWith('"') ? { s, p, ol: o } : { s, p, o };
     });
   }
 
@@ -291,12 +320,6 @@ export class MappingJsonService {
     return this.getMapping(JSON.parse(json) as SerializedMappedNode);
   }
 
-  /**
-   * Read the specified mappings document.
-   *
-   * @param json The JSON representing a mappings document.
-   * @returns Mappings.
-   */
   public readMappingsDocument(json: string, resetId = true): NodeMapping[] {
     if (resetId) {
       this._nextId = 1;
@@ -320,24 +343,29 @@ export class MappingJsonService {
     );
 
     // hydrate mappings and expand named mappings references
-    let expanded = false;
     for (let i = 0; i < mappings.length; i++) {
       // assign IDs and parents
       this.visitMappings(mappings[i], true);
 
-      // expand named mappings
+      // expand named mappings - check if this is a reference (no output, no children)
+      let hasExpansions = false;
       this.visitMappings(mappings[i], false, (m) => {
-        if (named[m.name]) {
-          expanded = true;
+        // Only expand if this looks like a named reference:
+        // - name exists in named mappings
+        // - has no output or minimal content (likely just a reference)
+        if (named[m.name] && this.isNamedReference(m, named[m.name])) {
+          hasExpansions = true;
           // copy named mapping when expanding
           const mc = deepCopy(named[m.name]);
           mc.id = m.id;
           mc.parentId = m.parentId;
           mc.parent = m.parent;
 
-          if (m.parent) {
-            const idx = m.parent.children!.findIndex((c) => c.id === m.id);
-            m.parent.children![idx] = mc;
+          if (m.parent?.children) {
+            const idx = m.parent.children.findIndex((c) => c.id === m.id);
+            if (idx >= 0) {
+              m.parent.children[idx] = mc;
+            }
           } else {
             mappings[i] = mc;
           }
@@ -347,7 +375,7 @@ export class MappingJsonService {
 
       // repeat hydration on expanded mappings to ensure that
       // also expanded mappings descendants are hydrated
-      if (expanded) {
+      if (hasExpansions) {
         this.visitMappings(mappings[i], true);
       }
     }
