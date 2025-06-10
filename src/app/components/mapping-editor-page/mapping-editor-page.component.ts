@@ -19,7 +19,7 @@ import {
   styleUrls: ['./mapping-editor-page.component.css'],
 })
 export class MappingEditorPageComponent {
-  public initialMapping?: NodeMapping;
+  public editedMapping?: NodeMapping;
 
   constructor(
     route: ActivatedRoute,
@@ -35,7 +35,7 @@ export class MappingEditorPageComponent {
         .getMapping(+id)
         .pipe(take(1))
         .subscribe((m) => {
-          this.initialMapping = m || undefined;
+          this.editedMapping = m || undefined;
         });
     }
   }

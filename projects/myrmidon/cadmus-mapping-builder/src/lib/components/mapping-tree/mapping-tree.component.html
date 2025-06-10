@@ -35,7 +35,26 @@
           (editNodeFilterRequest)="onEditFilterRequest($any($event))"
         >
           @if (node.y) {
-          <span class="node-ext">TODO</span>
+          <div class="node-ext form-row">
+            @if (node.y > 1) {
+            <button
+              type="button"
+              mat-icon-button
+              matTooltip="Delete this mapping"
+              (click)="deleteNode(node)"
+            >
+              <mat-icon class="mat-warn">clear</mat-icon>
+            </button>
+            }
+            <button
+              type="button"
+              mat-icon-button
+              matTooltip="Add a child mapping"
+              (click)="addChildNode(node)"
+            >
+              <mat-icon class="mat-primary">add_circle</mat-icon>
+            </button>
+          </div>
           }
         </pdb-browser-tree-node>
       </div>
@@ -43,7 +62,7 @@
     </div>
     }
     <div class="form-row">
-      <mat-checkbox [formControl]="debug">debug</mat-checkbox>
+      <mat-checkbox [formControl]="debug">more</mat-checkbox>
       <mat-checkbox [formControl]="hideLoc">no loc.</mat-checkbox>
       <button
         type="button"

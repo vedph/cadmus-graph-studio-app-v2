@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, effect, inject, input, model, output } from '@angular/core';
+import { Component, OnDestroy, effect, inject, input, model, output } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
@@ -52,7 +52,7 @@ import { Mapping, NodeMapping } from '../../models';
   templateUrl: './mapping-tree.component.html',
   styleUrls: ['./mapping-tree.component.css'],
 })
-export class MappingTreeComponent implements OnInit, OnDestroy {
+export class MappingTreeComponent implements OnDestroy {
   private readonly _store: PagedTreeStore<MappingTreeNode, MappingTreeFilter>;
   private _dialog = inject(MatDialog);
   private _sub?: Subscription;
@@ -64,7 +64,6 @@ export class MappingTreeComponent implements OnInit, OnDestroy {
 
   public readonly selected = model<Mapping>();
 
-  // TODO: implement these
   public readonly mappingAdd = output<Mapping>();
   public readonly mappingDelete = output<Mapping>();
 
@@ -93,15 +92,6 @@ export class MappingTreeComponent implements OnInit, OnDestroy {
         this._service.reset(mapping.id);
       }
     });
-  }
-
-  public ngOnInit(): void {
-    if (!this._store.getNodes().length) {
-      this.loading = true;
-      this._store.setFilter({}).finally(() => {
-        this.loading = false;
-      });
-    }
   }
 
   public ngOnDestroy(): void {
@@ -167,6 +157,14 @@ export class MappingTreeComponent implements OnInit, OnDestroy {
 
   public collapseAll(): void {
     this._store.collapseAll();
+  }
+
+  public addChildNode(node: MappingTreeNode): void {
+    this.mappingAdd.emit(node.mapping!);
+  }
+
+  public deleteNode(node: MappingTreeNode): void {
+    this.mappingDelete.emit(node.mapping!);
   }
 
   public clear(): void {
