@@ -38,9 +38,9 @@ docker build . -t vedph2020/cadmus-graph-studio-app:0.0.11-prod
 If you need to debug the tree:
 
 1. always _build_ the library first before linking.
-2. in your _source_ workspace root, run `npm link dist/myrmidon/paged-data-browsers`.
-3. in your _target_ workspace root, run `npm link @myrmidon/paged-data-browser`.
-4. later, to unlink, in your _target_ workspace root run `npm unlink @myrmidon/paged-data-browser` and `npm install` to reinstall the original package.
+2. in your _source_ workspace root, run `npm link dist/myrmidon/paged-data-browsers --force`. You can check with `npm ls -g --depth=0 --link=true`.
+3. in your _target_ workspace root, run `npm link @myrmidon/paged-data-browsers --force`.
+4. later, to unlink, in your _target_ workspace root run `npm unlink @myrmidon/paged-data-browsers --force` and `npm i --force` to reinstall the original package.
 
 You don't need to uninstall the NPM package first. The `npm link` command will temporarily override the installed package without removing it from your package.json or node_modules. The original package stays in node_modules and package.json; `npm link` creates a symbolic link that takes precedence. When you `npm unlink`, it removes the symbolic link and falls back to the original package.
 
