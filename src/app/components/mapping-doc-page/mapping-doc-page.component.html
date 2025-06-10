@@ -1,0 +1,34 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Mappings Document</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="form">
+      <nge-monaco-editor id="editor" (ready)="onCreateEditor($event)" />
+      @if (json.hasError('required') && (json.touched || json.dirty)) {
+      <mat-error>please enter some text</mat-error>
+      }
+    </form>
+    <div class="form-row">
+      <button
+        type="button"
+        mat-flat-button
+        class="mat-primary"
+        (click)="exportToDocument()"
+      >
+        <mat-icon>file_download</mat-icon>
+        export in doc
+      </button>
+      <button
+        type="submit"
+        mat-flat-button
+        class="mat-warn"
+        [disabled]="form.invalid"
+        (click)="importFromDocument()"
+      >
+        <mat-icon>file_upload</mat-icon>
+        import from doc
+      </button>
+    </div>
+  </mat-card-content>
+</mat-card>

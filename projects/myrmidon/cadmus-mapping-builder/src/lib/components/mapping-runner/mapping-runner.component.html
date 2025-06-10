@@ -1,0 +1,250 @@
+<form [formGroup]="form" (submit)="run()">
+  <div id="container">
+    <div>
+      @if (busy) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      }
+    </div>
+    <!-- input -->
+    <div id="input">
+      <!-- toolbar -->
+      <div class="form-row">
+        <button
+          type="button"
+          mat-flat-button
+          class="mat-primary"
+          (click)="prettifyInput()"
+        >
+          <mat-icon>sort</mat-icon> prettify
+        </button>
+        <button type="submit" class="mat-primary" mat-flat-button>
+          <mat-icon>play_circle</mat-icon>
+          run
+        </button>
+      </div>
+      @if (error) {
+      <div class="error">{{ error }}</div>
+      }
+      <fieldset>
+        <legend>presets</legend>
+        <cadmus-cached-text-picker
+          [text]="input.value"
+          keyPrefix="map_"
+          (textPick)="onTextPick($event)"
+        />
+      </fieldset>
+      <!-- monaco -->
+      <div>
+        <mat-label>input</mat-label>
+        <nge-monaco-editor (ready)="onCreateEditor($event)" />
+        @if (input.hasError('required') && (input.touched || input.dirty)) {
+        <mat-error>input required</mat-error>
+        } @if (input.hasError('maxLength') && (input.touched || input.dirty)) {
+        <mat-error>input too long</mat-error>
+        }
+      </div>
+    </div>
+
+    <!-- output -->
+    @if (graphSet) {
+    <div id="output">
+      <!-- nodes -->
+      <mat-expansion-panel [expanded]="graphSet.nodes.length">
+        <mat-expansion-panel-header>
+          <mat-panel-title> nodes </mat-panel-title>
+          <mat-panel-description>
+            {{ graphSet.nodes.length }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <table>
+          <thead>
+            <th>label</th>
+            <th>uri</th>
+            <th>sid</th>
+          </thead>
+          <tbody>
+            @for (n of graphSet.nodes; track n) {
+            <tr>
+              <td>{{ n.label }}</td>
+              <td class="uri">{{ n.uri }}</td>
+              <td>{{ n.sid }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </mat-expansion-panel>
+      <!-- triples -->
+      <mat-expansion-panel [expanded]="graphSet.triples.length">
+        <mat-expansion-panel-header>
+          <mat-panel-title> triples </mat-panel-title>
+          <mat-panel-description>
+            {{ graphSet.triples.length }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <table>
+          <thead>
+            <th>S</th>
+            <th>P</th>
+            <th>O</th>
+            <th>sid</th>
+          </thead>
+          <tbody>
+            @for (t of graphSet.triples; track t) {
+            <tr>
+              <td class="uri">{{ t.subjectUri }}</td>
+              <td class="tp">{{ t.predicateUri }}</td>
+              <td [ngClass]="{ tol: t.objectLiteral, to: t.objectUri }">
+                {{ t.objectUri || t.objectLiteral }}
+                @if (t.literalType || t.literalLanguage || t.literalNumber) {
+                <ul>
+                  @if (t.literalType) {
+                  <li>type: {{ t.literalType }}</li>
+                  } @if (t.literalLanguage) {
+                  <li>language: {{ t.literalLanguage }}</li>
+                  } @if (t.literalNumber) {
+                  <li>numeric: {{ t.literalNumber | number : "1.0-2" }}</li>
+                  }
+                </ul>
+                }
+              </td>
+              <td>{{ t.sid }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </mat-expansion-panel>
+    </div>
+    }
+  </div>
+
+  <hr />
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>metadata</mat-panel-title>
+    </mat-expansion-panel-header>
+    <fieldset>
+      <legend>metadata</legend>
+      <form [formGroup]="metaForm">
+        <div class="form-row">
+          <!-- itemId -->
+          <mat-form-field>
+            <mat-label>item ID</mat-label>
+            <input matInput [formControl]="itemId" />
+            @if ( $any(itemId).errors?.pattern && (itemId.dirty ||
+            itemId.touched) ) {
+            <mat-error>invalid GUID</mat-error>
+            }
+          </mat-form-field>
+          <!-- partId -->
+          <mat-form-field>
+            <mat-label>part ID</mat-label>
+            <input matInput [formControl]="partId" />
+            @if ( $any(partId).errors?.pattern && (partId.dirty ||
+            partId.touched) ) {
+            <mat-error>invalid GUID</mat-error>
+            }
+          </mat-form-field>
+          <!-- partTypeId -->
+          <mat-form-field>
+            <mat-label>part type ID</mat-label>
+            <input matInput [formControl]="partTypeId" />
+            @if ( $any(partTypeId).errors?.maxLength && (partTypeId.dirty ||
+            partTypeId.touched) ) {
+            <mat-error>part type ID too long</mat-error>
+            }
+          </mat-form-field>
+          <!-- roleId -->
+          <mat-form-field>
+            <mat-label>part role ID</mat-label>
+            <input matInput [formControl]="roleId" />
+            @if ( $any(roleId).errors?.maxLength && (roleId.dirty ||
+            roleId.touched) ) {
+            <mat-error>role ID too long</mat-error>
+            }
+          </mat-form-field>
+          <!-- facetId -->
+          <mat-form-field>
+            <mat-label>facet ID</mat-label>
+            <input matInput [formControl]="facetId" />
+            @if ( $any(facetId).errors?.maxLength && (facetId.dirty ||
+            facetId.touched) ) {
+            <mat-error>facet ID too long</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- itemTitle -->
+          <mat-form-field>
+            <mat-label>item title</mat-label>
+            <input matInput [formControl]="itemTitle" />
+            @if ( $any(itemTitle).errors?.maxLength && (itemTitle.dirty ||
+            itemTitle.touched) ) {
+            <mat-error>item title too long</mat-error>
+            }
+          </mat-form-field>
+          <!-- itemUri -->
+          <mat-form-field>
+            <mat-label>item URI</mat-label>
+            <input matInput [formControl]="itemUri" />
+            @if ( $any(itemUri).errors?.maxLength && (itemUri.dirty ||
+            itemUri.touched) ) {
+            <mat-error>item URI too long</mat-error>
+            }
+          </mat-form-field>
+          <!-- itemLabel -->
+          <mat-form-field>
+            <mat-label>item label</mat-label>
+            <input matInput [formControl]="itemLabel" />
+            @if ( $any(itemLabel).errors?.maxLength && (itemLabel.dirty ||
+            itemLabel.touched) ) {
+            <mat-error>item label too long</mat-error>
+            }
+          </mat-form-field>
+          <!-- itemEid -->
+          <mat-form-field>
+            <mat-label>item EID</mat-label>
+            <input matInput [formControl]="itemEid" />
+            @if ( $any(itemEid).errors?.maxLength && (itemEid.dirty ||
+            itemEid.touched) ) {
+            <mat-error>item EID too long</mat-error>
+            }
+          </mat-form-field>
+          <!-- metadataPid -->
+          <mat-form-field>
+            <mat-label>metadata part ID</mat-label>
+            <input matInput [formControl]="metadataPid" />
+            @if ( $any(metadataPid).errors?.maxLength && (metadataPid.dirty ||
+            metadataPid.touched) ) {
+            <mat-error>metadata PID too long</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="form-row">
+          <!-- groupId -->
+          <mat-form-field>
+            <mat-label>group ID</mat-label>
+            <input matInput [formControl]="groupId" />
+            @if ( $any(groupId).errors?.maxLength && (groupId.dirty ||
+            groupId.touched) ) {
+            <mat-error>group ID too long</mat-error>
+            }
+          </mat-form-field>
+          <!-- flags -->
+          <mat-form-field class="nr">
+            <mat-label>flags</mat-label>
+            <input type="number" matInput [formControl]="flags" />
+          </mat-form-field>
+        </div>
+      </form>
+      <button
+        type="button"
+        mat-flat-button
+        class="mat-warn"
+        (click)="metaForm.reset()"
+      >
+        reset
+      </button>
+    </fieldset>
+  </mat-expansion-panel>
+</form>

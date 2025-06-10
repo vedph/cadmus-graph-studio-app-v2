@@ -1,0 +1,58 @@
+<div>
+  <!-- filters -->
+  <div id="filters">
+    <cadmus-mapping-tree-filter
+      [filter]="(filter$ | async) || undefined"
+      (filterChange)="onFilterChange($event)"
+    />
+  </div>
+
+  <!-- tree -->
+  <div id="tree">
+    <!-- progress -->
+    @if (loading) {
+    <div>
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </div>
+    } @if (nodes$ | async; as nodes) {
+    <div>
+      @for (node of nodes; track node.id; let i = $index) {
+      <div>
+        <pdb-browser-tree-node
+          [node]="node"
+          [debug]="debug.value"
+          [paging]="
+            node.expanded &&
+            i + 1 < nodes.length &&
+            nodes[i + 1].paging.pageCount > 1
+              ? nodes[i + 1].paging
+              : undefined
+          "
+          [hideFilter]="true"
+          [hideLoc]="hideLoc.value"
+          (toggleExpandedRequest)="onToggleExpanded($any($event))"
+          (changePageRequest)="onPageChangeRequest($event)"
+          (editNodeFilterRequest)="onEditFilterRequest($any($event))"
+        >
+          @if (node.y) {
+          <span class="node-ext">TODO</span>
+          }
+        </pdb-browser-tree-node>
+      </div>
+      }
+    </div>
+    }
+    <div class="form-row">
+      <mat-checkbox [formControl]="debug">debug</mat-checkbox>
+      <mat-checkbox [formControl]="hideLoc">no loc.</mat-checkbox>
+      <button
+        type="button"
+        mat-icon-button
+        (click)="collapseAll()"
+        matTooltip="Collapse all"
+      >
+        <mat-icon>unfold_less</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

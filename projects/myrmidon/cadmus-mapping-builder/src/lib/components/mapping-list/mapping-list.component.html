@@ -1,0 +1,51 @@
+@if (loading$ | async) {
+<mat-progress-bar></mat-progress-bar>
+} @if (page$ | async; as page) {
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>ID</th>
+        <th>name</th>
+        <th>type</th>
+        <th>facet</th>
+        <th>part</th>
+        <th>role</th>
+        <th>source</th>
+        <th>SID</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (m of page.items; track m) {
+      <tr>
+        <td class="fit-width">
+          <button type="button" mat-icon-button (click)="editMapping(m)">
+            <mat-icon class="mat-primary">edit</mat-icon>
+          </button>
+          <button type="button" mat-icon-button (click)="deleteMapping(m)">
+            <mat-icon class="mat-warn">delete</mat-icon>
+          </button>
+        </td>
+        <td>{{ m.id }}</td>
+        <td>{{ m.name }}</td>
+        <td>{{ m.sourceType | flatLookup : sourceTypes }}</td>
+        <td>{{ m.facetFilter }}</td>
+        <td>{{ m.partTypeFilter }}</td>
+        <td>{{ m.partRoleFilter }}</td>
+        <td>{{ m.source }}</td>
+        <td>{{ m.sid }}</td>
+      </tr>
+      }
+    </tbody>
+  </table>
+  <mat-paginator
+    [length]="page.total"
+    [pageIndex]="page.pageNumber - 1"
+    [pageSize]="page.pageSize"
+    [pageSizeOptions]="[5, 10, 20, 50, 100]"
+    (page)="onPageChange($event)"
+    [showFirstLastButtons]="true"
+  />
+</div>
+}

@@ -1,0 +1,19 @@
+<div id="container">
+  <div id="tree">
+    <div id="header">{{ mapping()?.name }}</div>
+    <cadmus-mapping-tree
+      [mapping]="mapping()"
+      [selected]="editedMapping"
+      (selectedChange)="onMappingSelected($event!)"
+      (mappingAdd)="onMappingAddChild($event!)"
+      (mappingDelete)="onMappingDelete($event!)"
+    />
+  </div>
+  <div id="editor">
+    <cadmus-mapping-editor
+      [mapping]="editedMapping"
+      (mappingChange)="onMappingSave($event!)"
+      (editorClose)="close()"
+    />
+  </div>
+</div>

@@ -1,0 +1,68 @@
+<form [formGroup]="form" (submit)="transform()">
+  <!-- jmes -->
+  <div class="form-row">
+    <mat-form-field class="long-text">
+      <mat-label>jmes</mat-label>
+      <input matInput [formControl]="jmes" />
+      @if ($any(jmes).errors?.required && (jmes.dirty || jmes.touched)) {
+      <mat-error>JMES required</mat-error>
+      } @if ($any(jmes).errors?.maxLength && (jmes.dirty || jmes.touched)) {
+      <mat-error>JMES too long</mat-error>
+      } @if (error) {
+      <mat-error>{{ error }}</mat-error>
+      }
+    </mat-form-field>
+    <button
+      type="submit"
+      mat-flat-button
+      [disabled]="form.invalid || busy"
+      matTooltip="Run JMES"
+    >
+      <mat-icon class="mat-primary">play_circle</mat-icon> run
+    </button>
+    <div>
+      @if (busy) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      }
+    </div>
+  </div>
+
+  <fieldset id="container">
+    <legend>JMES test</legend>
+    <!-- input -->
+    <div id="input">
+      <div>
+        <mat-label>input</mat-label>
+        <nge-monaco-editor
+          style="height: 600px"
+          class="monaco"
+          (ready)="onCreateInputEditor($event)"
+        />
+        @if (input.hasError('required') && (input.touched || input.dirty)) {
+        <mat-error>please enter some text</mat-error>
+        } @if (input.hasError('maxlength') && (input.touched || input.dirty)) {
+        <mat-error>input too long</mat-error>
+        }
+      </div>
+      <!-- presets -->
+      <fieldset>
+        <legend>presets</legend>
+        <cadmus-cached-text-picker
+          [text]="input.value"
+          (textPick)="onTextPick($event)"
+          keyPrefix="jms_"
+        />
+      </fieldset>
+    </div>
+
+    <!-- output -->
+    <div id="output">
+      <mat-label>output</mat-label>
+      <nge-monaco-editor
+        style="height: 600px"
+        class="monaco"
+        (ready)="onCreateOutputEditor($event)"
+      />
+    </div>
+  </fieldset>
+</form>

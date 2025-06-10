@@ -1,0 +1,37 @@
+div#container {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: minmax(auto, 33.33%) 1fr;
+  grid-template-areas: "tree editor";
+  gap: 8px;
+}
+div#tree {
+  grid-area: tree;
+  border: 1px solid silver;
+  border-radius: 6px;
+  padding: 4px;
+}
+div#editor {
+  grid-area: editor;
+}
+div#header {
+  font-size: 1.5em 24px;
+  margin: 16px;
+  background-color: silver;
+  color: white;
+  font-weight: normal;
+  padding: 4px;
+  border: 1px solid silver;
+  border-radius: 6px;
+}
+
+/* lt-md */
+@media only screen and (max-width: 959px) {
+  div#container {
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "tree"
+      "editor";
+  }
+}

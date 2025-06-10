@@ -1,0 +1,52 @@
+.form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.form-row * {
+  flex: 0 0 auto;
+}
+.monaco {
+  min-height: 600px;
+}
+.long-text {
+  width: 100%;
+  max-width: 800px;
+}
+fieldset {
+  border: 1px solid silver;
+  border-radius: 6px;
+  padding: 4px;
+  margin: 8px 0;
+}
+legend {
+  color: white;
+  background-color: #bbb;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  padding: 4px;
+}
+#container {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas: "input output";
+  gap: 8px;
+}
+div#input {
+  grid-area: input;
+}
+div#output {
+  grid-area: output;
+}
+
+/* lt-md */
+@media only screen and (max-width: 959px) {
+  div#container {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "input"
+      "output";
+  }
+}

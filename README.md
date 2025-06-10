@@ -1,59 +1,119 @@
-# CadmusGraphStudioApp
+# Cadmus Graph Studio
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.1.
 
-## Development server
+This is a minimalist editor for helping users build their graph mapping rules.
 
-To start a local development server, run:
+- [library overview](./projects/myrmidon/cadmus-mapping-builder/README.md)
+- 👉 [documentation](https://myrmex.github.io/overview/cadmus/graph-studio/graph-studio/)
 
-```bash
-ng serve
-```
+🐋 Docker:
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+1. `npm run build-lib`;
+2. update [env.js](./src/env.js) version number and version numbers in [docker compose](docker-compose.yml);
+3. `ng build`;
+4. build image like (change version number accordingly):
 
 ```bash
-ng generate component component-name
+docker build . -t vedph2020/cadmus-graph-studio-app:0.1.0 -t vedph2020/cadmus-graph-studio-app:latest
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+For production:
+
+(1) build as above for 1-3.
+(2) in `dist/cadmus-graph-studio/env.js` replace the host address (and eventually version number by appending `-prod`) as follows:
+
+```js
+window.__env.apiUrl = "https://cadmus-graph-studio-api.fusi-soft.com/api/";
+```
+
+(3) build prod image:
 
 ```bash
-ng generate --help
+docker build . -t vedph2020/cadmus-graph-studio-app:0.0.11-prod
 ```
 
-## Building
+## History
 
-To build the project run:
+- 2025-06-09: updated Angular and packages.
+- 2025-06-05: ⚠️ upgraded to Angular 20.
+- 2024-12-12:
+  - updated Angular and packages.
+  - M3 theme.
+- 2024-11-19: updated Angular and packages.
+- 2024-11-09: ⚠️ upgraded to Angular 17.
 
-```bash
-ng build
-```
+### 0.1.0
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+- 2023-10-05:
+  - ⚠️ removed ELF.
+  - updated packages and Angular.
 
-## Running unit tests
+### 0.0.11
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+- 2023-09-07: updated Angular and some mappings.
+- 2023-08-07:
+  - updated Angular and packages.
+  - added more mappings.
+- 2023-07-23: added scalar pattern to mapping.
 
-```bash
-ng test
-```
+### 0.0.10
 
-## Running end-to-end tests
+- 2023-07-19:
+  - updated mappings.
+  - better layout for mapping editor.
+- 2023-07-08:
+  - updated Angular.
+  - more mappings and samples.
+- 2023-06-30: updated Angular and packages.
+- 2023-06-14: updated Angular.
 
-For end-to-end (e2e) testing, run:
+### 0.0.9
 
-```bash
-ng e2e
-```
+- 2023-05-31: fixes to sample work mappings.
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+### 0.0.8
 
-## Additional Resources
+- 2023-05-31: more mappings.
+- 2023-05-27:
+  - updated Angular.
+  - fixed `E90` in sample `work` mapping.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### 0.0.7
+
+- 2023-05-23:
+  - updated sample data and mappings for the new model of event related ID (using [asserted composite ID](https://github.com/vedph/cadmus-bricks-shell/blob/master/projects/myrmidon/cadmus-refs-asserted-ids/README.md#asserted-composite-id)).
+  - updated Angular and packages.
+
+### 0.0.6
+
+- 2023-05-15:
+  - refactored mappings and samples to fit the real events part scheme (which has multiple chronotopes and note side to side with description).
+  - added prettify JSON button for sample input in mapping tester.
+
+### 0.0.5
+
+- 2023-05-11:
+  - updated Angular and packages.
+  - fix to node to string in output.
+  - more samples.
+
+### 0.0.4
+
+- 2023-05-10: fixes to node parsing for labels.
+
+### 0.0.3
+
+- 2023-05-09: refactored import/export.
+
+### 0.0.2
+
+- 2023-05-09:
+  - fixes to triples serialization for object literals.
+  - improved sample presets.
+  - more details in object literal output.
+- 2023-05-08: upgraded to Angular 16.
+
+### 0.0.1
+
+- 2023-05-07: initial release.

@@ -1,0 +1,28 @@
+<mat-card>
+  <mat-card-content>
+    <div id="container">
+      <!-- filters -->
+      <div id="filters">
+        <fieldset>
+          <legend>filters</legend>
+          <cadmus-mapping-filter />
+        </fieldset>
+      </div>
+
+      <!-- list -->
+      <div id="list">
+        <cadmus-mapping-list (mappingEdit)="onEditMapping($event)" />
+        <div class="bar">
+          <button
+            type="button"
+            mat-flat-button
+            class="mat-primary"
+            (click)="addMapping()"
+          >
+            <mat-icon>add</mat-icon> mapping
+          </button>
+        </div>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,467 @@
+{
+  "jms_metadata": {
+    "metadata": [
+      {
+        "name": "eid",
+        "value": "alpha"
+      },
+      {
+        "name": "copyright",
+        "value": "(C) some guy 2023"
+      }
+    ]
+  },
+  "jms_work_events": {
+    "events": [
+      {
+        "eid": "alpha-send",
+        "type": "text.send",
+        "chronotopes": [
+          {
+            "place": {
+              "value": "Arezzo"
+            },
+            "date": {
+              "a": {
+                "value": 1234,
+                "month": 5
+              }
+            }
+          }
+        ],
+        "relatedEntities": [
+          {
+            "relation": "text:send:recipient",
+            "id": {
+              "target": {
+                "gid": "P3e04b8d1-7b55-4de7-b2b8-3097017c7c82/arezzo_bishop",
+                "label": "arezzo_bishop",
+                "itemId": "ba16e688-ccd1-4c83-9666-2b0cb9bfda8e",
+                "partId": "3e04b8d1-7b55-4de7-b2b8-3097017c7c82",
+                "partTypeId": "it.vedph.metadata",
+                "roleId": "txt",
+                "name": "eid",
+                "value": "arezzo_bishop"
+              }
+            }
+          },
+          {
+            "relation": "text:send:carrier",
+            "id": {
+              "target": {
+                "gid": "dbr:Giovanni_Boccaccio",
+                "label": "Boccaccio"
+              }
+            }
+          }
+        ],
+        "description": "The author sent his alpha work to the bishop of Arezzo in May, 1370 via Boccaccio.",
+        "note": "Editorial note about the alpha send event."
+      }
+    ]
+  },
+  "map_work": {
+    "metadata": [
+      {
+        "name": "eid",
+        "value": "alpha"
+      },
+      {
+        "name": "copyright",
+        "value": "(C) some guy 2023"
+      }
+    ]
+  },
+  "map_work_chronotopes": {
+    "chronotopes": [
+      {
+        "place": {
+          "value": "Arezzo"
+        },
+        "date": {
+          "a": {
+            "value": 1234,
+            "month": 5
+          }
+        },
+        "assertion": {
+          "rank": 1,
+          "references": [
+            {
+              "type": "biblio",
+              "citation": "Rossi 1963"
+            },
+            {
+              "type": "ms",
+              "citation": "Vat.Lat.123"
+            }
+          ]
+        }
+      },
+      {
+        "place": {
+          "value": "Roma"
+        },
+        "date": {
+          "a": {
+            "value": 1262
+          }
+        },
+        "assertion": {
+          "rank": 2,
+          "references": [
+            {
+              "type": "biblio",
+              "citation": "Verdi 1941"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "map_work_events": {
+    "events": [
+      {
+        "eid": "alpha-send",
+        "type": "text.send",
+        "chronotopes": [
+          {
+            "place": {
+              "value": "Arezzo"
+            },
+            "date": {
+              "a": {
+                "value": 1234,
+                "month": 5
+              }
+            }
+          }
+        ],
+        "relatedEntities": [
+          {
+            "relation": "text:send:recipient",
+            "id": {
+              "target": {
+                "gid": "P3e04b8d1-7b55-4de7-b2b8-3097017c7c82/arezzo_bishop",
+                "label": "arezzo_bishop",
+                "itemId": "ba16e688-ccd1-4c83-9666-2b0cb9bfda8e",
+                "partId": "3e04b8d1-7b55-4de7-b2b8-3097017c7c82",
+                "partTypeId": "it.vedph.metadata",
+                "roleId": "txt",
+                "name": "eid",
+                "value": "arezzo_bishop"
+              }
+            }
+          },
+          {
+            "relation": "text:send:carrier",
+            "id": {
+              "target": {
+                "gid": "@dbr:Giovanni_Boccaccio",
+                "label": "Boccaccio"
+              }
+            }
+          },
+          {
+            "relation": "text:send:sender",
+            "id": {
+              "target": {
+                "gid": "petrarca",
+                "label": "Petrarca"
+              }
+            }
+          }
+        ],
+        "description": "The author sent his alpha work to the bishop of Arezzo in May, 1370 via Boccaccio.",
+        "note": "Editorial note about the alpha send event.",
+        "assertion": {
+          "rank": 2,
+          "references": [
+            {
+              "type": "biblio",
+              "citation": "Rossi 1963"
+            },
+            {
+              "type": "ms",
+              "citation": "Vat.Lat.123"
+            }
+          ]
+        }
+      },
+      {
+        "eid": "alpha-transcription",
+        "type": "text.transcription",
+        "chronotopes": [
+          {
+            "place": {
+              "value": "Domodossola"
+            },
+            "date": {
+              "a": {
+                "value": 1410
+              }
+            }
+          }
+        ],
+        "relatedEntities": [
+          {
+            "relation": "text:transcription:transcriber",
+            "id": {
+              "target": {
+                "gid": "itn:persons/niccolino_braschi",
+                "label": "niccolino_braschi"
+              }
+            }
+          },
+          {
+            "relation": "text:transcription:copy",
+            "id": {
+              "target": {
+                "gid": "itn:manuscripts/bml_plut_41_15",
+                "label": "bml_plut_41_15"
+              }
+            }
+          }
+        ],
+        "description": "Braschi copies Secretum in BML Plut 41.15."
+      },
+      {
+        "eid": "beta-reception",
+        "type": "text.reception",
+        "chronotopes": [
+          {
+            "place": {
+              "value": "Parma"
+            },
+            "date": {
+              "a": {
+                "value": 1355,
+                "month": 10
+              }
+            }
+          }
+        ],
+        "relatedEntities": [
+          {
+            "relation": "text:reception:recipient",
+            "id": {
+              "target": {
+                "gid": "itn:persons/niccolino_braschi",
+                "label": "niccolino_braschi"
+              }
+            }
+          },
+          {
+            "relation": "text:reception:sender",
+            "id": {
+              "target": {
+                "gid": "itn:persons/francesco_petrarca",
+                "label": "francesco_petrarca"
+              }
+            }
+          },
+          {
+            "relation": "text:reception:carrier",
+            "id": {
+              "target": {
+                "gid": "itn:persons/marco_barbadori",
+                "label": "marco_barbadori"
+              }
+            }
+          }
+        ],
+        "description": "Braschi receives Beta from Petrarca via Barbadori."
+      },
+      {
+        "eid": "gamma-collection",
+        "type": "text.collection",
+        "chronotopes": [
+          {
+            "place": {
+              "value": "Arquà"
+            },
+            "date": {
+              "a": {
+                "value": 1374
+              }
+            }
+          }
+        ],
+        "relatedEntities": [
+          {
+            "relation": "text:collection:collector",
+            "id": {
+              "target": {
+                "gid": "itn:works/rvf",
+                "label": "rvf"
+              }
+            }
+          }
+        ],
+        "description": "The text is collected in Rvf."
+      },
+      {
+        "eid": "gamma-version",
+        "type": "text.version",
+        "chronotope": {
+          "place": {
+            "value": ""
+          },
+          "date": {
+            "a": {
+              "value": 1350
+            }
+          }
+        },
+        "relatedEntities": [
+          {
+            "relation": "text:version:previous",
+            "id": {
+              "target": {
+                "gid": "http://petrarch-familiares.org/resources/fam_i_1",
+                "label": "fam_i_1"
+              }
+            }
+          }
+        ],
+        "description": "Fam I 1 gamma is the previous version of Fam I 1 ."
+      }
+    ]
+  },
+  "map_person_works": {
+    "works": [
+      {
+        "eid": "alpha",
+        "title": "Alpha Work"
+      },
+      {
+        "eid": "beta",
+        "title": "Beta Work",
+        "assertion": {
+          "rank": 2,
+          "references": [
+            {
+              "type": "biblio",
+              "citation": "Rossi 1963"
+            },
+            {
+              "type": "ms",
+              "citation": "Vat.Lat.123"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "map_work_info": {
+    "authorIds": [
+      {
+        "target": {
+          "gid": "http://www.dbpedia.org/resource/John_Milton",
+          "label": "John Milton"
+        },
+        "languages": ["en"],
+        "assertion": {
+          "rank": 1,
+          "references": [
+            {
+              "type": "biblio",
+              "citation": "Rossi 1963"
+            }
+          ]
+        }
+      }
+    ],
+    "genre": "epic",
+    "metre": "blank verse",
+    "isLost": true,
+    "titles": [
+      {
+        "language": "en",
+        "value": "Paradise Lost"
+      },
+      {
+        "language": "it",
+        "value": "Paradiso perduto"
+      }
+    ]
+  },
+  "map_rel_persons": {
+    "persons": [
+      {
+        "type": "pseudonym",
+        "name": "Tityrus",
+        "ids": [
+          {
+            "target": {
+              "gid": "http://www.dbpedia.org/resource/Petrarch",
+              "label": "Petrarch"
+            }
+          }
+        ]
+      },
+      {
+        "type": "pseudonym",
+        "name": "Meliboeus",
+        "ids": [
+          {
+            "target": {
+              "gid": "http://www.dbpedia.org/resource/Francesco_Barbato",
+              "label": "Francesco Barbato"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "map_ref_texts": {
+    "texts": [
+      {
+        "type": "imitation",
+        "targetId": {
+          "target": {
+            "gid": "@http://www.dbpedia.org/resource/Iliad",
+            "label": "Iliad"
+          }
+        },
+        "targetCitation": "1.1",
+        "sourceCitations": ["12.34", "56.78"]
+      }
+    ]
+  },
+  "map_ms_hands": {
+    "hands": [
+      {
+        "eid": "A",
+        "name": "hand A",
+        "instances": [
+          {
+            "scripts": ["alpha", "beta"],
+            "typologies": ["one"],
+            "colors": ["red"],
+            "ranges": [
+              {
+                "start": {
+                  "n": 4,
+                  "rmn": true
+                },
+                "end": {
+                  "n": 5,
+                  "rmn": true
+                }
+              },
+              {
+                "start": {
+                  "n": 10
+                },
+                "end": {
+                  "n": 10
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

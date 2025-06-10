@@ -1,0 +1,267 @@
+<form (submit)="save()">
+  <mat-tab-group>
+    <!-- METADATA -->
+    <mat-tab label="metadata">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">list</mat-icon> metadata
+      </ng-template>
+      <div class="form-row">
+        <!-- name -->
+        <mat-form-field>
+          <mat-label>name</mat-label>
+          <input matInput [formControl]="name" />
+          @if ($any(name).errors?.required && (name.dirty || name.touched)) {
+          <mat-error>name required</mat-error>
+          } @if ($any(name).errors?.maxLength && (name.dirty || name.touched)) {
+          <mat-error>name too long</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- sourceType -->
+        <mat-form-field>
+          <mat-label>source type</mat-label>
+          <mat-select [formControl]="sourceType">
+            <mat-option [value]="undefined">n/a</mat-option>
+            <mat-option [value]="1">item</mat-option>
+            <mat-option [value]="2">part</mat-option>
+          </mat-select>
+          @if ( $any(sourceType).errors?.required && (sourceType.dirty ||
+          sourceType.touched) ) {
+          <mat-error>source type required</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- scalarPattern -->
+        <mat-form-field>
+          <mat-label>scalar pattern</mat-label>
+          <input matInput [formControl]="scalarPattern" />
+          @if ( $any(scalarPattern).errors?.maxLength && (scalarPattern.dirty ||
+          scalarPattern.touched) ) {
+          <mat-error>pattern too long</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- sid -->
+        <mat-form-field>
+          <mat-label>SID</mat-label>
+          <input matInput [formControl]="sid" />
+          @if ($any(sid).errors?.required && (sid.dirty || sid.touched)) {
+          <mat-error>SID required</mat-error>
+          } @if ($any(sid).errors?.maxLength && (sid.dirty || sid.touched)) {
+          <mat-error>SID too long</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <!-- facetFilter -->
+        <mat-form-field>
+          <mat-label>facet filter</mat-label>
+          <input matInput [formControl]="facetFilter" />
+          @if ( $any(facetFilter).errors?.maxLength && (facetFilter.dirty ||
+          facetFilter.touched) ) {
+          <mat-error>facet filter too long</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- groupFilter -->
+        <mat-form-field>
+          <mat-label>group filter</mat-label>
+          <input matInput [formControl]="groupFilter" />
+          @if ( $any(groupFilter).errors?.maxLength && (groupFilter.dirty ||
+          groupFilter.touched) ) {
+          <mat-error>group filter too long</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- flagsFilter -->
+        <mat-form-field class="nr-input">
+          <mat-label>flags filter</mat-label>
+          <input type="number" matInput [formControl]="flagsFilter" min="0" />
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <!-- partTypeFilter -->
+        <mat-form-field>
+          <mat-label>part type filter</mat-label>
+          <input matInput [formControl]="partTypeFilter" />
+          @if ( $any(partTypeFilter).errors?.maxLength && (partTypeFilter.dirty
+          || partTypeFilter.touched) ) {
+          <mat-error>part type filter too long</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- partRoleFilter -->
+        <mat-form-field>
+          <mat-label>part role filter</mat-label>
+          <input matInput [formControl]="partRoleFilter" />
+          @if ( $any(partRoleFilter).errors?.maxLength && (partRoleFilter.dirty
+          || partRoleFilter.touched) ) {
+          <mat-error>part role filter too long</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <!-- description -->
+        <mat-form-field class="long-text">
+          <mat-label>description</mat-label>
+          <textarea rows="3" matInput [formControl]="description"></textarea>
+          @if ( $any(description).errors?.maxLength && (description.dirty ||
+          description.touched) ) {
+          <mat-error>description too long</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </mat-tab>
+
+    <!-- INPUT -->
+    <mat-tab label="input">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">login</mat-icon> input
+      </ng-template>
+      <cadmus-jmes
+        [expression]="source.value"
+        (expressionChange)="onExpressionChange($event!)"
+      ></cadmus-jmes>
+    </mat-tab>
+
+    <!-- OUTPUT -->
+    <mat-tab label="output">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">logout</mat-icon> output
+      </ng-template>
+      <cadmus-mapping-output-editor
+        [mappingOutput]="mapping()?.output"
+        (mappingOutputChange)="onOutputChange($event!)"
+      />
+    </mat-tab>
+
+    <!-- TEST -->
+    <mat-tab label="test">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">science</mat-icon> test
+      </ng-template>
+      <cadmus-mapping-runner [mapping]="mapping()"></cadmus-mapping-runner>
+    </mat-tab>
+
+    <!-- HELP -->
+    <mat-tab label="help">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">info</mat-icon> help
+      </ng-template>
+      <h2>Quick Help</h2>
+      <p>
+        See the
+        <a
+          rel="noopener"
+          target="_blank"
+          href="https://myrmex.github.io/overview/cadmus/dev/concepts/graph-mappings/"
+          >full documentation</a
+        >
+        for more.
+      </p>
+      <h3>Mappings</h3>
+      <ul>
+        <li><strong>source type</strong>: here just item/part.</li>
+        <li>
+          <strong>source</strong>: the
+          <a rel="noopener" target="_blank" href="https://jmespath.org/"
+            >JMES path</a
+          >
+          expression defining input data.
+        </li>
+        <li>
+          <strong>SID</strong>: for root mappings only. The SID identifies the
+          source of mapped data; when updating an item or a part, all the
+          nodes/triples <em>starting with</em> the item or part's GUID are
+          included in the graph update.
+        </li>
+        <li><strong>facet filter</strong></li>
+        <li><strong>group filter</strong></li>
+        <li>
+          <strong>flags filter</strong>: numeric value representing flags bits.
+          All the flags must be matched.
+        </li>
+        <li><strong>part type filter</strong></li>
+        <li><strong>part role filter</strong></li>
+        <li><strong>description</strong></li>
+        <li>
+          <strong>output</strong>:
+          <ul>
+            <li>
+              <strong>nodes</strong>: nodes to emit (here
+              <code>key uid [label|tag]</code>, one per line);
+            </li>
+            <li>
+              <strong>triples</strong>: triples to emit (here
+              <code>S P O</code> or <code>S P "literal"</code>, one per line);
+            </li>
+            <li>
+              <strong>metadata</strong>: metadata to consume within the mapping
+              context (here <code>key=value</code>, one per line). Presets:
+              <ul>
+                <li><strong>item-id</strong>: item GUID.</li>
+                <li>
+                  <strong>item-eid</strong>: item EID (from metadata part).
+                </li>
+                <li><strong>part-id</strong>: part GUID.</li>
+                <li><strong>group-id</strong>: item's group ID.</li>
+                <li><strong>facet-id</strong>: item's facet ID.</li>
+                <li><strong>flags</strong>: item's flags.</li>
+                <li><strong>.</strong>: current leaf node in source JSON.</li>
+                <li>
+                  <strong>index</strong>: index of processed element from a
+                  source array.
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><strong>children</strong>: optional child mappings.</li>
+      </ul>
+      <h3>Templates</h3>
+      <ul>
+        <li><code>&lcub;&#64;...&rcub;</code>: JMES expression.</li>
+        <li>
+          <code>&lcub;?...&rcub;</code>: node key (may be suffixed by
+          <code>:uri</code> (default), <code>:label</code>, <code>:sid</code>,
+          <code>:src-type</code>).
+        </li>
+        <li><code>&lcub;$...&rcub;</code>: metadata key.</li>
+        <li>
+          <code>&lcub;!...&rcub;</code>: macro. Currently the only macro is
+          <code>_hdate(json & property)</code>, which handles a Cadmus
+          historical date and returns either its sort value, or its
+          human-friendly, machine-parsable text value. Arguments:
+          <ol>
+            <li>
+              <code>json</code>: the JSON code representing the Cadmus
+              historical date.
+            </li>
+            <li>
+              <code>property</code>: either <code>value</code> or
+              <code>text</code>
+            </li>
+          </ol>
+        </li>
+      </ul>
+    </mat-tab>
+  </mat-tab-group>
+
+  <!-- buttons -->
+  <div class="form-row">
+    <button type="button" mat-flat-button class="mat-warn" (click)="cancel()">
+      <mat-icon>cancel</mat-icon> close
+    </button>
+    <button
+      type="submit"
+      [disabled]="form.invalid"
+      mat-flat-button
+      class="mat-primary"
+    >
+      <mat-icon>check_circle</mat-icon> save
+    </button>
+  </div>
+</form>

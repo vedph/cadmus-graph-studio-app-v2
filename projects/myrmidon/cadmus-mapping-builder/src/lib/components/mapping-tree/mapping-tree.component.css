@@ -1,0 +1,16 @@
+.form-row {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.form-row * {
+  flex: 0 0 auto;
+}
+div#filters {
+  margin: 16px;
+}
+.node-ext {
+  margin-left: 6px;
+  color: #107650;
+}

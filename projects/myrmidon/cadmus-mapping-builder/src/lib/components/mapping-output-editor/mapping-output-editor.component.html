@@ -1,0 +1,69 @@
+<form (submit)="save()">
+  <!-- metadata -->
+  <fieldset>
+    <legend>metadata</legend>
+    <mat-form-field class="long-text">
+      <mat-label>metadata</mat-label>
+      <textarea rows="3" matInput [formControl]="metadata"></textarea>
+      <mat-hint>key=value</mat-hint>
+      @if ( $any(metadata).errors?.pattern && (metadata.dirty ||
+      metadata.touched) ) {
+      <mat-error>invalid metadata</mat-error>
+      } @if ( $any(metadata).errors?.maxLength && (metadata.dirty ||
+      metadata.touched) ) {
+      <mat-error>metadata too long</mat-error>
+      }
+    </mat-form-field>
+  </fieldset>
+
+  <!-- nodes -->
+  <fieldset>
+    <legend>nodes</legend>
+    <mat-form-field class="long-text">
+      <mat-label>nodes</mat-label>
+      <textarea rows="5" matInput [formControl]="nodes"></textarea>
+      <mat-hint>key uid [label|tag]</mat-hint>
+      @if ($any(nodes).errors?.pattern && (nodes.dirty || nodes.touched)) {
+      <mat-error>invalid nodes</mat-error>
+      } @if ($any(nodes).errors?.maxLength && (nodes.dirty || nodes.touched)) {
+      <mat-error>nodes too long</mat-error>
+      }
+    </mat-form-field>
+  </fieldset>
+
+  <!-- triples -->
+  <fieldset>
+    <legend>triples</legend>
+    <mat-form-field class="long-text">
+      <mat-label>triples</mat-label>
+      <textarea rows="5" matInput [formControl]="triples"></textarea>
+      <mat-hint>S P O or S P "lit"</mat-hint>
+      @if ( $any(triples).errors?.pattern && (triples.dirty || triples.touched)
+      ) {
+      <mat-error>invalid triples</mat-error>
+      } @if ( $any(triples).errors?.maxLength && (triples.dirty ||
+      triples.touched) ) {
+      <mat-error>triples too long</mat-error>
+      }
+    </mat-form-field>
+  </fieldset>
+
+  <div>
+    <button
+      type="button"
+      mat-icon-button
+      matTooltip="Close without saving"
+      (click)="cancel()"
+    >
+      <mat-icon class="mat-warn">cancel</mat-icon>
+    </button>
+    <button
+      type="submit"
+      [disabled]="form.invalid"
+      mat-icon-button
+      matTooltip="Save mapping output"
+    >
+      <mat-icon class="mat-primary">check_circle</mat-icon>
+    </button>
+  </div>
+</form>
