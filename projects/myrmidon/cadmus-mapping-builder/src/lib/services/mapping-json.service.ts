@@ -9,12 +9,18 @@ import {
   NodeMappingOutput,
 } from '../models';
 
+/**
+ * Interface corresponding to the node's output in the JSON mapping format.
+ */
 export interface SerializedMappedNodeOutput {
   nodes?: { [key: string]: string };
   triples?: string[];
   metadata?: { [key: string]: string };
 }
 
+/**
+ * Interface corresponding to a mapped node in the JSON mapping format.
+ */
 export interface SerializedMappedNode {
   id?: number;
   parentId?: number;
@@ -35,6 +41,17 @@ export interface SerializedMappedNode {
   children?: SerializedMappedNode[];
 }
 
+/**
+ * Interface corresponding to a JSON document containing node mappings.
+ * This document can contain named mappings (namedMappings) and document
+ * mappings (documentMappings). Document mappings are the true mappings;
+ * named mappings are just branches of nodes which get reused in multiple
+ * document mappings. Document mappings can reference named mappings
+ * by name, and these references will be expanded when reading the document.
+ * A reference to a named mapping is just an object having only the name,
+ * and (among other missing properties) no source, which is required for
+ * each true mapping.
+ */
 export interface NodeMappingDocument {
   namedMappings?: { [key: string]: SerializedMappedNode };
   documentMappings: SerializedMappedNode[];
@@ -62,7 +79,8 @@ export class MappingJsonService {
    * the parent of each mapping if requested.
    *
    * @param mapping The mapping to visit.
-   * @param hydration True to set falsy IDs and parent of each visited mapping.
+   * @param hydration True to supply ID and parents for the falsy IDs
+   * and parents of each visited mapping.
    * @param visitor The function to call for each visited mapping, if any;
    * if this returns false, the visit is interrupted.
    */
@@ -71,10 +89,12 @@ export class MappingJsonService {
     hydration = true,
     visitor?: (m: NodeMapping) => boolean
   ): void {
-    // handle the received mapping
+    // nope if no mapping
     if (!mapping) {
       return;
     }
+
+    // supply ID and parent if requested
     if (hydration && !mapping.id) {
       mapping.id = this._nextId++;
     }
@@ -146,6 +166,11 @@ export class MappingJsonService {
     });
   }
 
+  /**
+   * Adapt the received mapping output to an object ready to be serialized
+   * @param output The output to adapt.
+   * @returns Output ready to be serialized into JSON with a more compact format.
+   */
   private adaptMappingOutput(
     output: NodeMappingOutput | undefined | null
   ): SerializedMappedNodeOutput | undefined {
@@ -159,6 +184,12 @@ export class MappingJsonService {
     };
   }
 
+  /**
+   * Get the ready to serialize node from the specified node mapping.
+   * @param node The node mapping to serialize.
+   * @param dropId True to drop ID and parent ID.
+   * @returns The serialized mapped node.
+   */
   private getSerializedMappedNode(
     node: NodeMapping,
     dropId = false
@@ -235,14 +266,6 @@ export class MappingJsonService {
     return result;
   }
 
-  /**
-   * Determine if a mapping is a reference to a named mapping that should be expanded.
-   */
-  private isNamedReference(mapping: NodeMapping): boolean {
-    // all "true" mappings have source, so if there's no source, it's a reference
-    return !mapping.source;
-  }
-
   private getMappedTriples(triples?: string[]): MappedTriple[] | undefined {
     if (!triples) {
       return undefined;
@@ -293,15 +316,13 @@ export class MappingJsonService {
   }
 
   /**
-   * Deserialize the specified JSON code to a mapping.
+   * Read a JSON document containing node mappings.
    *
-   * @param json The JSON code to deserialize.
-   * @returns Mapping.
+   * @param json The JSON document to read.
+   * @param resetId The flag to reset the next ID to 1.
+   * If true, the next ID will be reset to 1 before reading the document.
+   * @returns Array of node mappings read from the document.
    */
-  private deserializeMapping(json: string): NodeMapping {
-    return this.getMapping(JSON.parse(json) as SerializedMappedNode);
-  }
-
   public readMappingsDocument(json: string, resetId = true): NodeMapping[] {
     // reset the next ID if requested
     if (resetId) {
@@ -325,7 +346,7 @@ export class MappingJsonService {
     // read document mappings
     const mappings = doc.documentMappings.map((m) => this.getMapping(m));
 
-    // hydrate mappings and expand named mappings references
+    // hydrate mappings expanding named mappings references
     for (let i = 0; i < mappings.length; i++) {
       // assign IDs and parents
       this.visitMappings(mappings[i], true);
@@ -336,7 +357,7 @@ export class MappingJsonService {
         // Only expand if this looks like a named reference:
         // - name exists in named mappings
         // - has no output or minimal content (likely just a reference)
-        if (named[m.name] && this.isNamedReference(m)) {
+        if (named[m.name] && !m.source) {
           hasExpansions = true;
           // copy named mapping when expanding
           const mc = deepCopy(named[m.name]);

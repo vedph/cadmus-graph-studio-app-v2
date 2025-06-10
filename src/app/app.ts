@@ -54,7 +54,7 @@ export class App {
     this.version = envService.get('version') || '';
     // load sample mappings
     assetService
-      .loadText('sample-mappings.json')
+      .loadText(envService.get('presetMappings') || 'sample-mappings.json')
       .pipe(take(1))
       .subscribe((json) => {
         _mappingService.importMappings(json);
