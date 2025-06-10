@@ -238,6 +238,166 @@
           }
         }
       ]
+    },
+    {
+      "name": "text_sent_event",
+      "sourceType": 2,
+      "facetFilter": "work",
+      "partTypeFilter": "it.vedph.historical-events",
+      "description": "Map text sent event",
+      "source": "events[?type=='text.send']",
+      "sid": "{$part-id}/{@eid}",
+      "output": {
+        "metadata": {
+          "id": "{$part-id}/{@eid}",
+          "work": "itn:works/{$metadata-pid}/{$item-eid}"
+        },
+        "nodes": {
+          "event": "itn:events/{$sid} [itn:events/{@eid}]"
+        },
+        "triples": [
+          "{?event} a crm:E7_Activity",
+          "{?event} crm:P2_has_type itn:event-types/text.send",
+          "{?event} crm:P16_used_specific_object {$work}"
+        ]
+      },
+      "children": [
+        {
+          "name": "event_description"
+        },
+        {
+          "name": "event_note"
+        },
+        {
+          "name": "event_chronotopes"
+        },
+        {
+          "name": "event_assertion"
+        },
+        {
+          "name": "event_period"
+        },
+        {
+          "name": "text_sent_event/related/carried_out_by@eg",
+          "source": "relatedEntities[?relation=='text:send:sender' && !id.target.name && starts_with(id.target.gid, '@')]",
+          "output": {
+            "nodes": {
+              "sender": "{!_substring({@id.target.gid} & 1)}"
+            },
+            "triples": ["{?event} crm:P14_carried_out_by {?sender}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/carried_out_by@el",
+          "source": "relatedEntities[?relation=='text:send:sender' && !id.target.name && !(starts_with(id.target.gid, '@'))]",
+          "output": {
+            "nodes": {
+              "sender": "{@id.target.gid}"
+            },
+            "triples": ["{?event} crm:P14_carried_out_by {?sender}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/carried_out_by@i",
+          "source": "relatedEntities[?relation=='text:send:sender' && id.target.name]",
+          "output": {
+            "nodes": {
+              "sender": "itn:persons/{@id.target.partId}/{@id.target.value} [itn:persons/{@id.target.value}]"
+            },
+            "triples": ["{?event} crm:P14_carried_out_by {?sender}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/has_participant@eg",
+          "source": "relatedEntities[?relation=='text:send:recipient' && !id.target.name && starts_with(id.target.gid, '@')]",
+          "output": {
+            "nodes": {
+              "recipient": "{!_substring({@id.target.gid} & 1)}"
+            },
+            "triples": ["{?event} crm:P11_has_participant {?recipient}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/has_participant@el",
+          "source": "relatedEntities[?relation=='text:send:recipient' && !id.target.name && !(starts_with(id.target.gid, '@'))]",
+          "output": {
+            "nodes": {
+              "recipient": "{@id.target.gid}"
+            },
+            "triples": ["{?event} crm:P11_has_participant {?recipient}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/has_participant@i",
+          "source": "relatedEntities[?relation=='text:send:recipient' && id.target.name]",
+          "output": {
+            "nodes": {
+              "recipient": "itn:persons/{@id.target.partId}/{@id.target.value} [itn:persons/{@id.target.value}]"
+            },
+            "triples": ["{?event} crm:P11_has_participant {?recipient}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/has_participant@eg",
+          "source": "relatedEntities[?relation=='text:send:carrier' && !id.target.name && starts_with(id.target.gid, '@')]",
+          "output": {
+            "nodes": {
+              "carrier": "{!_substring({@id.target.gid} & 1)}"
+            },
+            "triples": ["{?event} crm:P11_has_participant {?carrier}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/has_participant@el",
+          "source": "relatedEntities[?relation=='text:send:carrier' && !id.target.name && !(starts_with(id.target.gid, '@'))]",
+          "output": {
+            "nodes": {
+              "carrier": "{@id.target.gid}"
+            },
+            "triples": ["{?event} crm:P11_has_participant {?carrier}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/has_participant@i",
+          "source": "relatedEntities[?relation=='text:send:carrier' && id.target.name]",
+          "output": {
+            "nodes": {
+              "carrier": "itn:persons/{@id.target.partId}/{@id.target.value} [itn:persons/{@id.target.value}]"
+            },
+            "triples": ["{?event} crm:P11_has_participant {?carrier}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/attachment@eg",
+          "source": "relatedEntities[?relation=='text:send:attachment' && !id.target.name && starts_with(id.target.gid, '@')]",
+          "output": {
+            "nodes": {
+              "attachment": "{@slice(id.target.gid, 1)}"
+            },
+            "triples": ["{?event} crm:P16_used_specific_object {?attachment}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/attachment@el",
+          "source": "relatedEntities[?relation=='text:send:attachment' && !id.target.name && !(starts_with(id.target.gid, '@'))]",
+          "output": {
+            "nodes": {
+              "attachment": "{@id.target.gid}"
+            },
+            "triples": ["{?event} crm:P16_used_specific_object {?attachment}"]
+          }
+        },
+        {
+          "name": "text_sent_event/related/attachment@i",
+          "source": "relatedEntities[?relation=='text:send:attachment' && id.target.name]",
+          "output": {
+            "nodes": {
+              "attachment": "itn:persons/{@id.target.partId}/{@id.target.value} [itn:persons/{@id.target.value}]"
+            },
+            "triples": ["{?event} crm:P16_used_specific_object {?attachment}"]
+          }
+        }
+      ]
     }
   ]
 }

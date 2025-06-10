@@ -26,7 +26,7 @@ export interface SerializedMappedNode {
   parentId?: number;
   ordinal?: number;
   name: string;
-  sourceType: number;
+  sourceType: number; // sourceType can be optional for named references
   facetFilter?: string;
   groupFilter?: string;
   flagsFilter?: number;
@@ -34,8 +34,8 @@ export interface SerializedMappedNode {
   partTypeFilter?: string;
   partRoleFilter?: string;
   description?: string;
-  source: string;
-  sid: string;
+  source: string; // source can be optional for named references
+  sid: string; // sid can be optional for named references
   scalarPattern?: string;
   output?: SerializedMappedNodeOutput;
   children?: SerializedMappedNode[];
@@ -109,9 +109,8 @@ export class MappingJsonService {
           child.parentId = mapping.id;
           child.parent = mapping;
         }
-        if (visitor && !visitor(child)) {
-          return;
-        }
+        // Only visit children if the visitor doesn't interrupt for the current node.
+        // The original logic calls visitor twice for children, which is redundant.
         this.visitMappings(child, hydration, visitor);
       }
     }
@@ -174,6 +173,10 @@ export class MappingJsonService {
   private adaptMappingOutput(
     output: NodeMappingOutput | undefined | null
   ): SerializedMappedNodeOutput | undefined {
+    // only return an object if there's actual content to serialize
+    if (!output?.nodes && !output?.triples && !output?.metadata) {
+      return undefined;
+    }
     return {
       // nodes: { key: "uid [label|tag]" }
       nodes: this.adaptNodes(output?.nodes),
@@ -271,7 +274,7 @@ export class MappingJsonService {
       return undefined;
     }
     return triples.map((t) => {
-      // More robust parsing - split on first two spaces only
+      // split on first two spaces only
       const firstSpace = t.indexOf(' ');
       const secondSpace = t.indexOf(' ', firstSpace + 1);
 
@@ -283,7 +286,9 @@ export class MappingJsonService {
       const p = t.substring(firstSpace + 1, secondSpace);
       const o = t.substring(secondSpace + 1);
 
-      return o.startsWith('"') ? { s, p, ol: o } : { s, p, o };
+      // check if 'o' starts with a quote to determine if it's a literal or URI
+      const isLiteral = o.startsWith('"');
+      return isLiteral ? { s, p, ol: o } : { s, p, o };
     });
   }
 
@@ -293,7 +298,8 @@ export class MappingJsonService {
       parentId: node.parentId,
       ordinal: node.ordinal,
       name: node.name,
-      sourceType: node.sourceType,
+      // default to 0 if sourceType is undefined (named mappings might not have it)
+      sourceType: node.sourceType || 0,
       facetFilter: node.facetFilter,
       groupFilter: node.groupFilter,
       flagsFilter: node.flagsFilter,
@@ -301,8 +307,9 @@ export class MappingJsonService {
       partTypeFilter: node.partTypeFilter,
       partRoleFilter: node.partRoleFilter,
       description: node.description,
-      source: node.source,
-      sid: node.sid,
+      // source might be missing for named mapping references, so handle undefined
+      source: node.source || '',
+      sid: node.sid || '',
       scalarPattern: node.scalarPattern,
       output: {
         nodes: this.getMappedNodes(node.output?.nodes),
@@ -311,7 +318,50 @@ export class MappingJsonService {
       },
       children: node.children?.map((c) => this.getMapping(c)),
     };
+    return mapping;
+  }
 
+  /**
+   * Recursively expands named mapping references within a mapping tree.
+   * This function modifies the input mapping in place.
+   * @param mapping The current mapping to process.
+   * @param namedMappings A dictionary of named mappings for reference.
+   * @returns The mapping with named references expanded.
+   */
+  private expandNamedMappingReferences(
+    mapping: NodeMapping,
+    namedMappings: { [key: string]: NodeMapping }
+  ): NodeMapping {
+    if (!mapping.children) {
+      return mapping;
+    }
+
+    for (let i = 0; i < mapping.children.length; i++) {
+      let child = mapping.children[i];
+
+      // check if this child is a named mapping reference.
+      // A reference has only the `name` property and no `source` property,
+      // as specified in the JSON document description.
+      if (namedMappings[child.name] && child.source === undefined) {
+        const namedRef = deepCopy(namedMappings[child.name]);
+
+        // preserve the ID, parentId, and parent from the placeholder child
+        namedRef.id = child.id;
+        namedRef.parentId = child.parentId;
+        namedRef.parent = child.parent;
+
+        // replace the child with the expanded named mapping
+        mapping.children[i] = namedRef;
+
+        // recursively expand children of the newly inserted named mapping
+        if (namedRef.children) {
+          this.expandNamedMappingReferences(namedRef, namedMappings);
+        }
+      } else {
+        // if it's not a named reference, just recurse into its children
+        this.expandNamedMappingReferences(child, namedMappings);
+      }
+    }
     return mapping;
   }
 
@@ -335,54 +385,38 @@ export class MappingJsonService {
       return [];
     }
 
-    // read named mappings
+    // 1. read all named mappings into a dictionary
     let named: { [key: string]: NodeMapping } = {};
     if (doc.namedMappings) {
       Object.keys(doc.namedMappings).forEach((key) => {
-        named[key] = this.getMapping(doc.namedMappings![key]);
+        // hydrate named mappings as well, but their IDs will be unique
+        // to the namedMapping context and will be replaced when they
+        // are expanded into document mappings.
+        const namedMapping = this.getMapping(doc.namedMappings![key]);
+        // hydrate IDs and parents for named mappings themselves
+        this.visitMappings(namedMapping, true);
+        named[key] = namedMapping;
       });
     }
 
-    // read document mappings
-    const mappings = doc.documentMappings.map((m) => this.getMapping(m));
+    // 2. read document mappings and perform initial hydration
+    // (IDs and parents)
+    const mappings = doc.documentMappings.map((m) => {
+      const mapping = this.getMapping(m);
+      // initial hydration for document mappings
+      this.visitMappings(mapping, true);
+      return mapping;
+    });
 
-    // hydrate mappings expanding named mappings references
+    // 3. expand named mapping references in document mappings
     for (let i = 0; i < mappings.length; i++) {
-      // assign IDs and parents
+      this.expandNamedMappingReferences(mappings[i], named);
+      // after expansion, re-hydrate to ensure all new nodes
+      // (from expansion) have correct IDs and parent references.
+      // This handles nested expansions.
       this.visitMappings(mappings[i], true);
-
-      // expand named mappings - check if this is a reference (no output, no children)
-      let hasExpansions = false;
-      this.visitMappings(mappings[i], false, (m) => {
-        // Only expand if this looks like a named reference:
-        // - name exists in named mappings
-        // - has no output or minimal content (likely just a reference)
-        if (named[m.name] && !m.source) {
-          hasExpansions = true;
-          // copy named mapping when expanding
-          const mc = deepCopy(named[m.name]);
-          mc.id = m.id;
-          mc.parentId = m.parentId;
-          mc.parent = m.parent;
-
-          if (m.parent?.children) {
-            const idx = m.parent.children.findIndex((c) => c.id === m.id);
-            if (idx >= 0) {
-              m.parent.children[idx] = mc;
-            }
-          } else {
-            mappings[i] = mc;
-          }
-        }
-        return true;
-      });
-
-      // repeat hydration on expanded mappings to ensure that
-      // also expanded mappings descendants are hydrated
-      if (hasExpansions) {
-        this.visitMappings(mappings[i], true);
-      }
     }
+
     return mappings;
   }
 }
