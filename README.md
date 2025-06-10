@@ -1,6 +1,6 @@
-# Cadmus Graph Studio
+# Cadmus Graph Studio V2
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.1.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.1. This is the second generation of the [original studio app](https://github.com/vedph/cadmus-graph-studio-app).
 
 This is a minimalist editor for helping users build their graph mapping rules.
 
@@ -34,6 +34,15 @@ docker build . -t vedph2020/cadmus-graph-studio-app:0.0.11-prod
 ```
 
 ## History
+
+- 2025-06-10:
+  - adopted modern Angular infrastructure.
+  - made all components standalone, removing modules.
+  - replaced all input/output in components with signals.
+  - replaced Material tree with paged tree.
+  - refactored data services.
+
+---
 
 - 2025-06-09: updated Angular and packages.
 - 2025-06-05: ⚠️ upgraded to Angular 20.
