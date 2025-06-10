@@ -33,6 +33,21 @@ window.__env.apiUrl = "https://cadmus-graph-studio-api.fusi-soft.com/api/";
 docker build . -t vedph2020/cadmus-graph-studio-app:0.0.11-prod
 ```
 
+## Debug Hints
+
+If you need to debug the tree:
+
+1. always _build_ the library first before linking.
+2. in your _source_ workspace root, run `npm link dist/myrmidon/paged-data-browsers`.
+3. in your _target_ workspace root, run `npm link @myrmidon/paged-data-browser`.
+4. later, to unlink, in your _target_ workspace root run `npm unlink @myrmidon/paged-data-browser` and `npm install` to reinstall the original package.
+
+You don't need to uninstall the NPM package first. The `npm link` command will temporarily override the installed package without removing it from your package.json or node_modules. The original package stays in node_modules and package.json; `npm link` creates a symbolic link that takes precedence. When you `npm unlink`, it removes the symbolic link and falls back to the original package.
+
+You can check if the link is active by looking at `node_modules/@myrmidon/paged-data-browser`: it should show as a symbolic link (folder icon with an arrow on Windows).
+
+When you revert with `npm unlink @myrmidon/paged-data-browser`, the original package from npm will be used again automatically.
+
 ## History
 
 - 2025-06-10:
