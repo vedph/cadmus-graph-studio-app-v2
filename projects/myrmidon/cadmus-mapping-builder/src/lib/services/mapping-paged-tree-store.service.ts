@@ -56,7 +56,7 @@ export class MappingPagedTreeStoreService
     level: number = 0,
     siblingIndex: number = 0
   ): void {
-    // Create flat mapping by extracting data without parent and children
+    // create flat mapping by extracting data without parent and children
     const { children, parent, ...mappingData } = node;
 
     const flatNode: MappingTreeNode = {
@@ -76,7 +76,7 @@ export class MappingPagedTreeStoreService
 
     flatNodes.push(flatNode);
 
-    // recursively flatten children
+    // recursively flatten children with correct sibling indices
     if (children && children.length > 0) {
       children.forEach((child, index) => {
         this.flattenNode(child, flatNodes, node.id, level + 1, index);

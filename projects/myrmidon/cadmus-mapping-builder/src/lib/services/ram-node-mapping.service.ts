@@ -127,6 +127,17 @@ export class RamNodeMappingService implements NodeMappingService {
     const mappings = this._jsonService.readMappingsDocument(json);
     // sort mappings by name
     mappings.sort((a, b) => a.name.localeCompare(b.name));
+
+    // TODO: remove this once debugged
+    const dump = mappings.map((m) => {
+      return {
+        ...m,
+        parent: undefined, // remove parent to avoid circular references
+        children: undefined, // remove children to avoid circular references
+      };
+    });
+    console.log('Imported mappings:', dump);
+
     this._mappings.next(mappings);
     return of(mappings);
   }

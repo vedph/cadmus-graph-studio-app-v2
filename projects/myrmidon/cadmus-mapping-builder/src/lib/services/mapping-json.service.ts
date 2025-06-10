@@ -238,25 +238,9 @@ export class MappingJsonService {
   /**
    * Determine if a mapping is a reference to a named mapping that should be expanded.
    */
-  private isNamedReference(
-    mapping: NodeMapping,
-    namedMapping: NodeMapping
-  ): boolean {
-    // If the mapping has substantial content beyond just a name, it's not a reference
-    if (
-      mapping.output?.nodes ||
-      mapping.output?.triples ||
-      mapping.children?.length
-    ) {
-      return false;
-    }
-
-    // If source/sid are just placeholders or match the named mapping, it's likely a reference
-    if (!mapping.source || mapping.source === namedMapping.source) {
-      return true;
-    }
-
-    return false;
+  private isNamedReference(mapping: NodeMapping): boolean {
+    // all "true" mappings have source, so if there's no source, it's a reference
+    return !mapping.source;
   }
 
   private getMappedTriples(triples?: string[]): MappedTriple[] | undefined {
@@ -302,9 +286,7 @@ export class MappingJsonService {
         triples: this.getMappedTriples(node.output?.triples),
         metadata: node.output?.metadata,
       },
-      children: node.children?.map((c) =>
-        this.deserializeMapping(JSON.stringify(c, null, 2))
-      ),
+      children: node.children?.map((c) => this.getMapping(c)),
     };
 
     return mapping;
@@ -321,9 +303,12 @@ export class MappingJsonService {
   }
 
   public readMappingsDocument(json: string, resetId = true): NodeMapping[] {
+    // reset the next ID if requested
     if (resetId) {
       this._nextId = 1;
     }
+
+    /// parse the JSON document
     const doc = JSON.parse(json) as NodeMappingDocument;
     if (!doc?.documentMappings?.length) {
       return [];
@@ -338,9 +323,7 @@ export class MappingJsonService {
     }
 
     // read document mappings
-    const mappings = doc.documentMappings.map((m) =>
-      this.deserializeMapping(JSON.stringify(m, null, 2))
-    );
+    const mappings = doc.documentMappings.map((m) => this.getMapping(m));
 
     // hydrate mappings and expand named mappings references
     for (let i = 0; i < mappings.length; i++) {
@@ -353,7 +336,7 @@ export class MappingJsonService {
         // Only expand if this looks like a named reference:
         // - name exists in named mappings
         // - has no output or minimal content (likely just a reference)
-        if (named[m.name] && this.isNamedReference(m, named[m.name])) {
+        if (named[m.name] && this.isNamedReference(m)) {
           hasExpansions = true;
           // copy named mapping when expanding
           const mc = deepCopy(named[m.name]);
