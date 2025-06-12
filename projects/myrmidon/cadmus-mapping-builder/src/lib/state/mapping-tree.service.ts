@@ -4,7 +4,7 @@ import { PagedTreeStore } from '@myrmidon/paged-data-browsers';
 import {
   MappingPagedTreeStoreService,
   MappingTreeFilter,
-  MappingTreeNode,
+  MappingPagedTreeNode,
 } from '../services/mapping-paged-tree-store.service';
 
 /**
@@ -15,10 +15,10 @@ import {
   providedIn: 'root',
 })
 export class MappingTreeService {
-  public store: PagedTreeStore<MappingTreeNode, MappingTreeFilter>;
+  public store: PagedTreeStore<MappingPagedTreeNode, MappingTreeFilter>;
 
   constructor(private _service: MappingPagedTreeStoreService) {
-    this.store = new PagedTreeStore<MappingTreeNode, MappingTreeFilter>(
+    this.store = new PagedTreeStore<MappingPagedTreeNode, MappingTreeFilter>(
       _service
     );
   }

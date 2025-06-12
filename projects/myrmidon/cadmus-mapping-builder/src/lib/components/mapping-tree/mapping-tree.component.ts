@@ -22,7 +22,7 @@ import { MappingTreeFilterComponent } from '../mapping-tree-filter/mapping-tree-
 import { MappingTreeService } from '../../state/mapping-tree.service';
 import {
   MappingTreeFilter,
-  MappingTreeNode,
+  MappingPagedTreeNode,
 } from '../../services/mapping-paged-tree-store.service';
 import { Mapping, NodeMapping } from '../../models';
 
@@ -53,19 +53,30 @@ import { Mapping, NodeMapping } from '../../models';
   styleUrls: ['./mapping-tree.component.css'],
 })
 export class MappingTreeComponent implements OnDestroy {
-  private readonly _store: PagedTreeStore<MappingTreeNode, MappingTreeFilter>;
+  private readonly _store: PagedTreeStore<MappingPagedTreeNode, MappingTreeFilter>;
   private _dialog = inject(MatDialog);
   private _sub?: Subscription;
 
   /**
    * The single node mapping whose tree is displayed by this component.
+   * This is a nested node mapping. Internally, a tree of flat nodes
+   * will be built from it.
    */
   public readonly mapping = input<NodeMapping>();
 
   public readonly selected = model<Mapping>();
 
-  public readonly mappingAdd = output<Mapping>();
-  public readonly mappingDelete = output<Mapping>();
+  /**
+   * Emitted when the user requests to add a child node to a mapping.
+   * The number is the parent mapping ID.
+   */
+  public readonly mappingAdd = output<number>();
+
+  /**
+   * Emitted when the user requests to delete a mapping.
+   * The number is the mapping ID.
+   */
+  public readonly mappingDelete = output<number>();
 
   public debug: FormControl<boolean> = new FormControl(false, {
     nonNullable: true,
@@ -79,7 +90,7 @@ export class MappingTreeComponent implements OnDestroy {
 
   public loading?: boolean;
   public filter$: Observable<Readonly<MappingTreeFilter>>;
-  public nodes$: Observable<Readonly<MappingTreeNode[]>>;
+  public nodes$: Observable<Readonly<MappingPagedTreeNode[]>>;
 
   constructor(private _service: MappingTreeService) {
     this._store = this._service.store;
@@ -106,7 +117,7 @@ export class MappingTreeComponent implements OnDestroy {
     });
   }
 
-  public onToggleExpanded(node: MappingTreeNode): void {
+  public onToggleExpanded(node: MappingPagedTreeNode): void {
     this.loading = true;
     if (node.expanded) {
       this._store.collapse(node.id).finally(() => {
@@ -136,7 +147,7 @@ export class MappingTreeComponent implements OnDestroy {
     });
   }
 
-  public onEditFilterRequest(node: MappingTreeNode): void {
+  public onEditFilterRequest(node: MappingPagedTreeNode): void {
     const dialogRef = this._dialog.open(MappingTreeFilterComponent, {
       data: {
         filter: node.filter,
@@ -152,20 +163,24 @@ export class MappingTreeComponent implements OnDestroy {
     });
   }
 
-  public expandAll(): void {
-    this._store.expandAll();
+  public async expandAll(): Promise<void> {
+    await this._store.expandAll();
   }
 
-  public collapseAll(): void {
-    this._store.collapseAll();
+  public async collapseAll(): Promise<void> {
+    await this._store.collapseAll();
   }
 
-  public addChildNode(node: MappingTreeNode): void {
-    this.mappingAdd.emit(node.mapping!);
+  public addChildNode(node: MappingPagedTreeNode): void {
+    this.mappingAdd.emit(node.mapping!.id);
   }
 
-  public deleteNode(node: MappingTreeNode): void {
-    this.mappingDelete.emit(node.mapping!);
+  public deleteNode(node: MappingPagedTreeNode): void {
+    this.mappingDelete.emit(node.mapping!.id);
+  }
+
+  public selectNode(node: MappingPagedTreeNode): void {
+    // TODO
   }
 
   public clear(): void {

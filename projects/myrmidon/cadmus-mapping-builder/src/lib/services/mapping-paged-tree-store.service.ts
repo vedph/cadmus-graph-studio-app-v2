@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
+
+import { DataPage } from '@myrmidon/ngx-tools';
 import {
   PagedTreeNode,
   PagedTreeStoreService,
-  TreeNode,
   TreeNodeFilter,
 } from '@myrmidon/paged-data-browsers';
-import { DataPage } from '@myrmidon/ngx-tools';
-import { Observable, of } from 'rxjs';
 
 import { RamNodeMappingService } from './ram-node-mapping.service';
 import { Mapping, NodeMapping } from '../models';
@@ -19,9 +19,9 @@ export interface MappingTreeFilter extends TreeNodeFilter {
 }
 
 /**
- * A node representing a mapping in a single mapping tree.
+ * A node representing a mapping in a single mapping flat tree.
  */
-export interface MappingTreeNode extends PagedTreeNode<TreeNodeFilter> {
+export interface MappingPagedTreeNode extends PagedTreeNode<TreeNodeFilter> {
   mapping?: Mapping;
 }
 
@@ -30,6 +30,7 @@ export interface MappingTreeNode extends PagedTreeNode<TreeNodeFilter> {
  * This service is used to browse the tree of a single mapping,
  * set via reset.
  */
+// TODO: remove injectable if this is to be wrapped in another service
 @Injectable({
   providedIn: 'root',
 })
@@ -37,7 +38,7 @@ export class MappingPagedTreeStoreService
   implements PagedTreeStoreService<MappingTreeFilter>
 {
   private _mapping?: NodeMapping;
-  private _nodes: MappingTreeNode[] = [];
+  private _nodes: MappingPagedTreeNode[] = [];
 
   constructor(private _fetchService: RamNodeMappingService) {}
 
@@ -51,7 +52,7 @@ export class MappingPagedTreeStoreService
    */
   private flattenNode(
     node: NodeMapping,
-    flatNodes: MappingTreeNode[],
+    flatNodes: MappingPagedTreeNode[],
     parentId?: number,
     level: number = 0,
     siblingIndex: number = 0
@@ -59,7 +60,7 @@ export class MappingPagedTreeStoreService
     // create flat mapping by extracting data without parent and children
     const { children, parent, ...mappingData } = node;
 
-    const flatNode: MappingTreeNode = {
+    const flatNode: MappingPagedTreeNode = {
       id: node.id,
       label: node.name || node.id?.toString() || '',
       y: level + 1,
@@ -89,8 +90,8 @@ export class MappingPagedTreeStoreService
    * @param nodeMapping The root node mapping to flatten.
    * @returns Array of flat mapping objects.
    */
-  private flattenMapping(nodeMapping: NodeMapping): MappingTreeNode[] {
-    const flatNodes: MappingTreeNode[] = [];
+  private flattenMapping(nodeMapping: NodeMapping): MappingPagedTreeNode[] {
+    const flatNodes: MappingPagedTreeNode[] = [];
     this.flattenNode(nodeMapping, flatNodes, undefined, 0, 0);
     return flatNodes;
   }
@@ -138,9 +139,9 @@ export class MappingPagedTreeStoreService
    * @returns Filtered array of nodes.
    */
   private applyFilter(
-    nodes: MappingTreeNode[],
+    nodes: MappingPagedTreeNode[],
     filter: MappingTreeFilter
-  ): MappingTreeNode[] {
+  ): MappingPagedTreeNode[] {
     if (!filter) {
       return nodes;
     }
@@ -177,7 +178,7 @@ export class MappingPagedTreeStoreService
     filter: MappingTreeFilter,
     pageNumber: number,
     pageSize: number
-  ): Observable<DataPage<MappingTreeNode>> {
+  ): Observable<DataPage<MappingPagedTreeNode>> {
     // empty if no mapping
     if (!this._mapping) {
       return of({
@@ -186,7 +187,7 @@ export class MappingPagedTreeStoreService
         pageCount: 0,
         total: 0,
         items: [],
-      } as DataPage<MappingTreeNode>);
+      } as DataPage<MappingPagedTreeNode>);
     }
 
     // apply filtering
@@ -205,6 +206,6 @@ export class MappingPagedTreeStoreService
       pageCount,
       total,
       items: pagedNodes,
-    } as DataPage<MappingTreeNode>);
+    } as DataPage<MappingPagedTreeNode>);
   }
 }

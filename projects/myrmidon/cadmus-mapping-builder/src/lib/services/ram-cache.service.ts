@@ -1,5 +1,9 @@
 import { Injectable } from '@angular/core';
 
+/**
+ * Simple in-memory cache service.
+ * This service is used to cache data in memory, with no expiration.
+ */
 @Injectable({
   providedIn: 'root',
 })

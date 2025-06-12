@@ -16,7 +16,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { NodeMappingFilter } from '../../models';
-import { NodeMappingListService } from '../../state/mapping-list.service';
+import { NodeMappingListService } from '../../state/node-mapping-list.service';
 
 @Component({
   selector: 'cadmus-mapping-filter',

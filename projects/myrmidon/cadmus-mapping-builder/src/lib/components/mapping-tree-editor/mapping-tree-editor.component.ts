@@ -8,6 +8,7 @@ import { Mapping, NodeMapping } from '../../models';
 import { MappingJsonService } from '../../services/mapping-json.service';
 import { MappingTreeComponent } from '../mapping-tree/mapping-tree.component';
 import { MappingEditorComponent } from '../mapping-editor/mapping-editor.component';
+import { MappingPagedTreeNode } from '../../services/mapping-paged-tree-store.service';
 
 /**
  * The mapping tree editor component. This orchestrates editing a mapping
@@ -41,12 +42,13 @@ export class MappingTreeEditorComponent {
   ) {
     effect(() => {
       const mapping = this.mapping();
-      if (!mapping) {
-        this.editedMapping = undefined;
-      } else {
-        this._jsonService.visitMappings(mapping);
-        this.editedMapping = mapping;
-      }
+      this.editedMapping = mapping;
+      // if (!mapping) {
+      //   this.editedMapping = undefined;
+      // } else {
+      //   // this._jsonService.visitMappings(mapping);
+      //   this.editedMapping = mapping;
+      // }
     });
   }
 
@@ -111,51 +113,70 @@ export class MappingTreeEditorComponent {
     }
   }
 
-  public onMappingDelete(mapping: Mapping): void {
-    this._dialogService
-      .confirm(`Delete mapping ${mapping.name}?`, 'Delete')
-      .pipe(take(1))
-      .subscribe((yes) => {
-        if (yes) {
-          // close edited mapping if it is the one being deleted
-          if (this.editedMapping?.id === mapping.id) {
-            this.editedMapping = undefined;
-          }
-          // remove from tree: find the parent and remove it from its children
-          if (!mapping.parentId) {
-            // this is the root mapping, do nothing
-            return;
-          }
+  public onMappingDelete(id: number): void {
+    // cannot delete the root mapping
+    if (id === this.mapping()?.id) {
+      return;
+    }
 
-          // TODO delete
-          // mapping.parent!.children = mapping.parent!.children!.filter(
-          //   (m) => m.id !== mapping.id
-          // );
-          // update the root mapping
-          this.mapping.set(deepCopy(this.mapping()!));
-        }
-      });
+    // TODO implement delete
+
+    // this._dialogService
+    //   .confirm('Delete', `Delete mapping ${node.mapping!.name}?`)
+    //   .pipe(take(1))
+    //   .subscribe((yes) => {
+    //     if (yes) {
+    //       // close edited mapping if it is the one being deleted
+    //       if (this.editedMapping?.id === node.mapping!.id) {
+    //         this.editedMapping = undefined;
+    //       }
+
+    //       // locate the mapping in the mapping() tree and remove it
+    //       this._jsonService.visitMappings(this.mapping()!, false, (m) => {
+    //         if (m.id === node.mapping!.id) {
+    //           // remove the mapping from m.parent.children
+    //           const siblings: NodeMapping[] = [];
+    //           for (let i = 0; i < m.parent!.children!.length; i++) {
+    //             if (m.parent!.children![i].id !== m.id) {
+    //               siblings.push(m.parent!.children![i]);
+    //             }
+    //           }
+    //           m.parent!.children = siblings;
+    //           return false;
+    //         }
+    //         return true;
+    //       });
+    //     }
+
+    //     // update the mapping tree
+    //     this.mapping.set({ ...this.mapping()! });
+    //   });
   }
 
-  public onMappingAddChild(mapping: Mapping): void {
+  public onMappingAddChild(id: number): void {
     // calculate the max ID by visiting mapping
-    let maxId = 0;
-    this._jsonService.visitMappings(mapping, false, (m) => {
-      if (m.id && m.id > maxId) {
-        maxId = m.id;
-      }
-      return true;
-    });
+    // TODO
+    // let maxId = 0;
+    // this._jsonService.visitMappings(node, false, (m) => {
+    //   if (m.id && m.id > maxId) {
+    //     maxId = m.id;
+    //   }
+    //   return true;
+    // });
     // edit the new mapping (it will be inserted on save)
-    this.editedMapping = {
-      id: maxId + 1,
-      parentId: mapping.id,
-      parent: mapping,
-      name: 'New mapping',
-      sourceType: 2,
-      source: '',
-      sid: '',
-    };
+    // this.editedMapping = {
+    //   id: maxId + 1,
+    //   parentId: id,
+    //   parent: node.mapping!,
+    //   name: 'New mapping',
+    //   sourceType: 2,
+    //   source: '',
+    //   sid: '',
+    // };
+  }
+
+  public save(): void {
+    // TODO
   }
 
   public close(): void {

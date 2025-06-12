@@ -18,6 +18,9 @@ export interface NodeMappingListProps {
   filter: NodeMappingFilter;
 }
 
+/**
+ * Service to manage a paged list of node mappings (NodeMapping).
+ */
 @Injectable({ providedIn: 'root' })
 export class NodeMappingListService
   implements PagedListStoreService<NodeMappingFilter, NodeMapping>

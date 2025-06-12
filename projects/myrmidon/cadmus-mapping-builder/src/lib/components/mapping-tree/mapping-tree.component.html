@@ -67,6 +67,14 @@
       <button
         type="button"
         mat-icon-button
+        (click)="expandAll()"
+        matTooltip="Expand all"
+      >
+        <mat-icon>unfold_more</mat-icon>
+      </button>
+      <button
+        type="button"
+        mat-icon-button
         (click)="collapseAll()"
         matTooltip="Collapse all"
       >

@@ -10,7 +10,7 @@ export * from './lib/services/mapping-paged-tree-store.service';
 export * from './lib/services/ram-cache.service';
 export * from './lib/services/ram-node-mapping.service';
 
-export * from './lib/state/mapping-list.service';
+export * from './lib/state/node-mapping-list.service';
 export * from './lib/state/mapping-tree.service';
 
 export * from './lib/components/cached-text-picker/cached-text-picker.component';

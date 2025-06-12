@@ -15,7 +15,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { DataPage, FlatLookupPipe } from '@myrmidon/ngx-tools';
 import { DialogService } from '@myrmidon/ngx-mat-tools';
 
-import { NodeMappingListService } from '../../state/mapping-list.service';
+import { NodeMappingListService } from '../../state/node-mapping-list.service';
 import { NodeMapping } from '../../models';
 
 @Component({
@@ -49,19 +49,19 @@ export class MappingListComponent {
   public readonly mappingEdit = output<NodeMapping>();
 
   constructor(
-    private _repository: NodeMappingListService,
+    private _listService: NodeMappingListService,
     private _dialogService: DialogService
   ) {
-    this.page$ = _repository.page$;
-    this.loading$ = _repository.loading$;
+    this.page$ = _listService.page$;
+    this.loading$ = _listService.loading$;
   }
 
   public onPageChange(event: PageEvent): void {
-    this._repository.setPage(event.pageIndex + 1, event.pageSize);
+    this._listService.setPage(event.pageIndex + 1, event.pageSize);
   }
 
   public reset(): void {
-    this._repository.reset();
+    this._listService.reset();
   }
 
   public deleteMapping(mapping: NodeMapping): void {
@@ -69,7 +69,7 @@ export class MappingListComponent {
       .confirm(`Delete mapping ${mapping.name}?`, 'Delete')
       .subscribe((yes) => {
         if (yes) {
-          this._repository.deleteMapping(mapping.id);
+          this._listService.deleteMapping(mapping.id);
         }
       });
   }

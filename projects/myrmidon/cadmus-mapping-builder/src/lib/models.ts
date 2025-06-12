@@ -1,13 +1,21 @@
 import { InjectionToken } from '@angular/core';
 import { DataPage } from '@myrmidon/ngx-tools';
+import { TreeNode } from '@myrmidon/paged-data-browsers';
 import { Observable } from 'rxjs';
 
+/**
+ * The node of a graph, used in a mapping.
+ */
 export interface MappedNode {
   uid: string;
   label: string;
   tag?: string;
 }
 
+/**
+ * A triple in a mapping, which is a subject-predicate-object,
+ * where object can be another entity (o) or a literal value (ol).
+ */
 export interface MappedTriple {
   s: string;
   p: string;
@@ -15,12 +23,18 @@ export interface MappedTriple {
   ol?: string;
 }
 
+/**
+ * The output of a node mapping, which is a set of nodes and triples.
+ */
 export interface NodeMappingOutput {
   nodes?: { [key: string]: MappedNode };
   triples?: MappedTriple[];
   metadata?: { [key: string]: string };
 }
 
+/**
+ * A rule's mapping.
+ */
 export interface Mapping {
   id: number;
   parentId?: number;
@@ -40,11 +54,18 @@ export interface Mapping {
   output?: NodeMappingOutput;
 }
 
+/**
+ * A mapping node in a nested tree of mappings.
+ * This is a rule's mapping which can have children and a parent.
+ */
 export interface NodeMapping extends Mapping {
   children?: NodeMapping[];
   parent?: NodeMapping;
 }
 
+/**
+ * The filter for node mappings.
+ */
 export interface NodeMappingFilter {
   parentId?: number;
   sourceType?: number;
