@@ -147,6 +147,14 @@ export class MappingPagedTreeStoreService
 
     let filtered = nodes;
 
+    // filter by parentId first (this is crucial for tree hierarchy)
+    if (filter.parentId !== undefined) {
+      filtered = filtered.filter((node) => node.parentId === filter.parentId);
+    } else {
+      // if no parentId specified, get root nodes (parentId is undefined)
+      filtered = filtered.filter((node) => node.parentId === undefined);
+    }
+
     // name filter
     if (filter.name?.trim()) {
       const name = filter.name.toLowerCase().trim();
@@ -154,11 +162,6 @@ export class MappingPagedTreeStoreService
         (node) =>
           node.mapping?.name && node.mapping.name.toLowerCase().includes(name)
       );
-    }
-
-    // parentId filter
-    if (filter.parentId !== undefined) {
-      filtered = filtered.filter((node) => node.parentId === filter.parentId);
     }
 
     return filtered;
