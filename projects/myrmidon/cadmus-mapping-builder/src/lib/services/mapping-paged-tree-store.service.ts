@@ -165,30 +165,16 @@ export class MappingPagedTreeStoreService
   }
 
   /**
-   * Check if a node has children.
-   * @param nodeId The node ID to check.
-   * @param nodes The flat nodes array.
-   * @returns True if the node has children.
-   */
-  private hasChildren(nodeId: number, nodes: MappingTreeNode[]): boolean {
-    return nodes.some((node) => node.parentId === nodeId);
-  }
-
-  /**
    * Get the specified page of nodes.
    * @param filter The filter.
    * @param pageNumber The page number.
    * @param pageSize The page size.
-   * @param hasMockRoot If true, the root node is a mock node provided by your
-   * service, which implies that its Y value is 0 rather than 1. Default is
-   * false, meaning that your service will return a single root node with Y
-   * value 1.
    */
   public getNodes(
     filter: MappingTreeFilter,
     pageNumber: number,
     pageSize: number
-  ): Observable<DataPage<TreeNode>> {
+  ): Observable<DataPage<MappingTreeNode>> {
     // empty if no mapping
     if (!this._mapping) {
       return of({
@@ -197,32 +183,25 @@ export class MappingPagedTreeStoreService
         pageCount: 0,
         total: 0,
         items: [],
-      } as DataPage<TreeNode>);
+      } as DataPage<MappingTreeNode>);
     }
 
     // apply filtering
-    let filteredNodes = this.applyFilter(this._nodes, filter);
-
-    // update hasChildren property based on filtered results
-    filteredNodes = filteredNodes.map((node) => ({
-      ...node,
-      hasChildren: this.hasChildren(node.id, filteredNodes),
-    }));
+    let nodes = this.applyFilter(this._nodes, filter);
 
     // apply paging
+    const total = nodes.length;
+    const pageCount = Math.ceil(total / pageSize);
     const startIndex = (pageNumber - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const pagedItems = filteredNodes.slice(startIndex, endIndex);
-
-    const totalCount = filteredNodes.length;
-    const pageCount = Math.ceil(totalCount / pageSize);
+    const pagedNodes = nodes.slice(startIndex, endIndex);
 
     return of({
       pageNumber,
       pageSize,
       pageCount,
-      total: totalCount,
-      items: pagedItems,
-    } as DataPage<TreeNode>);
+      total,
+      items: pagedNodes,
+    } as DataPage<MappingTreeNode>);
   }
 }
