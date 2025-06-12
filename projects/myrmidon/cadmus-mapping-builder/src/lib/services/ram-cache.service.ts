@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 
+// TODO: replace with LruCache from ngx-data-browser
+
 /**
  * Simple in-memory cache service.
  * This service is used to cache data in memory, with no expiration.
