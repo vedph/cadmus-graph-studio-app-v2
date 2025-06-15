@@ -24,7 +24,7 @@
     "@cisstech/nge": "^18.2.1",
     "@myrmidon/ngx-mat-tools": "^1.0.0",
     "@myrmidon/ngx-tools": "^2.0.0",
-    "@myrmidon/paged-data-browsers": "^5.0.1",
+    "@myrmidon/paged-data-browsers": "^5.0.2",
     "monaco-editor": "^0.52.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
