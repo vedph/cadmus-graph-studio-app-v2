@@ -1,21 +1,22 @@
-import { Component, effect, model, output } from '@angular/core';
-import { take } from 'rxjs';
+import { Component, effect, model, signal } from '@angular/core';
 
-import { DialogService } from '@myrmidon/ngx-mat-tools';
-import { deepCopy } from '@myrmidon/ngx-tools';
-
-import { Mapping, NodeMapping } from '../../models';
+import { NodeMapping } from '../../models';
 import { MappingJsonService } from '../../services/mapping-json.service';
 import { MappingTreeComponent } from '../mapping-tree/mapping-tree.component';
 import { MappingEditorComponent } from '../mapping-editor/mapping-editor.component';
-import { MappingPagedTreeNode } from '../../services/mapping-paged-tree-store.service';
 
 /**
  * The mapping tree editor component. This orchestrates editing a mapping
  * and all its descendants, if any. It composes together a mapping tree
- * component and a mapping editor component. Any edit is in-memory, and
- * is persisted only when the user clicks the Save button for the whole
- * root mapping.
+ * component and a mapping editor component.
+ * The tree component displays the mapping tree and allows the user to
+ * select the node to edit, delete a node and all its descendants, and
+ * add a new child node to a selected node. The tree just requests these
+ * operations to this component.
+ * The editor component allows the user to edit a mapping node. It is
+ * bound to the currently edited mapping node, which is set by the tree.
+ * Whenever a change is made to the mapping, this component fires the
+ * `mappingChange` event.
  */
 @Component({
   selector: 'cadmus-mapping-tree-editor',
@@ -30,25 +31,16 @@ export class MappingTreeEditorComponent {
   public readonly mapping = model<NodeMapping>();
 
   /**
-   * Emitted when the user requests to close the editor.
+   * The mapping's node being edited.
    */
-  public readonly editorClose = output();
+  public readonly editedMapping = signal<NodeMapping | undefined>(undefined);
 
-  public editedMapping?: NodeMapping;
-
-  constructor(
-    private _jsonService: MappingJsonService,
-    private _dialogService: DialogService
-  ) {
+  constructor(private _jsonService: MappingJsonService) {
+    // whenever the mapping changes, update the edited mapping
+    // to the root mapping
     effect(() => {
       const mapping = this.mapping();
-      this.editedMapping = mapping;
-      // if (!mapping) {
-      //   this.editedMapping = undefined;
-      // } else {
-      //   // this._jsonService.visitMappings(mapping);
-      //   this.editedMapping = mapping;
-      // }
+      this.editedMapping.set(mapping);
     });
   }
 
@@ -70,8 +62,42 @@ export class MappingTreeEditorComponent {
     return undefined;
   }
 
+  /**
+   * Deep clone a NodeMapping tree, properly handling parent-child
+   * relationships.
+   */
+  private cloneMappingTree(mapping: NodeMapping): NodeMapping {
+    const cloneNode = (
+      node: NodeMapping,
+      parent?: NodeMapping
+    ): NodeMapping => {
+      const cloned: NodeMapping = {
+        ...node,
+        parent: parent,
+        children: undefined, // will be set below
+      };
+
+      if (node.children) {
+        cloned.children = node.children.map((child) =>
+          cloneNode(child, cloned)
+        );
+      }
+
+      return cloned;
+    };
+
+    return cloneNode(mapping);
+  }
+
+  /**
+   * Set the mapping to edit.
+   * @param id The ID of the mapping to edit.
+   */
   public onMappingEdit(id: number): void {
-    this.editedMapping = this.findMappingById(this.mapping()!, id);
+    const mapping = this.mapping();
+    if (!mapping) return;
+
+    this.editedMapping.set(this.findMappingById(mapping, id));
   }
 
   /**
@@ -79,125 +105,143 @@ export class MappingTreeEditorComponent {
    * @param mapping The mapping to save.
    */
   public onMappingSave(mapping: NodeMapping): void {
-    const children = this.editedMapping?.children;
-    this.editedMapping = Object.assign(mapping, { children: children });
+    const currentMapping = this.mapping();
+    if (!currentMapping) return; // Add null check
 
-    // if editing the root, just replace it and relink
-    // its children to the new root
-    if (!mapping.parent) {
-      for (let child of this.mapping()!.children!) {
-        child.parent = mapping;
-      }
-      this.mapping.set(mapping);
+    // clone the entire tree
+    const clonedMapping = this.cloneMappingTree(currentMapping);
+
+    if (!mapping.parent && mapping.id === currentMapping.id) {
+      // if editing the root, replace it with the new mapping data
+      // but keep the existing children structure
+      Object.assign(clonedMapping, mapping, {
+        children: clonedMapping.children, // Preserve children
+      });
     } else {
-      // else insert/replace the descendant mapping in the tree
       if (!mapping.id) {
-        // insert as last child
-        this._jsonService.visitMappings(this.mapping()!, false, (m) => {
-          if (m.id === mapping.parent!.id) {
-            if (!m.children) {
-              m.children = [];
+        // insert as new child
+        const parent = this.findMappingById(clonedMapping, mapping.parentId!);
+        if (parent) {
+          // calculate the max ID in the cloned tree
+          let maxId = 0;
+          this._jsonService.visitMappings(clonedMapping, false, (m) => {
+            if (m.id && m.id > maxId) {
+              maxId = m.id;
             }
-            m.children?.push(mapping);
-            mapping.parent = m;
-            return false;
-          } else {
             return true;
+          });
+
+          const newMapping: NodeMapping = {
+            ...mapping,
+            id: maxId + 1,
+            parent: parent,
+          };
+
+          if (!parent.children) {
+            parent.children = [];
           }
-        });
+          parent.children.push(newMapping);
+
+          // update edited references for new mapping
+          this.editedMapping.set(newMapping);
+        }
       } else {
-        // replace
-        this._jsonService.visitMappings(this.mapping()!, false, (m) => {
-          if (m.id === mapping.id) {
-            // remove the old mapping from m.parent.children
-            const siblings: NodeMapping[] = [];
-            for (let i = 0; i < m.parent!.children!.length; i++) {
-              if (m.parent!.children![i].id === m.id) {
-                siblings.push(mapping);
-                // update parent of all the children
-                for (let child of m.children!) {
-                  child.parent = mapping;
-                }
-              } else {
-                siblings.push(m.parent!.children![i]);
-              }
-            }
-            m.parent!.children = siblings;
-            return false;
-          }
-          return true;
-        });
+        // replace existing mapping
+        const existingMapping = this.findMappingById(clonedMapping, mapping.id);
+        if (existingMapping) {
+          // update the mapping data but preserve parent and children references
+          Object.assign(existingMapping, mapping, {
+            parent: existingMapping.parent,
+            children: existingMapping.children,
+          });
+
+          // Update edited reference
+          this.editedMapping.set(existingMapping);
+        }
       }
     }
+
+    this.mapping.set(clonedMapping);
   }
 
+  /**
+   * Delete the mapping with the specified ID and all its descendants.
+   */
   public onMappingDelete(id: number): void {
+    const currentMapping = this.mapping();
+    if (!currentMapping) return; // Add null check
+
     // cannot delete the root mapping
-    if (id === this.mapping()?.id) {
+    if (id === currentMapping.id) {
       return;
     }
 
-    // TODO implement delete
+    // close edited mapping if it is the one being deleted
+    if (this.editedMapping()?.id === id) {
+      this.editedMapping.set(undefined);
+    }
 
-    // this._dialogService
-    //   .confirm('Delete', `Delete mapping ${node.mapping!.name}?`)
-    //   .pipe(take(1))
-    //   .subscribe((yes) => {
-    //     if (yes) {
-    //       // close edited mapping if it is the one being deleted
-    //       if (this.editedMapping?.id === node.mapping!.id) {
-    //         this.editedMapping = undefined;
-    //       }
+    // clone the entire tree
+    const clonedMapping = this.cloneMappingTree(currentMapping);
 
-    //       // locate the mapping in the mapping() tree and remove it
-    //       this._jsonService.visitMappings(this.mapping()!, false, (m) => {
-    //         if (m.id === node.mapping!.id) {
-    //           // remove the mapping from m.parent.children
-    //           const siblings: NodeMapping[] = [];
-    //           for (let i = 0; i < m.parent!.children!.length; i++) {
-    //             if (m.parent!.children![i].id !== m.id) {
-    //               siblings.push(m.parent!.children![i]);
-    //             }
-    //           }
-    //           m.parent!.children = siblings;
-    //           return false;
-    //         }
-    //         return true;
-    //       });
-    //     }
+    // find the mapping to delete in the cloned tree
+    const mappingToDelete = this.findMappingById(clonedMapping, id);
+    if (!mappingToDelete || !mappingToDelete.parent) {
+      return;
+    }
 
-    //     // update the mapping tree
-    //     this.mapping.set({ ...this.mapping()! });
-    //   });
+    // remove it from its parent's children array
+    const parent = mappingToDelete.parent;
+    if (parent.children) {
+      parent.children = parent.children.filter((child) => child.id !== id);
+    }
+
+    this.mapping.set(clonedMapping);
   }
+
+  // ...existing code...
 
   public onMappingAddChild(id: number): void {
-    // calculate the max ID by visiting mapping
-    // TODO
-    // let maxId = 0;
-    // this._jsonService.visitMappings(node, false, (m) => {
-    //   if (m.id && m.id > maxId) {
-    //     maxId = m.id;
-    //   }
-    //   return true;
-    // });
-    // edit the new mapping (it will be inserted on save)
-    // this.editedMapping = {
-    //   id: maxId + 1,
-    //   parentId: id,
-    //   parent: node.mapping!,
-    //   name: 'New mapping',
-    //   sourceType: 2,
-    //   source: '',
-    //   sid: '',
-    // };
+    const currentMapping = this.mapping();
+    if (!currentMapping) return;
+
+    // clone the entire tree
+    const clonedMapping = this.cloneMappingTree(currentMapping);
+
+    // find the parent mapping in the cloned tree
+    const parent = this.findMappingById(clonedMapping, id);
+    if (!parent) {
+      return;
+    }
+
+    // get an ID for the new mapping
+    let newId = this._jsonService.getNextId();
+
+    // create the new mapping
+    const newMapping: NodeMapping = {
+      id: newId,
+      parentId: id,
+      parent: parent,
+      name: 'New mapping',
+      sourceType: 2,
+      source: '',
+      sid: '',
+    };
+
+    // add it to the parent's children
+    if (!parent.children) {
+      parent.children = [];
+    }
+    parent.children.push(newMapping);
+
+    this.mapping.set(clonedMapping);
+
+    // find the mapping in the updated tree to avoid stale references
+    const updatedMapping = this.findMappingById(this.mapping()!, newId);
+    this.editedMapping.set(updatedMapping);
   }
 
-  public save(): void {
-    // TODO
-  }
-
-  public close(): void {
-    this.editorClose.emit();
+  public closeEditor(): void {
+    this.editedMapping.set(undefined);
   }
 }

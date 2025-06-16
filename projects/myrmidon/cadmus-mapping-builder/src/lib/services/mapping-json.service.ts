@@ -419,4 +419,13 @@ export class MappingJsonService {
 
     return mappings;
   }
+
+  /**
+   * Get the next ID to use for a new mapping.
+   * @returns The next ID to use for a new mapping.
+   * This increments the internal counter and returns the new value.
+   */
+  public getNextId(): number {
+    return this._nextId++;
+  }
 }

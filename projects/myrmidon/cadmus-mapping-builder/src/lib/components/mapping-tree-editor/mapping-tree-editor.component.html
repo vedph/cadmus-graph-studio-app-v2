@@ -3,7 +3,7 @@
     <div id="header">{{ mapping()?.name }}</div>
     <cadmus-mapping-tree
       [mapping]="mapping()"
-      [editedId]="editedMapping?.id"
+      [editedId]="editedMapping()?.id"
       (editedIdChange)="onMappingEdit($event!)"
       (addRequest)="onMappingAddChild($event!)"
       (deleteRequest)="onMappingDelete($event!)"
@@ -11,9 +11,9 @@
   </div>
   <div id="editor">
     <cadmus-mapping-editor
-      [mapping]="editedMapping"
+      [mapping]="editedMapping()"
       (mappingChange)="onMappingSave($event!)"
-      (editorClose)="close()"
+      (editorClose)="closeEditor()"
     />
   </div>
 </div>
