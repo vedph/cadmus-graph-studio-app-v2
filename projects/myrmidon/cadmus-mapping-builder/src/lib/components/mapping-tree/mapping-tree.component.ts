@@ -1,4 +1,13 @@
-import { Component, OnDestroy, effect, inject, input, model, output, signal } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  effect,
+  inject,
+  input,
+  model,
+  output,
+  signal,
+} from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
@@ -25,6 +34,7 @@ import {
   MappingPagedTreeNode,
 } from '../../services/mapping-paged-tree-store.service';
 import { Mapping, NodeMapping } from '../../models';
+import { DialogService } from '@myrmidon/ngx-mat-tools';
 
 /**
  * Node mapping tree component. This represents the hierarchy of mappings
@@ -53,7 +63,10 @@ import { Mapping, NodeMapping } from '../../models';
   styleUrls: ['./mapping-tree.component.css'],
 })
 export class MappingTreeComponent implements OnDestroy {
-  private readonly _store: PagedTreeStore<MappingPagedTreeNode, MappingTreeFilter>;
+  private readonly _store: PagedTreeStore<
+    MappingPagedTreeNode,
+    MappingTreeFilter
+  >;
   private _dialog = inject(MatDialog);
   private _sub?: Subscription;
 
@@ -95,8 +108,11 @@ export class MappingTreeComponent implements OnDestroy {
   public filter$: Observable<Readonly<MappingTreeFilter>>;
   public nodes$: Observable<Readonly<MappingPagedTreeNode[]>>;
 
-  constructor(private _service: MappingTreeService) {
-    this._store = this._service.store;
+  constructor(
+    private _treeService: MappingTreeService,
+    private _dialogService: DialogService
+  ) {
+    this._store = this._treeService.store;
     this.nodes$ = this._store.nodes$;
     this.filter$ = this._store.filter$;
 
@@ -104,7 +120,7 @@ export class MappingTreeComponent implements OnDestroy {
       const mapping = this.mapping();
       if (mapping) {
         console.log('tree mapping', mapping);
-        this._service.reset(mapping.id);
+        this._treeService.reset(mapping.id);
       }
     });
   }
@@ -179,11 +195,33 @@ export class MappingTreeComponent implements OnDestroy {
   }
 
   public deleteNode(node: MappingPagedTreeNode): void {
-    this.deleteRequest.emit(node.mapping!.id);
+    this._dialogService
+      .confirm('Confirm Delete', `Delete mapping ${node.mapping!.name}?`)
+      .subscribe((yes) => {
+        if (yes) {
+          this.deleteRequest.emit(node.mapping!.id);
+        }
+      });
   }
 
   public editNode(node: MappingPagedTreeNode): void {
-    this.editedId.set(node.mapping!.id);
+    if (node.mapping?.id === this.editedId()) {
+      return;
+    }
+
+    // if a node is being edited, ask for confirmation
+    // before switching to another one, else just switch
+    if (this.editedId()) {
+      this._dialogService
+        .confirm('Confirm Edit', `Edit mapping ${node.mapping!.name}?`)
+        .subscribe((yes) => {
+          if (yes) {
+            this.editedId.set(node.mapping!.id);
+          }
+        });
+    } else {
+      this.editedId.set(node.mapping!.id);
+    }
   }
 
   public clear(): void {
