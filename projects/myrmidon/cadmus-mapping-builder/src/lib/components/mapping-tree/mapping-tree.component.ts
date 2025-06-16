@@ -1,4 +1,4 @@
-import { Component, OnDestroy, effect, inject, input, model, output } from '@angular/core';
+import { Component, OnDestroy, effect, inject, input, model, output, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
@@ -64,19 +64,22 @@ export class MappingTreeComponent implements OnDestroy {
    */
   public readonly mapping = input<NodeMapping>();
 
-  public readonly selected = model<Mapping>();
+  /**
+   * The ID of the currently edited mapping, if any.
+   */
+  public readonly editedId = model<number>();
 
   /**
    * Emitted when the user requests to add a child node to a mapping.
    * The number is the parent mapping ID.
    */
-  public readonly mappingAdd = output<number>();
+  public readonly addRequest = output<number>();
 
   /**
    * Emitted when the user requests to delete a mapping.
    * The number is the mapping ID.
    */
-  public readonly mappingDelete = output<number>();
+  public readonly deleteRequest = output<number>();
 
   public debug: FormControl<boolean> = new FormControl(false, {
     nonNullable: true,
@@ -172,15 +175,15 @@ export class MappingTreeComponent implements OnDestroy {
   }
 
   public addChildNode(node: MappingPagedTreeNode): void {
-    this.mappingAdd.emit(node.mapping!.id);
+    this.addRequest.emit(node.mapping!.id);
   }
 
   public deleteNode(node: MappingPagedTreeNode): void {
-    this.mappingDelete.emit(node.mapping!.id);
+    this.deleteRequest.emit(node.mapping!.id);
   }
 
-  public selectNode(node: MappingPagedTreeNode): void {
-    // TODO
+  public editNode(node: MappingPagedTreeNode): void {
+    this.editedId.set(node.mapping!.id);
   }
 
   public clear(): void {

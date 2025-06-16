@@ -52,8 +52,26 @@ export class MappingTreeEditorComponent {
     });
   }
 
-  public onMappingSelected(mapping: NodeMapping): void {
-    this.editedMapping = mapping;
+  private findMappingById(
+    mapping: NodeMapping,
+    id: number
+  ): NodeMapping | undefined {
+    if (mapping.id === id) {
+      return mapping;
+    }
+    if (mapping.children) {
+      for (let child of mapping.children) {
+        const found = this.findMappingById(child, id);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  public onMappingEdit(id: number): void {
+    this.editedMapping = this.findMappingById(this.mapping()!, id);
   }
 
   /**

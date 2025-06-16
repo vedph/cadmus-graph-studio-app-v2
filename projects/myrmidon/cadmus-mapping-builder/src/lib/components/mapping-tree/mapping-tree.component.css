@@ -13,3 +13,10 @@ div#filters {
 .node-ext {
   margin-left: 6px;
 }
+.node-wrapper {
+  border: 1px solid transparent;
+}
+.selected {
+  background-color: #f0f0f0;
+  border: 1px solid tan;
+}

@@ -17,7 +17,7 @@
     } @if (nodes$ | async; as nodes) {
     <div>
       @for (node of nodes; track node.id; let i = $index) {
-      <div>
+      <div class="node-wrapper" [class.selected]="node.id === editedId()">
         <pdb-browser-tree-node
           [node]="node"
           [debug]="debug.value"
@@ -36,6 +36,14 @@
         >
           @if (node.y) {
           <div class="node-ext form-row">
+            <button
+              type="button"
+              mat-icon-button
+              matTooltip="Edit this mapping"
+              (click)="editNode(node)"
+            >
+              <mat-icon class="mat-primary">edit</mat-icon>
+            </button>
             @if (node.y > 1) {
             <button
               type="button"
