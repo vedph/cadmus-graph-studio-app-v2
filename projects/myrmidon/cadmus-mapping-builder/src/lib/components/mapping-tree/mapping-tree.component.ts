@@ -78,7 +78,8 @@ export class MappingTreeComponent implements OnDestroy {
   public readonly mapping = input<NodeMapping>();
 
   /**
-   * The ID of the currently edited mapping, if any.
+   * The ID of the currently edited mapping's node, if any.
+   * This is used to highlight the node in the tree.
    */
   public readonly editedId = model<number>();
 
@@ -205,6 +206,7 @@ export class MappingTreeComponent implements OnDestroy {
   }
 
   public editNode(node: MappingPagedTreeNode): void {
+    // if the node is already being edited, do nothing
     if (node.mapping?.id === this.editedId()) {
       return;
     }
@@ -222,9 +224,5 @@ export class MappingTreeComponent implements OnDestroy {
     } else {
       this.editedId.set(node.mapping!.id);
     }
-  }
-
-  public clear(): void {
-    this._store.clear();
   }
 }

@@ -13,6 +13,9 @@ div#tree {
 }
 div#editor {
   grid-area: editor;
+  border: 1px solid silver;
+  border-radius: 6px;
+  padding: 4px;
 }
 div#header {
   font-size: 1.5em 24px;

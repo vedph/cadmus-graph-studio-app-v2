@@ -60,12 +60,12 @@ For instance, here is the JSON document corresponding to a single mapping with t
 
 ### Components
 
-A list of mappings (`NodeMapping`) can be browsed with `MappingListComponent`, using a `NodeMappingListService`. In the studio app, this list is initially loaded from some static assets; you can then load your own from a file, and save it back to a file.
+A list of mappings (`NodeMapping`) can be browsed with `MappingListComponent`, using a `NodeMappingListService` which manages paging. In the studio app, this list is initially loaded from static assets via a `MappingJsonService`; you can then load your own from a file, and save it back to a file.
 
 When you edit a mapping in the list, the `MappingTreeEditor` opens for that mapping. This uses two components:
 
-- a `MappingTree`, showing the full tree of the edited mapping.
-- a `MappingEditorComponent`, used to edit each node in that tree.
+- a `MappingTree`, showing the full tree of the edited mapping. This receives the mapping root node, and shows its tree. According to user actions it emits events requesting to delete a node, add a node as a child of an existing one, or edit a specific node. These events are then handled by the mapping tree editor, which changes the mapping being edited.
+- a `MappingEditorComponent`, used to edit each node in that tree. When saving edits, the edited mapping is updated.
 
 The `MappingTree` internally uses a flat tree structure, as it leverages a generic paged tree component. So, it gets the `NodeMapping` being edited, and builds a flat tree from it, using `MappingTreeService`.`reset` with that mapping's ID.
 
