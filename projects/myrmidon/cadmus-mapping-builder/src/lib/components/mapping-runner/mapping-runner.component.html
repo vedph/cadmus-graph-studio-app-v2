@@ -12,7 +12,6 @@
         <button
           type="button"
           mat-flat-button
-          class="mat-primary"
           (click)="prettifyInput()"
         >
           <mat-icon>sort</mat-icon> prettify
@@ -36,7 +35,7 @@
       <!-- monaco -->
       <div>
         <mat-label>input</mat-label>
-        <nge-monaco-editor (ready)="onCreateEditor($event)" />
+        <nge-monaco-editor class="monaco" (ready)="onCreateEditor($event)" />
         @if (input.hasError('required') && (input.touched || input.dirty)) {
         <mat-error>input required</mat-error>
         } @if (input.hasError('maxLength') && (input.touched || input.dirty)) {
@@ -117,8 +116,7 @@
     }
   </div>
 
-  <hr />
-  <mat-expansion-panel>
+  <mat-expansion-panel id="meta">
     <mat-expansion-panel-header>
       <mat-panel-title>metadata</mat-panel-title>
     </mat-expansion-panel-header>

@@ -53,7 +53,7 @@ legend {
   color: red;
 }
 .monaco {
-  min-height: 800px;
+  height: 600px;
 }
 .nr {
   width: 7em;
@@ -66,6 +66,9 @@ legend {
 }
 .form-row * {
   flex: 0 0 auto;
+}
+#meta {
+  margin: 8px 0;
 }
 div#container {
   display: grid;
