@@ -38,30 +38,40 @@
           <div class="node-ext button-row">
             <button
               type="button"
-              mat-icon-button
-              matTooltip="Edit this mapping"
-              (click)="editNode(node)"
+              matIconButton
+              [matMenuTriggerFor]="menu"
+              aria-label="Actions"
             >
-              <mat-icon class="mat-primary">edit</mat-icon>
+              <mat-icon>more_vert</mat-icon>
             </button>
-            @if (node.y > 1) {
-            <button
-              type="button"
-              mat-icon-button
-              matTooltip="Delete this mapping"
-              (click)="deleteNode(node)"
-            >
-              <mat-icon class="mat-warn">clear</mat-icon>
-            </button>
-            }
-            <button
-              type="button"
-              mat-icon-button
-              matTooltip="Add a child mapping"
-              (click)="addChildNode(node)"
-            >
-              <mat-icon class="mat-primary">add_circle</mat-icon>
-            </button>
+            <mat-menu #menu="matMenu">
+              <button
+                type="button"
+                mat-menu-item
+                (click)="editNode(node)"
+                matTooltip="Edit this mapping"
+              >
+                <mat-icon class="mat-primary">edit</mat-icon> edit
+              </button>
+              @if (node.y > 1) {
+              <button
+                type="button"
+                mat-menu-item
+                (click)="deleteNode(node)"
+                matTooltip="Delete this mapping and its descendants"
+              >
+                <mat-icon class="mat-warn">clear</mat-icon> delete
+              </button>
+              }
+              <button
+                type="button"
+                mat-menu-item
+                matTooltip="Add a child mapping"
+                (click)="addChildNode(node)"
+              >
+                <mat-icon class="mat-primary">add_circle</mat-icon> add
+              </button>
+            </mat-menu>
           </div>
           }
         </pdb-browser-tree-node>
