@@ -156,7 +156,7 @@ export class MappingRunnerComponent implements OnDestroy {
     });
     this._editorModel =
       this._editorModel ||
-      monaco.editor.createModel(this.input?.value || '', 'markdown');
+      monaco.editor.createModel(this.input?.value || '', 'json');
     editor.setModel(this._editorModel);
     this._editor = editor as monaco.editor.IStandaloneCodeEditor;
 
@@ -173,6 +173,7 @@ export class MappingRunnerComponent implements OnDestroy {
     this.input.setValue(text);
     this.input.markAsDirty();
     this.input.updateValueAndValidity();
+    this._editorModel?.setValue(text);
   }
 
   private getMetadata(): NodeMappingMetadata {
