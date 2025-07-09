@@ -8,7 +8,7 @@ describe('MappingOutputEditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ MappingOutputEditorComponent ]
+      imports: [ MappingOutputEditorComponent ]
     })
     .compileComponents();
 
