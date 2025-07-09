@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { MappingTreeFilterComponent } from './mapping-tree-filter';
+import { NODE_MAPPING_SERVICE } from '../../models';
+import { RamNodeMappingService } from '../../services/ram-node-mapping.service';
 
 describe('MappingTreeFilter', () => {
   let component: MappingTreeFilterComponent;
@@ -8,7 +11,13 @@ describe('MappingTreeFilter', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MappingTreeFilterComponent]
+      imports: [MappingTreeFilterComponent, NoopAnimationsModule],
+      providers: [
+        {
+          provide: NODE_MAPPING_SERVICE,
+          useClass: RamNodeMappingService
+        }
+      ]
     })
     .compileComponents();
 

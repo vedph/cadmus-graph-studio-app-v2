@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { MappingJsonService } from './mapping-json.service';
+import { NodeMapping } from '../models';
 
 describe('MappingJsonService', () => {
   let service: MappingJsonService;
@@ -383,6 +384,268 @@ describe('MappingJsonService', () => {
       const result = service.readMappingsDocument(json);
       expect(result.length).toBe(1);
       expect(result[0].name).toBe('simple_mapping');
+    });
+  });
+
+  describe('ID Assignment and Uniqueness', () => {
+    function collectAllIds(mapping: NodeMapping): number[] {
+      const ids: number[] = [];
+      service.visitMappings(mapping, false, (m) => {
+        if (m.id) {
+          ids.push(m.id);
+        }
+        return true;
+      });
+      return ids;
+    }
+
+    function hasDuplicateIds(ids: number[]): boolean {
+      const seen = new Set<number>();
+      for (const id of ids) {
+        if (seen.has(id)) {
+          return true;
+        }
+        seen.add(id);
+      }
+      return false;
+    }
+
+    it('should assign unique IDs to all mappings in a simple document', () => {
+      const json = JSON.stringify({
+        documentMappings: [
+          {
+            name: 'root_mapping',
+            sourceType: 1,
+            source: 'root',
+            sid: 'root-sid',
+            children: [
+              {
+                name: 'child1',
+                sourceType: 2,
+                source: 'child1',
+                sid: 'child1-sid',
+              },
+              {
+                name: 'child2',
+                sourceType: 2,
+                source: 'child2',
+                sid: 'child2-sid',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = service.readMappingsDocument(json);
+      const allIds = collectAllIds(result[0]);
+
+      expect(allIds.length).toBe(3); // root + 2 children
+      expect(hasDuplicateIds(allIds)).toBe(false);
+      expect(result[0].id).toBeDefined();
+      expect(result[0].children![0].id).toBeDefined();
+      expect(result[0].children![1].id).toBeDefined();
+    });
+
+    it('should assign unique IDs when expanding named mapping references', () => {
+      const json = JSON.stringify({
+        namedMappings: {
+          shared_template: {
+            name: 'shared_template',
+            source: 'shared_source',
+            sid: 'shared-sid',
+            children: [
+              {
+                name: 'template_child',
+                source: 'template_child_source',
+                sid: 'template-child-sid',
+              },
+            ],
+          },
+        },
+        documentMappings: [
+          {
+            name: 'root_mapping',
+            sourceType: 1,
+            source: 'root',
+            sid: 'root-sid',
+            children: [
+              {
+                name: 'shared_template', // Reference 1
+              },
+              {
+                name: 'shared_template', // Reference 2
+              },
+              {
+                name: 'regular_child',
+                source: 'regular_source',
+                sid: 'regular-sid',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = service.readMappingsDocument(json);
+      const allIds = collectAllIds(result[0]);
+
+      // Should have: root + 2 expanded templates (each with 1 child) + 1 regular child = 6 total
+      expect(allIds.length).toBe(6);
+      expect(hasDuplicateIds(allIds)).toBe(false);
+
+      // Verify structure
+      expect(result[0].children!.length).toBe(3);
+      expect(result[0].children![0].name).toBe('shared_template');
+      expect(result[0].children![1].name).toBe('shared_template');
+      expect(result[0].children![2].name).toBe('regular_child');
+
+      // The two shared template references should have different IDs
+      expect(result[0].children![0].id).not.toBe(result[0].children![1].id);
+
+      // Their children should also have different IDs
+      expect(result[0].children![0].children![0].id).not.toBe(
+        result[0].children![1].children![0].id
+      );
+    });
+
+    it('should assign unique IDs in nested named mapping references', () => {
+      const json = JSON.stringify({
+        namedMappings: {
+          leaf_template: {
+            name: 'leaf_template',
+            source: 'leaf_source',
+            sid: 'leaf-sid',
+          },
+          branch_template: {
+            name: 'branch_template',
+            source: 'branch_source',
+            sid: 'branch-sid',
+            children: [
+              {
+                name: 'leaf_template', // Reference to leaf_template
+              },
+              {
+                name: 'leaf_template', // Another reference to leaf_template
+              },
+            ],
+          },
+        },
+        documentMappings: [
+          {
+            name: 'root_mapping',
+            sourceType: 1,
+            source: 'root',
+            sid: 'root-sid',
+            children: [
+              {
+                name: 'branch_template', // This will expand to include 2 leaf references
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = service.readMappingsDocument(json);
+      const allIds = collectAllIds(result[0]);
+
+      // Should have: root + branch + 2 expanded leaf templates = 4 total
+      expect(allIds.length).toBe(4);
+      expect(hasDuplicateIds(allIds)).toBe(false);
+
+      const branch = result[0].children![0];
+      expect(branch.name).toBe('branch_template');
+      expect(branch.children!.length).toBe(2);
+
+      // The two leaf references should have different IDs
+      expect(branch.children![0].id).not.toBe(branch.children![1].id);
+      expect(branch.children![0].name).toBe('leaf_template');
+      expect(branch.children![1].name).toBe('leaf_template');
+    });
+
+    it('should maintain unique IDs across multiple document mappings', () => {
+      const json = JSON.stringify({
+        namedMappings: {
+          common_template: {
+            name: 'common_template',
+            source: 'common_source',
+            sid: 'common-sid',
+          },
+        },
+        documentMappings: [
+          {
+            name: 'doc1_mapping',
+            sourceType: 1,
+            source: 'doc1',
+            sid: 'doc1-sid',
+            children: [
+              {
+                name: 'common_template',
+              },
+            ],
+          },
+          {
+            name: 'doc2_mapping',
+            sourceType: 1,
+            source: 'doc2',
+            sid: 'doc2-sid',
+            children: [
+              {
+                name: 'common_template',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = service.readMappingsDocument(json);
+
+      const allIdsDoc1 = collectAllIds(result[0]);
+      const allIdsDoc2 = collectAllIds(result[1]);
+      const combinedIds = [...allIdsDoc1, ...allIdsDoc2];
+
+      expect(hasDuplicateIds(combinedIds)).toBe(false);
+      expect(result[0].id).not.toBe(result[1].id);
+      expect(result[0].children![0].id).not.toBe(result[1].children![0].id);
+    });
+
+    it('should handle pre-existing IDs and not create duplicates', () => {
+      const json = JSON.stringify({
+        documentMappings: [
+          {
+            id: 100, // Pre-existing ID
+            name: 'root_mapping',
+            sourceType: 1,
+            source: 'root',
+            sid: 'root-sid',
+            children: [
+              {
+                // No ID specified, should get assigned one
+                name: 'child1',
+                sourceType: 2,
+                source: 'child1',
+                sid: 'child1-sid',
+              },
+              {
+                id: 200, // Another pre-existing ID
+                name: 'child2',
+                sourceType: 2,
+                source: 'child2',
+                sid: 'child2-sid',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = service.readMappingsDocument(json);
+      const allIds = collectAllIds(result[0]);
+
+      expect(allIds.length).toBe(3);
+      expect(hasDuplicateIds(allIds)).toBe(false);
+      expect(result[0].id).toBe(100);
+      expect(result[0].children![1].id).toBe(200);
+      expect(result[0].children![0].id).toBeDefined();
+      expect(result[0].children![0].id).not.toBe(100);
+      expect(result[0].children![0].id).not.toBe(200);
     });
   });
 });

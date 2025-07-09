@@ -356,6 +356,10 @@ export class MappingJsonService {
       ) {
         const namedRef = deepCopy(namedMappings[child.name]);
 
+        // Clear all IDs from the copied named mapping to ensure uniqueness
+        // The hydration phase will assign fresh unique IDs
+        this.clearIds(namedRef);
+
         // preserve the ID, parentId, and parent from the placeholder child
         namedRef.id = child.id;
         namedRef.parentId = child.parentId;
@@ -471,6 +475,19 @@ export class MappingJsonService {
     if (mapping.children) {
       for (const child of mapping.children) {
         this.clearParentReferences(child);
+      }
+    }
+  }
+
+  /**
+   * Clear all IDs from a mapping and its children to allow fresh ID assignment.
+   * @param mapping The mapping to clear IDs from.
+   */
+  private clearIds(mapping: NodeMapping): void {
+    mapping.id = 0; // Set to 0 so hydration will assign a new ID
+    if (mapping.children) {
+      for (const child of mapping.children) {
+        this.clearIds(child);
       }
     }
   }
