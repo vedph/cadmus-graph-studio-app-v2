@@ -8,7 +8,7 @@ describe('MappingListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ MappingListComponent ]
+      imports: [ MappingListComponent ]
     })
     .compileComponents();
 

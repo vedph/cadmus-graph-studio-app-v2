@@ -26,7 +26,7 @@ export interface SerializedMappedNode {
   parentId?: number;
   ordinal?: number;
   name: string;
-  sourceType: number; // sourceType can be optional for named references
+  sourceType?: number; // sourceType can be optional for named references
   facetFilter?: string;
   groupFilter?: string;
   flagsFilter?: number;
@@ -34,8 +34,8 @@ export interface SerializedMappedNode {
   partTypeFilter?: string;
   partRoleFilter?: string;
   description?: string;
-  source: string; // source can be optional for named references
-  sid: string; // sid can be optional for named references
+  source?: string; // source can be optional for named references
+  sid?: string; // sid can be optional for named references
   scalarPattern?: string;
   output?: SerializedMappedNodeOutput;
   children?: SerializedMappedNode[];
@@ -307,15 +307,17 @@ export class MappingJsonService {
       partTypeFilter: node.partTypeFilter,
       partRoleFilter: node.partRoleFilter,
       description: node.description,
-      // source might be missing for named mapping references, so handle undefined
+      // preserve undefined source for named mapping references
       source: node.source || '',
       sid: node.sid || '',
       scalarPattern: node.scalarPattern,
-      output: {
-        nodes: this.getMappedNodes(node.output?.nodes),
-        triples: this.getMappedTriples(node.output?.triples),
-        metadata: node.output?.metadata,
-      },
+      output: node.output
+        ? {
+            nodes: this.getMappedNodes(node.output?.nodes),
+            triples: this.getMappedTriples(node.output?.triples),
+            metadata: node.output?.metadata,
+          }
+        : undefined,
       children: node.children?.map((c) => this.getMapping(c)),
     };
     return mapping;
@@ -326,11 +328,15 @@ export class MappingJsonService {
    * This function modifies the input mapping in place.
    * @param mapping The current mapping to process.
    * @param namedMappings A dictionary of named mappings for reference.
+   * @param serializedMapping The original serialized mapping for reference checking.
+   * @param doc The full document for looking up named mappings.
    * @returns The mapping with named references expanded.
    */
   private expandNamedMappingReferences(
     mapping: NodeMapping,
-    namedMappings: { [key: string]: NodeMapping }
+    namedMappings: { [key: string]: NodeMapping },
+    serializedMapping?: SerializedMappedNode,
+    doc?: NodeMappingDocument
   ): NodeMapping {
     if (!mapping.children) {
       return mapping;
@@ -338,28 +344,47 @@ export class MappingJsonService {
 
     for (let i = 0; i < mapping.children.length; i++) {
       let child = mapping.children[i];
+      const serializedChild = serializedMapping?.children?.[i];
 
       // check if this child is a named mapping reference.
       // A reference has only the `name` property and no `source` property,
       // as specified in the JSON document description.
-      if (namedMappings[child.name] && child.source === undefined) {
+      if (
+        namedMappings[child.name] &&
+        serializedChild &&
+        serializedChild.source === undefined
+      ) {
         const namedRef = deepCopy(namedMappings[child.name]);
 
         // preserve the ID, parentId, and parent from the placeholder child
         namedRef.id = child.id;
         namedRef.parentId = child.parentId;
-        namedRef.parent = child.parent;
+        // Note: don't set parent here to avoid circular references during deepCopy
+        // The parent reference will be set during the hydration phase
 
         // replace the child with the expanded named mapping
         mapping.children[i] = namedRef;
 
         // recursively expand children of the newly inserted named mapping
-        if (namedRef.children) {
-          this.expandNamedMappingReferences(namedRef, namedMappings);
+        // For named mappings, we need to find the original serialized version to check references
+        if (namedRef.children && doc?.namedMappings) {
+          // Find the original serialized named mapping
+          const originalNamedMapping = doc.namedMappings[child.name];
+          this.expandNamedMappingReferences(
+            namedRef,
+            namedMappings,
+            originalNamedMapping,
+            doc
+          );
         }
       } else {
         // if it's not a named reference, just recurse into its children
-        this.expandNamedMappingReferences(child, namedMappings);
+        this.expandNamedMappingReferences(
+          child,
+          namedMappings,
+          serializedChild,
+          doc
+        );
       }
     }
     return mapping;
@@ -395,6 +420,8 @@ export class MappingJsonService {
         const namedMapping = this.getMapping(doc.namedMappings![key]);
         // hydrate IDs and parents for named mappings themselves
         this.visitMappings(namedMapping, true);
+        // Clear parent references to avoid circular dependencies during deepCopy
+        this.clearParentReferences(namedMapping);
         named[key] = namedMapping;
       });
     }
@@ -410,7 +437,12 @@ export class MappingJsonService {
 
     // 3. expand named mapping references in document mappings
     for (let i = 0; i < mappings.length; i++) {
-      this.expandNamedMappingReferences(mappings[i], named);
+      this.expandNamedMappingReferences(
+        mappings[i],
+        named,
+        doc.documentMappings[i],
+        doc
+      );
       // after expansion, re-hydrate to ensure all new nodes
       // (from expansion) have correct IDs and parent references.
       // This handles nested expansions.
@@ -427,5 +459,19 @@ export class MappingJsonService {
    */
   public getNextId(): number {
     return this._nextId++;
+  }
+
+  /**
+   * Clear parent references from a mapping and all its children to avoid
+   * circular dependencies during deepCopy operations.
+   * @param mapping The mapping to clear parent references from.
+   */
+  private clearParentReferences(mapping: NodeMapping): void {
+    mapping.parent = undefined;
+    if (mapping.children) {
+      for (const child of mapping.children) {
+        this.clearParentReferences(child);
+      }
+    }
   }
 }

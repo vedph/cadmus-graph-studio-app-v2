@@ -12,9 +12,11 @@ This library contains the logic for building Cadmus mapping rules for a semantic
 
 Data is managed by an implementation of the `NodeMappingService` interface, which has methods for importing, exporting and editing mapping rules. This is implemented by a RAM-based service (`RamNodeMappingService`) loading its data from a JSON document.
 
-This mappings handled by this service are of type `NodeMapping`, i.e. a rule's mapping plus properties representing references to its parent and children mappings. This, the `NodeMapping` is a nested node: in fact, each rule is a tree of mappings.
+This mappings handled by this service are of type `NodeMapping`, i.e. a rule's mapping plus properties representing references to its parent and children mappings. Thus, the `NodeMapping` is a nested node: in fact, each rule is a tree of mappings.
 
-For instance, here is the JSON document corresponding to a single mapping with two children. As you can see, in this case there are no explicit identifiers; when this happens, the node mapping service will automatically assign ID and parent IDs to each mapping node. This is done via an instance of `MappingJsonService`, which takes care of reading and writing mappings documents.
+For instance, here is the JSON document corresponding to a single mapping with two children.
+
+>As you can see, in this case there are no explicit identifiers; when this happens, the node mapping service will automatically assign ID and parent IDs to each mapping node. This is done via an instance of `MappingJsonService`, which takes care of reading and writing mappings documents.
 
 ```json
 "event_chronotopes": {

@@ -8,7 +8,7 @@ describe('MappingTreeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ MappingTreeComponent ]
+      imports: [ MappingTreeComponent ]
     })
     .compileComponents();
 

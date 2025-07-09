@@ -8,7 +8,7 @@ describe('CachedTextPickerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CachedTextPickerComponent ]
+      imports: [ CachedTextPickerComponent ]
     })
     .compileComponents();
 
