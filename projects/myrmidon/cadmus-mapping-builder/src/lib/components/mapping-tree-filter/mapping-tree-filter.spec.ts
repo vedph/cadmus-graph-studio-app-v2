@@ -15,11 +15,10 @@ describe('MappingTreeFilter', () => {
       providers: [
         {
           provide: NODE_MAPPING_SERVICE,
-          useClass: RamNodeMappingService
-        }
-      ]
-    })
-    .compileComponents();
+          useClass: RamNodeMappingService,
+        },
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(MappingTreeFilterComponent);
     component = fixture.componentInstance;
