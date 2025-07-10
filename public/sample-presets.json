@@ -469,41 +469,53 @@
       {
         "eid": "birth",
         "type": "person.birth",
-        "chronotope": {
-          "place": {
-            "value": "Arezzo"
-          },
-          "date": {
-            "a": {
-              "value": 1304
+        "chronotopes": [
+          {
+            "place": {
+              "value": "Arezzo"
+            },
+            "date": {
+              "a": {
+                "value": 1304
+              }
             }
           }
-        },
+        ],
         "description": "Petrarch was born in 1304 at Arezzo from ser Petracco and Eletta Cangiani.",
         "relatedEntities": [
           {
             "relation": "mother",
-            "id": "eletta_cangiani"
+            "id": {
+              "target": {
+                "gid": "x:guys/eletta_cangiani"
+              }
+            }
           },
           {
             "relation": "father",
-            "id": "ser_petracco"
+            "id": {
+              "target": {
+                "gid": "x:guys/ser_petracco"
+              }
+            }
           }
         ]
       },
       {
         "eid": "death",
         "type": "person.death",
-        "chronotope": {
-          "place": {
-            "value": "Arquà"
-          },
-          "date": {
-            "a": {
-              "value": 1374
+        "chronotopes": [
+          {
+            "place": {
+              "value": "Arquà"
+            },
+            "date": {
+              "a": {
+                "value": 1374
+              }
             }
           }
-        },
+        ],
         "description": "Petrarch died in 1374 at Arquà."
       }
     ]

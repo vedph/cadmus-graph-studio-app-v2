@@ -22,7 +22,7 @@
       "name": "event_chronotopes",
       "description": "For each chronotope, map the place/date of an event to triples which create a place node for the place and link it to the event via a triple using crm:P7_took_place_at for places; and to triples using crm:P4_has_time_span which in turn has a new timespan node has object.",
       "source": "chronotopes",
-      "sid": "{$sid}/chronotope",
+      "sid": "{$sid}/chronotopes",
       "children": [
         {
           "name": "event_chronotopes/place",
