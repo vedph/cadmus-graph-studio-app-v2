@@ -481,13 +481,13 @@
             }
           }
         ],
-        "description": "Petrarch was born in 1304 at Arezzo from ser Petracco and Eletta Cangiani.",
+        "description": "Petrarch was born in 1304 at Arezzo from ser Petracco and Eletta Canigiani.",
         "relatedEntities": [
           {
             "relation": "mother",
             "id": {
               "target": {
-                "gid": "x:guys/eletta_cangiani"
+                "gid": "x:guys/eletta_canigiani"
               }
             }
           },
