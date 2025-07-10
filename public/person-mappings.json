@@ -166,18 +166,8 @@
           "name": "event_tag"
         },
         {
-          "name": "person_birth_event/related/by_mother@eg",
-          "source": "relatedEntities[?relation=='person:birth:mother' && !id.target.name && starts_with(id.target.gid, '@')]",
-          "output": {
-            "nodes": {
-              "mother": "{!_substring({@id.target.gid} & 1)}"
-            },
-            "triples": ["{?event} crm:P96_by_mother {?mother}"]
-          }
-        },
-        {
-          "name": "person_birth_event/related/by_mother@el",
-          "source": "relatedEntities[?relation=='person:birth:mother' && !id.target.name && !(starts_with(id.target.gid, '@'))]",
+          "name": "person_birth_event/related/by_mother",
+          "source": "relatedEntities[?relation=='mother']",
           "output": {
             "nodes": {
               "mother": "{@id.target.gid}"
@@ -186,41 +176,11 @@
           }
         },
         {
-          "name": "person_birth_event/related/by_mother@i",
-          "source": "relatedEntities[?relation=='person:birth:mother' && id.target.name]",
-          "output": {
-            "nodes": {
-              "mother": "x:persons/{@id.target.partId}/{@id.target.value} [x:persons/{@id.target.value}]"
-            },
-            "triples": ["{?event} crm:P96_by_mother {?mother}"]
-          }
-        },
-        {
-          "name": "person_birth_event/related/from_father@eg",
-          "source": "relatedEntities[?relation=='person:birth:father' && !id.target.name && starts_with(id.target.gid, '@')]",
-          "output": {
-            "nodes": {
-              "father": "{!_substring({@id.target.gid} & 1)}"
-            },
-            "triples": ["{?event} crm:P97_from_father {?father}"]
-          }
-        },
-        {
-          "name": "person_birth_event/related/from_father@el",
-          "source": "relatedEntities[?relation=='person:birth:father' && !id.target.name && !(starts_with(id.target.gid, '@'))]",
+          "name": "person_birth_event/related/from_father",
+          "source": "relatedEntities[?relation=='father']",
           "output": {
             "nodes": {
               "father": "{@id.target.gid}"
-            },
-            "triples": ["{?event} crm:P97_from_father {?father}"]
-          }
-        },
-        {
-          "name": "person_birth_event/related/from_father@i",
-          "source": "relatedEntities[?relation=='person:birth:father' && id.target.name]",
-          "output": {
-            "nodes": {
-              "father": "x:persons/{@id.target.partId}/{@id.target.value} [x:persons/{@id.target.value}]"
             },
             "triples": ["{?event} crm:P97_from_father {?father}"]
           }
