@@ -98,7 +98,7 @@
         }
       ]
     },
-    "event_period": {
+    "event_tag": {
       "name": "event_tag",
       "description": "Map the tag of an event to EVENT P9i_forms_part_of GROUP.",
       "source": "tag",
@@ -163,7 +163,7 @@
           "name": "event_assertion"
         },
         {
-          "name": "event_period"
+          "name": "event_tag"
         },
         {
           "name": "person_birth_event/related/by_mother@eg",
@@ -263,7 +263,7 @@
           "name": "event_assertion"
         },
         {
-          "name": "event_period"
+          "name": "event_tag"
         }
       ]
     }
