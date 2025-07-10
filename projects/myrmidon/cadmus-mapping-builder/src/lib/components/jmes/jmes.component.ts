@@ -72,14 +72,6 @@ export class JmesComponent implements OnInit, OnDestroy {
   public error?: string;
   public sampleKeys: string[];
 
-  public editorOptions = {
-    theme: 'vs-light',
-    language: 'markdown',
-    wordWrap: 'on',
-    // https://github.com/atularen/ngx-monaco-editor/issues/19
-    automaticLayout: true,
-  };
-
   constructor(
     formBuilder: FormBuilder,
     private _apiService: GraphStudioApiService,
@@ -201,6 +193,7 @@ export class JmesComponent implements OnInit, OnDestroy {
             this.output.setValue(w.value || '');
             this.output.updateValueAndValidity();
             this.output.markAsDirty();
+            this._outEditorModel?.setValue(w.value || '');
           }
         },
         error: (error) => {
@@ -214,6 +207,8 @@ export class JmesComponent implements OnInit, OnDestroy {
     this.input.setValue(text);
     this.input.updateValueAndValidity();
     this.input.markAsDirty();
+
+    this._inEditorModel?.setValue(text);
   }
 
   public addSample(): void {
