@@ -29,7 +29,7 @@
           "source": "place",
           "output": {
             "nodes": {
-              "place": "itn:places/{@value}"
+              "place": "x:places/{@value}"
             },
             "triples": [
               "{?place} a crm:E53_Place",
@@ -46,7 +46,7 @@
               "date_text": "{!_hdate({@.} & text)}"
             },
             "nodes": {
-              "timespan": "itn:timespans/ts##"
+              "timespan": "x:timespans/ts##"
             },
             "triples": [
               "{?event} crm:P4_has_time-span {?timespan}",
@@ -59,18 +59,18 @@
     },
     "event_assertion": {
       "name": "event_assertion",
-      "description": "Map the assertion of an event to EVENT itn:has_probability RANK^^xsd:float.",
+      "description": "Map the assertion of an event to EVENT x:has_probability RANK^^xsd:float.",
       "source": "assertion",
       "sid": "{$sid}/assertion",
       "output": {
         "nodes": {
-          "assertion": "itn:assertions/as##"
+          "assertion": "x:assertions/as##"
         },
         "triples": [
-          "{?event} itn:has_probability \"{@rank}\"^^xsd:float",
+          "{?event} x:has_probability \"{@rank}\"^^xsd:float",
           "{?assertion} a crm:E13_attribute_assignment",
           "{?assertion} crm:P140_assigned_attribute_to {?event}",
-          "{?assertion} crm:P141_assigned itn:has_probability",
+          "{?assertion} crm:P141_assigned x:has_probability",
           "{?assertion} crm:P177_assigned_property_of_type crm:E55_type"
         ]
       },
@@ -85,7 +85,7 @@
               "source": "citation",
               "output": {
                 "nodes": {
-                  "citation": "itn:citations/cit##"
+                  "citation": "x:citations/cit##"
                 },
                 "triples": [
                   "{?citation} a crm:E31_Document",
@@ -105,7 +105,7 @@
       "sid": "{$sid}/tag",
       "output": {
         "nodes": {
-          "period": "itn:periods/{$part-id}/{@value}"
+          "period": "x:periods/{$part-id}/{@value}"
         },
         "triples": ["{?event} P9i_forms_part_of {?period}"]
       }
@@ -122,7 +122,7 @@
       "sid": "{$part-id}/{@value}",
       "output": {
         "nodes": {
-          "person": "itn:persons/{$part-id}/{@value} [itn:persons/{@value}]"
+          "person": "x:persons/{$part-id}/{@value} [x:persons/{@value}]"
         },
         "triples": ["{?person} a crm:E21_person"]
       }
@@ -138,14 +138,14 @@
       "output": {
         "metadata": {
           "sid": "{$part-id}/{@eid}",
-          "person": "itn:persons/{$metadata-pid}/{$item-eid}"
+          "person": "x:persons/{$metadata-pid}/{$item-eid}"
         },
         "nodes": {
-          "event": "itn:events/{$sid} [itn:events/{@eid}]"
+          "event": "x:events/{$sid} [x:events/{@eid}]"
         },
         "triples": [
           "{?event} a crm:E67_birth",
-          "{?event} crm:P2_has_type itn:event-types/person.birth",
+          "{?event} crm:P2_has_type x:event-types/person.birth",
           "{?event} crm:P98_brought_into_life {$person}"
         ]
       },
@@ -190,7 +190,7 @@
           "source": "relatedEntities[?relation=='person:birth:mother' && id.target.name]",
           "output": {
             "nodes": {
-              "mother": "itn:persons/{@id.target.partId}/{@id.target.value} [itn:persons/{@id.target.value}]"
+              "mother": "x:persons/{@id.target.partId}/{@id.target.value} [x:persons/{@id.target.value}]"
             },
             "triples": ["{?event} crm:P96_by_mother {?mother}"]
           }
@@ -220,7 +220,7 @@
           "source": "relatedEntities[?relation=='person:birth:father' && id.target.name]",
           "output": {
             "nodes": {
-              "father": "itn:persons/{@id.target.partId}/{@id.target.value} [itn:persons/{@id.target.value}]"
+              "father": "x:persons/{@id.target.partId}/{@id.target.value} [x:persons/{@id.target.value}]"
             },
             "triples": ["{?event} crm:P97_from_father {?father}"]
           }
@@ -238,14 +238,14 @@
       "output": {
         "metadata": {
           "sid": "{$part-id}/{@eid}",
-          "person": "itn:persons/{$metadata-pid}/{$item-eid}"
+          "person": "x:persons/{$metadata-pid}/{$item-eid}"
         },
         "nodes": {
-          "event": "itn:events/{$sid} [itn:events/{@eid}]"
+          "event": "x:events/{$sid} [x:events/{@eid}]"
         },
         "triples": [
           "{?event} a crm:E69_death",
-          "{?event} crm:P2_has_type itn:event-types/person.death",
+          "{?event} crm:P2_has_type x:event-types/person.death",
           "{?event} crm:P100_was_death_of {$person}"
         ]
       },
