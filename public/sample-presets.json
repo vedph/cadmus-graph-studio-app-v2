@@ -476,12 +476,14 @@
             },
             "date": {
               "a": {
-                "value": 1304
+                "value": 1304,
+                "day": 20,
+                "month": 7
               }
             }
           }
         ],
-        "description": "Petrarch was born in 1304 at Arezzo from ser Petracco and Eletta Canigiani.",
+        "description": "Petrarch was born on July 20, 1304 at Arezzo from ser Petracco and Eletta Canigiani.",
         "relatedEntities": [
           {
             "relation": "mother",
@@ -511,12 +513,23 @@
             },
             "date": {
               "a": {
-                "value": 1374
+                "value": 1374,
+                "day": 18,
+                "month": 7
               }
             }
           }
         ],
-        "description": "Petrarch died in 1374 at Arquà."
+        "assertion": {
+          "rank": 2,
+          "references": [
+            {
+              "type": "paper",
+              "citation": "Rossi 1963 p.123"
+            }
+          ]
+        },
+        "description": "Petrarch died in 1374, July 18 (or 19) at Arquà."
       }
     ]
   }
