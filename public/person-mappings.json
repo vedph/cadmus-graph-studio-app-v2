@@ -59,7 +59,7 @@
     },
     "event_assertion": {
       "name": "event_assertion",
-      "description": "Map the assertion of an event to EVENT x:has_probability RANK^^xsd:float.",
+      "description": "Map the assertion of an event to EVENT x:has_probability RANK^^xsd:short.",
       "source": "assertion",
       "sid": "{$sid}/assertion",
       "output": {
@@ -67,7 +67,7 @@
           "assertion": "x:assertions/as##"
         },
         "triples": [
-          "{?event} x:has_probability \"{@rank}\"^^xsd:float",
+          "{?event} x:has_probability \"{@rank}\"^^xsd:short",
           "{?assertion} a crm:E13_attribute_assignment",
           "{?assertion} crm:P140_assigned_attribute_to {?event}",
           "{?assertion} crm:P141_assigned x:has_probability",
