@@ -67,6 +67,9 @@ legend {
 .form-row * {
   flex: 0 0 auto;
 }
+.head-icon {
+  margin-right: 6px;
+}
 #meta {
   margin: 8px 0;
 }

@@ -11,10 +11,11 @@
       <div class="form-row">
         <button
           type="button"
-          mat-flat-button
+          mat-icon-button
           (click)="prettifyInput()"
+          matTooltip="Prettify input"
         >
-          <mat-icon>sort</mat-icon> prettify
+          <mat-icon>sort</mat-icon>
         </button>
         <button type="submit" class="mat-primary" mat-flat-button>
           <mat-icon>play_circle</mat-icon>
@@ -50,7 +51,9 @@
       <!-- nodes -->
       <mat-expansion-panel [expanded]="graphSet.nodes.length">
         <mat-expansion-panel-header>
-          <mat-panel-title> nodes </mat-panel-title>
+          <mat-panel-title>
+            <mat-icon class="head-icon">hub</mat-icon> nodes
+          </mat-panel-title>
           <mat-panel-description>
             {{ graphSet.nodes.length }}
           </mat-panel-description>
@@ -72,10 +75,14 @@
           </tbody>
         </table>
       </mat-expansion-panel>
+      <br />
+
       <!-- triples -->
       <mat-expansion-panel [expanded]="graphSet.triples.length">
         <mat-expansion-panel-header>
-          <mat-panel-title> triples </mat-panel-title>
+          <mat-panel-title
+            ><mat-icon class="head-icon">linear_scale</mat-icon> triples
+          </mat-panel-title>
           <mat-panel-description>
             {{ graphSet.triples.length }}
           </mat-panel-description>
