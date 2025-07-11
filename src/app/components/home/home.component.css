@@ -6,6 +6,15 @@ fieldset {
   border-radius: 6px;
   padding: 8px;
 }
+.form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.form-row * {
+  flex: 0 0 auto;
+}
 legend {
   color: white;
   background-color: #bbb;

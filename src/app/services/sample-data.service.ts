@@ -27,21 +27,28 @@ export class SampleDataService {
     return this._presets$.asObservable();
   }
 
-  public load(mappings: string, presets: string): void {
+  public load(mappings?: string, presets?: string): void {
+    if (!mappings) {
+      mappings =
+        this._envService.get('presetMappings') || 'sample-mappings.json';
+    }
+    if (!presets) {
+      presets = 'sample-presets.json';
+    }
     // load mappings
     this._assetService
-    .loadText(mappings)
-    .pipe(take(1))
-    .subscribe((json) => {
-      this._json$.next(json);
-    });
+      .loadText(mappings)
+      .pipe(take(1))
+      .subscribe((json) => {
+        this._json$.next(json);
+      });
     // load presets
     this._assetService
-    .loadObject(presets)
-    .pipe(take(1))
-    .subscribe((data: any) => {
-      this._presets$.next(data);
-    });
+      .loadObject(presets)
+      .pipe(take(1))
+      .subscribe((data: any) => {
+        this._presets$.next(data);
+      });
   }
 
   public reset(): void {
