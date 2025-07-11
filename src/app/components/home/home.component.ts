@@ -54,16 +54,23 @@ export class HomeComponent {
     this.jsonSources = ['person-mappings.json', 'sample-mappings.json'];
     this.presetSources = ['person-presets.json', 'sample-presets.json'];
 
-    // Subscribe to form control changes
+    // set default values to first items
+    this.jsonSource.setValue(this.jsonSources[0]);
+    this.presetSource.setValue(this.presetSources[0]);
+
+    // load initial data with defaults
+    this._sampleDataService.load(this.jsonSources[0], this.presetSources[0]);
+
+    // subscribe to form control changes
     this.jsonSource.valueChanges.subscribe((value) => {
       if (value) {
-        this._sampleDataService.load(value);
+        this._sampleDataService.load(value, this.presetSource.value);
       }
     });
 
     this.presetSource.valueChanges.subscribe((value) => {
       if (value) {
-        this._sampleDataService.load(undefined, value);
+        this._sampleDataService.load(this.jsonSource.value, value);
       }
     });
   }
