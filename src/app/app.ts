@@ -2,6 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { take } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,7 +21,7 @@ import {
   NodeMappingService,
   RamCacheService,
 } from '../../projects/myrmidon/cadmus-mapping-builder/src/public-api';
-import { AssetService } from './services/asset.service';
+import { SampleDataService } from './services/sample-data.service';
 
 @Component({
   selector: 'app-root',
@@ -47,24 +48,22 @@ export class App {
     private _dialogService: DialogService,
     private _listService: NodeMappingListService,
     @Inject(NODE_MAPPING_SERVICE) private _mappingService: NodeMappingService,
-    assetService: AssetService,
+    private _sampleService: SampleDataService,
     cacheService: RamCacheService,
     envService: EnvService
   ) {
     this.version = envService.get('version') || '';
-    // load sample mappings
-    assetService
-      .loadText(envService.get('presetMappings') || 'sample-mappings.json')
-      .pipe(take(1))
-      .subscribe((json) => {
-        _mappingService.importMappings(json);
-        _listService.reset();
-      });
-    // load presets
-    assetService
-      .loadObject('sample-presets')
-      .pipe(take(1))
-      .subscribe((data: any) => {
+
+    this._sampleService.json$.pipe(takeUntilDestroyed()).subscribe((json) => {
+      // import mappings
+      _mappingService.importMappings(json);
+      // reset the list
+      _listService.reset();
+    });
+
+    this._sampleService.presets$
+      .pipe(takeUntilDestroyed())
+      .subscribe((data) => {
         // for each property of data (jmes/map)
         for (let key in data) {
           cacheService.add(key, JSON.stringify(data[key], null, 2));
