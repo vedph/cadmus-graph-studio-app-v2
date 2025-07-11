@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { combineLatest, debounceTime } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -17,6 +18,7 @@ import {
   MappingListComponent,
 } from '../../../../projects/myrmidon/cadmus-mapping-builder/src/public-api';
 import { SampleDataService } from '../../services/sample-data.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-home',
@@ -58,21 +60,17 @@ export class HomeComponent {
     this.jsonSource.setValue(this.jsonSources[0]);
     this.presetSource.setValue(this.presetSources[0]);
 
-    // load initial data with defaults
-    this._sampleDataService.load(this.jsonSources[0], this.presetSources[0]);
-
-    // subscribe to form control changes
-    this.jsonSource.valueChanges.subscribe((value) => {
-      if (value) {
-        this._sampleDataService.load(value, this.presetSource.value);
-      }
-    });
-
-    this.presetSource.valueChanges.subscribe((value) => {
-      if (value) {
-        this._sampleDataService.load(this.jsonSource.value, value);
-      }
-    });
+    // combine both form control changes with debounce
+    combineLatest([
+      this.jsonSource.valueChanges,
+      this.presetSource.valueChanges,
+    ])
+      .pipe(debounceTime(100), takeUntilDestroyed())
+      .subscribe(([jsonSource, presetSource]) => {
+        if (jsonSource && presetSource) {
+          this._sampleDataService.load(jsonSource, presetSource);
+        }
+      });
   }
 
   public onEditMapping(mapping: NodeMapping): void {
