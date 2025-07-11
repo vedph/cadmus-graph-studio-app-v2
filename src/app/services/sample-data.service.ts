@@ -30,10 +30,10 @@ export class SampleDataService {
   public load(mappings?: string, presets?: string): void {
     if (!mappings) {
       mappings =
-        this._envService.get('presetMappings') || 'sample-mappings.json';
+        this._envService.get('presetMappings') || 'person-mappings.json';
     }
     if (!presets) {
-      presets = 'sample-presets.json';
+      presets = 'person-presets.json';
     }
     // load mappings
     this._assetService

@@ -52,7 +52,7 @@ export class HomeComponent {
     private _sampleDataService: SampleDataService
   ) {
     this.jsonSources = ['person-mappings.json', 'sample-mappings.json'];
-    this.presetSources = ['sample-presets.json'];
+    this.presetSources = ['person-presets.json', 'sample-presets.json'];
 
     // Subscribe to form control changes
     this.jsonSource.valueChanges.subscribe((value) => {
