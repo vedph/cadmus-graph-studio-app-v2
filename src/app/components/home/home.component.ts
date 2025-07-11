@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { combineLatest, debounceTime } from 'rxjs';
+import { combineLatest, debounceTime, startWith } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -62,8 +62,8 @@ export class HomeComponent {
 
     // combine both form control changes with debounce
     combineLatest([
-      this.jsonSource.valueChanges,
-      this.presetSource.valueChanges,
+      this.jsonSource.valueChanges.pipe(startWith(this.jsonSource.value)),
+      this.presetSource.valueChanges.pipe(startWith(this.presetSource.value)),
     ])
       .pipe(debounceTime(100), takeUntilDestroyed())
       .subscribe(([jsonSource, presetSource]) => {

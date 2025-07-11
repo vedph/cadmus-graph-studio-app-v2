@@ -26,6 +26,7 @@ export class AssetService {
    * @returns The object parsed from the loaded JSON code.
    */
   public loadObject<T>(path: string): Observable<T> {
-    return this._http.get<T>('./' + path + '.json');
+    const jsonPath = path.endsWith('.json') ? path : path + '.json';
+    return this._http.get<T>('./' + jsonPath);
   }
 }

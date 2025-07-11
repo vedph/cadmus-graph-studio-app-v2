@@ -28,6 +28,8 @@ export class SampleDataService {
   }
 
   public load(mappings?: string, presets?: string): void {
+    console.log('SampleDataService.load', mappings, presets);
+    // if no mappings or presets are provided,
     if (!mappings) {
       mappings =
         this._envService.get('presetMappings') || 'person-mappings.json';
@@ -54,7 +56,7 @@ export class SampleDataService {
   public reset(): void {
     this.load(
       this._envService.get('presetMappings') || 'sample-mappings.json',
-      'sample-presets'
+      'person-presets.json'
     );
   }
 }
