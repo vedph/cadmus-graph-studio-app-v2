@@ -67,5 +67,86 @@
         "description": "Petrarch died in 1374, July 18 (or 19) at Arquà."
       }
     ]
+  },
+  "jms_metadata": {
+    "metadata": [
+      {
+        "name": "eid",
+        "value": "alpha"
+      },
+      {
+        "name": "copyright",
+        "value": "(C) some guy 2023"
+      }
+    ]
+  },
+  "jms_person_events": {
+    "events": [
+      {
+        "eid": "birth",
+        "type": "person.birth",
+        "chronotopes": [
+          {
+            "place": {
+              "value": "Arezzo"
+            },
+            "date": {
+              "a": {
+                "value": 1304,
+                "day": 20,
+                "month": 7
+              }
+            }
+          }
+        ],
+        "description": "Petrarch was born on July 20, 1304 at Arezzo from ser Petracco and Eletta Canigiani.",
+        "relatedEntities": [
+          {
+            "relation": "mother",
+            "id": {
+              "target": {
+                "gid": "x:guys/eletta_canigiani"
+              }
+            }
+          },
+          {
+            "relation": "father",
+            "id": {
+              "target": {
+                "gid": "x:guys/ser_petracco"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "eid": "death",
+        "type": "person.death",
+        "chronotopes": [
+          {
+            "place": {
+              "value": "Arquà"
+            },
+            "date": {
+              "a": {
+                "value": 1374,
+                "day": 18,
+                "month": 7
+              }
+            }
+          }
+        ],
+        "assertion": {
+          "rank": 2,
+          "references": [
+            {
+              "type": "paper",
+              "citation": "Rossi 1963 p.123"
+            }
+          ]
+        },
+        "description": "Petrarch died in 1374, July 18 (or 19) at Arquà."
+      }
+    ]
   }
 }
