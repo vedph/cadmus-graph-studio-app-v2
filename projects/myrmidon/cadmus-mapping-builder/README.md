@@ -72,5 +72,3 @@ When you edit a mapping in the list, the `MappingTreeEditor` opens for that mapp
 The `MappingTree` internally uses a flat tree structure, as it leverages a generic paged tree component. So, it gets the `NodeMapping` being edited, and builds a flat tree from it, using `MappingTreeService`.`reset` with that mapping's ID.
 
 >In turn, this service, which is a wrapper for a paged tree store, uses the `MappingPagedTreeStoreService` to load into the tree store the tree of the selected mapping, flattening it into flat nodes (of type `MappingPagedTreeNode`). It then resets the store, which will force it to reload its data, consisting in the selected mapping's tree.
-
-TODO

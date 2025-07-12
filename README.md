@@ -1,11 +1,12 @@
 # Cadmus Graph Studio V2
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.1. This is the second generation of the [original studio app](https://github.com/vedph/cadmus-graph-studio-app).
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.1. This is the second generation of the [original studio app](https://github.com/vedph/cadmus-graph-studio-app), rebased on Angular 20 and totally rewritten to leverage newer UI components.
 
-This is a minimalist editor for helping users build their graph mapping rules.
+The Cadmus Graph Studio App is a minimalist editor for helping users build and test their graph mapping rules.
 
+- 📖 [documentation](https://myrmex.github.io/overview/cadmus/graph-studio/graph-studio/)
+- 🟢 [backend API](https://github.com/vedph/cadmus-graph-studio-api): this is required to test mappings.
 - [library overview](./projects/myrmidon/cadmus-mapping-builder/README.md)
-- 👉 [documentation](https://myrmex.github.io/overview/cadmus/graph-studio/graph-studio/)
 
 🐋 Docker:
 

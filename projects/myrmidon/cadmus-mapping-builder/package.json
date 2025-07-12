@@ -1,6 +1,20 @@
 {
   "name": "@myrmidon/cadmus-mapping-builder",
   "version": "0.0.1",
+  "description": "Cadmus - graph mapping builder library",
+  "keywords": [
+    "Cadmus",
+    "graph",
+    "RDF"
+  ],
+  "homepage": "https://github.com/vedph/cadmus-graph-studio-app-v2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vedph/cadmus-graph-studio-app-v2"
+  },
+  "author": {
+    "name": "Daniele Fusi"
+  },
   "peerDependencies": {
     "@angular/common": "^20.0.0",
     "@angular/core": "^20.0.0"
