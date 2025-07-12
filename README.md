@@ -12,17 +12,17 @@ The Cadmus Graph Studio App is a minimalist editor for helping users build and t
 
 1. `npm run build-lib`;
 2. update [env.js](./src/env.js) version number and version numbers in [docker compose](docker-compose.yml);
-3. `ng build`;
+3. `ng build --configuration=production`;
 4. build image like (change version number accordingly):
 
 ```bash
-docker build . -t vedph2020/cadmus-graph-studio-app:0.1.0 -t vedph2020/cadmus-graph-studio-app:latest
+docker build . -t vedph2020/cadmus-graph-studio-app:1.0.0 -t vedph2020/cadmus-graph-studio-app:latest
 ```
 
-For production:
+🚀 For production:
 
 (1) build as above for 1-3.
-(2) in `dist/cadmus-graph-studio/env.js` replace the host address (and eventually version number by appending `-prod`) as follows:
+(2) in `dist/cadmus-graph-studio-app/browser/env.js` replace the host address (and eventually version number by appending `-prod`) as follows:
 
 ```js
 window.__env.apiUrl = "https://cadmus-graph-studio-api.fusi-soft.com/api/";
@@ -31,7 +31,7 @@ window.__env.apiUrl = "https://cadmus-graph-studio-api.fusi-soft.com/api/";
 (3) build prod image:
 
 ```bash
-docker build . -t vedph2020/cadmus-graph-studio-app:0.0.11-prod
+docker build . -t vedph2020/cadmus-graph-studio-app:1.0.0-prod
 ```
 
 ## Debug Hints
@@ -51,7 +51,12 @@ When you revert with `npm unlink @myrmidon/paged-data-browser`, the original pac
 
 ## History
 
-- 2025-07-12: updated Angular.
+### 1.0.0
+
+- 2025-07-12:
+  - updated Angular.
+  - added Docker support.
+  - generated image.
 - 2025-07-09: updated Angular and packages.
 - 2025-06-15: updated Angular and packages.
 - 2025-06-10:
