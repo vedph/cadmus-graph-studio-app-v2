@@ -27,6 +27,7 @@ import {
   PageChangeRequest,
   PagedTreeStore,
 } from '@myrmidon/paged-data-browsers';
+import { DialogService } from '@myrmidon/ngx-mat-tools';
 
 import { MappingTreeFilterComponent } from '../mapping-tree-filter/mapping-tree-filter';
 import { MappingTreeService } from '../../state/mapping-tree.service';
@@ -34,8 +35,7 @@ import {
   MappingTreeFilter,
   MappingPagedTreeNode,
 } from '../../services/mapping-paged-tree-store.service';
-import { Mapping, NodeMapping } from '../../models';
-import { DialogService } from '@myrmidon/ngx-mat-tools';
+import { NodeMapping } from '../../models';
 
 /**
  * Node mapping tree component. This represents the hierarchy of mappings
@@ -107,7 +107,8 @@ export class MappingTreeComponent implements OnDestroy {
     nonNullable: true,
   });
 
-  public loading?: boolean;
+  public readonly loading = signal<boolean>(false);
+
   public filter$: Observable<Readonly<MappingTreeFilter>>;
   public nodes$: Observable<Readonly<MappingPagedTreeNode[]>>;
 
@@ -133,39 +134,39 @@ export class MappingTreeComponent implements OnDestroy {
   }
 
   public reset(): void {
-    this.loading = true;
+    this.loading.set(true);
     this._store.reset().finally(() => {
-      this.loading = false;
+      this.loading.set(false);
     });
   }
 
   public onToggleExpanded(node: MappingPagedTreeNode): void {
-    this.loading = true;
+    this.loading.set(true);
     if (node.expanded) {
       this._store.collapse(node.id).finally(() => {
-        this.loading = false;
+        this.loading.set(false);
       });
     } else {
       this._store.expand(node.id).finally(() => {
-        this.loading = false;
+        this.loading.set(false);
       });
     }
   }
 
   public onPageChangeRequest(request: PageChangeRequest): void {
-    this.loading = true;
+    this.loading.set(true);
     this._store
       .changePage(request.node.id, request.paging.pageNumber)
       .finally(() => {
-        this.loading = false;
+        this.loading.set(false);
       });
   }
 
   public onFilterChange(filter: MappingTreeFilter | null | undefined): void {
     console.log('filter change', filter);
-    this.loading = true;
+    this.loading.set(true);
     this._store.setFilter(filter || {}).finally(() => {
-      this.loading = false;
+      this.loading.set(false);
     });
   }
 

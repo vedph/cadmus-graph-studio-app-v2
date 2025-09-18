@@ -8,20 +8,20 @@
       <mat-error>JMES required</mat-error>
       } @if ($any(jmes).errors?.maxLength && (jmes.dirty || jmes.touched)) {
       <mat-error>JMES too long</mat-error>
-      } @if (error) {
-      <mat-error>{{ error }}</mat-error>
+      } @if (error()) {
+      <mat-error>{{ error() }}</mat-error>
       }
     </mat-form-field>
     <button
       type="submit"
       mat-flat-button
-      [disabled]="form.invalid || busy"
+      [disabled]="form.invalid || busy()"
       matTooltip="Run JMES"
     >
       <mat-icon>play_circle</mat-icon> run
     </button>
     <div>
-      @if (busy) {
+      @if (busy()) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
       }
     </div>

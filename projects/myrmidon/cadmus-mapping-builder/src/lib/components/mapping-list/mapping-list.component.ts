@@ -40,7 +40,7 @@ import { NodeMapping } from '../../models';
 export class MappingListComponent {
   public page$: Observable<DataPage<NodeMapping>>;
   public loading$: Observable<boolean | undefined>;
-  public sourceTypes = [
+  public readonly sourceTypes = [
     { id: 0, label: 'any' },
     { id: 1, label: 'item' },
     { id: 2, label: 'part' },

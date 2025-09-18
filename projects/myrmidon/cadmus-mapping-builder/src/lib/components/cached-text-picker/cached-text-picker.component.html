@@ -1,11 +1,11 @@
 <form [formGroup]="form" (submit)="add()">
   <!-- selector-->
   <div class="form-row">
-    @if (keys.length) {
+    @if (keys().length) {
     <mat-form-field>
       <mat-label>preset</mat-label>
       <mat-select [formControl]="key">
-        @for (k of keys; track k) {
+        @for (k of keys(); track k) {
         <mat-option [value]="k">{{ k }}</mat-option>
         }
       </mat-select>

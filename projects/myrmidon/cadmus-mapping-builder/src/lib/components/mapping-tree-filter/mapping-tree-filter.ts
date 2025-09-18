@@ -1,4 +1,11 @@
-import { Component, effect, inject, model, OnInit } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  model,
+  OnInit,
+  signal,
+} from '@angular/core';
 
 import {
   FormBuilder,
@@ -43,7 +50,7 @@ export class MappingTreeFilterComponent implements OnInit {
    */
   public readonly filter = model<MappingTreeFilter>();
 
-  public wrapped?: boolean;
+  public readonly wrapped = signal<boolean>(false);
 
   public name: FormControl<string | null>;
   public form: FormGroup;
@@ -59,12 +66,12 @@ export class MappingTreeFilterComponent implements OnInit {
     });
     // bind dialog data if any
     if (this.dialogRef) {
-      this.wrapped = true;
+      this.wrapped.set(true);
       if (data) {
         this.filter.set(data.filter);
       }
     } else {
-      this.wrapped = false;
+      this.wrapped.set(false);
     }
 
     // update form when filter changes

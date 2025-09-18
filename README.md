@@ -51,6 +51,11 @@ When you revert with `npm unlink @myrmidon/paged-data-browser`, the original pac
 
 ## History
 
+### 2.0.0
+
+- 2025-09-18:
+  - updated Angular and packages.
+  - ⚠️ refactored for full reactivity.
 - 2025-09-03: updated Angular and packages.
 - 2025-07-25: updated Angular and packages.
 

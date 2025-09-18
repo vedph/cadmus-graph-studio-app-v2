@@ -21,7 +21,7 @@ import {
   NODE_MAPPING_SERVICE,
   NodeMappingListService,
   NodeMappingService,
-} from '../../../../projects/myrmidon/cadmus-mapping-builder/src/public-api';
+} from '@myrmidon/cadmus-mapping-builder';
 
 function jsonValidator(): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {

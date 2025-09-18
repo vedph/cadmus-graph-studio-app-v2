@@ -1,7 +1,7 @@
 <form [formGroup]="form" (submit)="run()">
   <div id="container">
     <div>
-      @if (busy) {
+      @if (busy()) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
       }
     </div>
@@ -22,8 +22,8 @@
           run
         </button>
       </div>
-      @if (error) {
-      <div class="error">{{ error }}</div>
+      @if (error()) {
+      <div class="error">{{ error() }}</div>
       }
       <fieldset>
         <legend>presets</legend>
@@ -46,16 +46,16 @@
     </div>
 
     <!-- output -->
-    @if (graphSet) {
+    @if (graphSet()) {
     <div id="output">
       <!-- nodes -->
-      <mat-expansion-panel [expanded]="graphSet.nodes.length">
+      <mat-expansion-panel [expanded]="graphSet()!.nodes.length">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <mat-icon class="head-icon">hub</mat-icon> nodes
           </mat-panel-title>
           <mat-panel-description>
-            {{ graphSet.nodes.length }}
+            {{ graphSet()!.nodes.length }}
           </mat-panel-description>
         </mat-expansion-panel-header>
         <table>
@@ -65,7 +65,7 @@
             <th>sid</th>
           </thead>
           <tbody>
-            @for (n of graphSet.nodes; track n) {
+            @for (n of graphSet()!.nodes; track n) {
             <tr>
               <td>{{ n.label }}</td>
               <td class="uri">{{ n.uri }}</td>
@@ -78,13 +78,13 @@
       <br />
 
       <!-- triples -->
-      <mat-expansion-panel [expanded]="graphSet.triples.length">
+      <mat-expansion-panel [expanded]="graphSet()!.triples.length">
         <mat-expansion-panel-header>
           <mat-panel-title
             ><mat-icon class="head-icon">linear_scale</mat-icon> triples
           </mat-panel-title>
           <mat-panel-description>
-            {{ graphSet.triples.length }}
+            {{ graphSet()!.triples.length }}
           </mat-panel-description>
         </mat-expansion-panel-header>
         <table>
@@ -95,11 +95,11 @@
             <th>sid</th>
           </thead>
           <tbody>
-            @for (t of graphSet.triples; track t) {
+            @for (t of graphSet()!.triples; track t) {
             <tr>
               <td class="uri">{{ t.subjectUri }}</td>
               <td class="tp">{{ t.predicateUri }}</td>
-              <td [ngClass]="{ tol: t.objectLiteral, to: t.objectUri }">
+              <td [class.tol]="t.objectLiteral" [class.to]="t.objectUri">
                 {{ t.objectUri || t.objectLiteral }}
                 @if (t.literalType || t.literalLanguage || t.literalNumber) {
                 <ul>

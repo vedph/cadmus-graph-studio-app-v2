@@ -6,14 +6,13 @@ import {
 } from '@angular/core';
 import { provideRouter, withViewTransitions } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 import { provideNativeDateAdapter } from '@angular/material/core';
 
 import {
   NODE_MAPPING_SERVICE,
   RamNodeMappingService,
-} from '../../projects/myrmidon/cadmus-mapping-builder/src/public-api';
+} from '@myrmidon/cadmus-mapping-builder';
 
 import { NgeMonacoModule } from '@cisstech/nge/monaco';
 
@@ -24,7 +23,6 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withViewTransitions()),
-    provideAnimationsAsync(),
     provideNativeDateAdapter(),
     provideHttpClient(),
     // monaco

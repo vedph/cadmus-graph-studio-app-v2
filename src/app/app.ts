@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { take } from 'rxjs';
@@ -20,7 +20,7 @@ import {
   NodeMappingListService,
   NodeMappingService,
   RamCacheService,
-} from '../../projects/myrmidon/cadmus-mapping-builder/src/public-api';
+} from '@myrmidon/cadmus-mapping-builder';
 import { SampleDataService } from './services/sample-data.service';
 
 @Component({
@@ -41,7 +41,7 @@ import { SampleDataService } from './services/sample-data.service';
   styleUrl: './app.scss',
 })
 export class App {
-  public version: string;
+  public readonly version = signal<string>('');
 
   constructor(
     private _router: Router,
@@ -52,7 +52,7 @@ export class App {
     cacheService: RamCacheService,
     envService: EnvService
   ) {
-    this.version = envService.get('version') || '';
+    this.version.set(envService.get('version') || '');
 
     this._sampleService.json$.pipe(takeUntilDestroyed()).subscribe((json) => {
       // import mappings

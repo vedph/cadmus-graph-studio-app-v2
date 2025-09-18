@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { combineLatest, debounceTime, startWith } from 'rxjs';
@@ -16,7 +16,7 @@ import { NodeMapping } from '@myrmidon/cadmus-mapping-builder';
 import {
   MappingFilterComponent,
   MappingListComponent,
-} from '../../../../projects/myrmidon/cadmus-mapping-builder/src/public-api';
+} from '@myrmidon/cadmus-mapping-builder';
 import { SampleDataService } from '../../services/sample-data.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -46,19 +46,22 @@ export class HomeComponent {
     nonNullable: true,
   });
 
-  public jsonSources: string[] = [];
-  public presetSources: string[] = [];
+  public readonly jsonSources = signal<string[]>([
+    'person-mappings.json',
+    'sample-mappings.json',
+  ]);
+  public readonly presetSources = signal<string[]>([
+    'person-presets.json',
+    'sample-presets.json',
+  ]);
 
   constructor(
     private _router: Router,
     private _sampleDataService: SampleDataService
   ) {
-    this.jsonSources = ['person-mappings.json', 'sample-mappings.json'];
-    this.presetSources = ['person-presets.json', 'sample-presets.json'];
-
     // set default values to first items
-    this.jsonSource.setValue(this.jsonSources[0]);
-    this.presetSource.setValue(this.presetSources[0]);
+    this.jsonSource.setValue(this.jsonSources()[0]);
+    this.presetSource.setValue(this.presetSources()[0]);
 
     // combine both form control changes with debounce
     combineLatest([

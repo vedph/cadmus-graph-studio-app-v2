@@ -1,6 +1,6 @@
 {
   "name": "@myrmidon/cadmus-mapping-builder",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Cadmus - graph mapping builder library",
   "keywords": [
     "Cadmus",
@@ -17,7 +17,8 @@
   },
   "peerDependencies": {
     "@angular/common": "^20.0.0",
-    "@angular/core": "^20.0.0"
+    "@angular/core": "^20.0.0",
+    "@angular/material": "^20.0.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"

@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { take } from 'rxjs';
 
@@ -10,7 +10,7 @@ import {
   NodeMapping,
   NodeMappingListService,
   NodeMappingService,
-} from '../../../../projects/myrmidon/cadmus-mapping-builder/src/public-api';
+} from '@myrmidon/cadmus-mapping-builder';
 
 @Component({
   selector: 'app-mapping-editor-page',
@@ -19,7 +19,7 @@ import {
   styleUrls: ['./mapping-editor-page.component.css'],
 })
 export class MappingEditorPageComponent {
-  public editedMapping?: NodeMapping;
+  public readonly editedMapping = signal<NodeMapping | undefined>(undefined);
 
   constructor(
     route: ActivatedRoute,
@@ -35,7 +35,7 @@ export class MappingEditorPageComponent {
         .getMapping(+id)
         .pipe(take(1))
         .subscribe((m) => {
-          this.editedMapping = m || undefined;
+          this.editedMapping.set(m || undefined);
         });
     }
   }

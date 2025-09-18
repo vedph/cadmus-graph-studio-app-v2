@@ -1,4 +1,4 @@
-import { Component, effect, Input, model, OnDestroy } from '@angular/core';
+import { Component, effect, model, OnDestroy, signal } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -80,9 +80,9 @@ export class MappingRunnerComponent implements OnDestroy {
   public flags: FormControl<number>;
   public metaForm: FormGroup;
 
-  public busy?: boolean;
-  public error?: string;
-  public graphSet?: GraphSet;
+  public readonly busy = signal<boolean>(false);
+  public readonly error = signal<string | undefined>(undefined);
+  public readonly graphSet = signal<GraphSet | undefined>(undefined);
 
   constructor(
     formBuilder: FormBuilder,
@@ -138,7 +138,7 @@ export class MappingRunnerComponent implements OnDestroy {
     effect(() => {
       const mapping = this.mapping();
       console.log('runner mapping', mapping);
-      this.graphSet = undefined;
+      this.graphSet.set(undefined);
     });
   }
 
@@ -200,26 +200,26 @@ export class MappingRunnerComponent implements OnDestroy {
   }
 
   public run(): void {
-    if (this.busy || this.form.invalid || !this.mapping()) {
+    if (this.busy() || this.form.invalid || !this.mapping()) {
       return;
     }
-    this.busy = true;
-    this.error = undefined;
+    this.busy.set(true);
+    this.error.set(undefined);
     this._apiService
       .runMappings(this.input.value, [this.mapping()!], this.getMetadata())
       .pipe(take(1))
       .subscribe({
         next: (w) => {
-          this.busy = false;
+          this.busy.set(false);
           if (w.error) {
-            this.error = w.error;
+            this.error.set(w.error);
           } else {
-            this.graphSet = w.value;
+            this.graphSet.set(w.value);
           }
         },
         error: (error) => {
-          this.busy = false;
-          this.error = error;
+          this.busy.set(false);
+          this.error.set(error);
         },
       });
   }

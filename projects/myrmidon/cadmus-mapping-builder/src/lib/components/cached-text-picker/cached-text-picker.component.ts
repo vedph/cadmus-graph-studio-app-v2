@@ -1,4 +1,4 @@
-import { Component, effect, input, OnInit, output } from '@angular/core';
+import { Component, effect, input, OnInit, output, signal } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -52,7 +52,8 @@ export class CachedTextPickerComponent implements OnInit {
    */
   public readonly textPick = output<string>();
 
-  public keys: string[];
+  public readonly keys = signal<string[]>([]);
+
   public key: FormControl<string | null>;
 
   public newKey: FormControl<string>;
@@ -62,7 +63,6 @@ export class CachedTextPickerComponent implements OnInit {
     formBuilder: FormBuilder,
     private _cacheService: RamCacheService
   ) {
-    this.keys = [];
     this.key = formBuilder.control(null);
 
     // new key form
@@ -80,7 +80,7 @@ export class CachedTextPickerComponent implements OnInit {
   }
 
   private loadKeys(keyPrefix?: string): void {
-    this.keys = this._cacheService.getKeys(keyPrefix).sort();
+    this.keys.set(this._cacheService.getKeys(keyPrefix).sort());
   }
 
   public ngOnInit(): void {
@@ -113,7 +113,7 @@ export class CachedTextPickerComponent implements OnInit {
       `${this.keyPrefix()}${this.newKey.value}`,
       this.text
     );
-    this.keys = [...this.keys, this.newKey.value].sort();
+    this.keys.set([...this.keys(), this.newKey.value].sort());
   }
 
   public remove(): void {
@@ -122,6 +122,6 @@ export class CachedTextPickerComponent implements OnInit {
     }
     const key = this.buildPrefixedKey(this.key.value);
     this._cacheService.remove(key);
-    this.keys = this.keys.filter((k) => k !== key);
+    this.keys.set(this.keys().filter((k) => k !== key));
   }
 }

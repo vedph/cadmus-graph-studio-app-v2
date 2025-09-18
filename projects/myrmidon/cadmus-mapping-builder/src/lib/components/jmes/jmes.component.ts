@@ -1,4 +1,11 @@
-import { Component, effect, model, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  effect,
+  model,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -68,9 +75,9 @@ export class JmesComponent implements OnInit, OnDestroy {
   public sampleKey: FormControl<string>;
   public sampleForm: FormGroup;
 
-  public busy?: boolean;
-  public error?: string;
-  public sampleKeys: string[];
+  public readonly busy = signal<boolean>(false);
+  public readonly error = signal<string | undefined>(undefined);
+  public readonly sampleKeys = signal<string[]>([]);
 
   constructor(
     formBuilder: FormBuilder,
@@ -93,7 +100,9 @@ export class JmesComponent implements OnInit, OnDestroy {
       output: this.output,
     });
     // sample
-    this.sampleKeys = Object.keys(this._cacheService.get('jmes') || {});
+    this.sampleKeys.set(
+      Object.keys(this._cacheService.get('jmes') || {}).sort()
+    );
     this.sampleKey = formBuilder.control('', {
       validators: [Validators.required, Validators.maxLength(50)],
       nonNullable: true,
@@ -176,19 +185,19 @@ export class JmesComponent implements OnInit, OnDestroy {
   }
 
   public transform(): void {
-    if (this.busy || this.form.invalid) {
+    if (this.busy() || this.form.invalid) {
       return;
     }
-    this.busy = true;
-    this.error = undefined;
+    this.busy.set(true);
+    this.error.set(undefined);
     this._apiService
       .jmesTransform(this.input.value, this.jmes.value)
       .pipe(take(1))
       .subscribe({
         next: (w) => {
-          this.busy = false;
+          this.busy.set(false);
           if (w.error) {
-            this.error = w.error;
+            this.error.set(w.error);
           } else {
             this.output.setValue(w.value || '');
             this.output.updateValueAndValidity();
@@ -197,8 +206,8 @@ export class JmesComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          this.busy = false;
-          this.error = error;
+          this.busy.set(false);
+          this.error.set(error);
         },
       });
   }
@@ -215,12 +224,10 @@ export class JmesComponent implements OnInit, OnDestroy {
     if (this.sampleForm.invalid) {
       return;
     }
-    this._cacheService.add(
-      'jmes',
-      Object.assign(this._cacheService.get('jmes') || {}, {
-        [this.sampleKey.value]: this.input.value,
-      })
-    );
-    this.sampleKeys = [...this.sampleKeys, this.sampleKey.value].sort();
+    this._cacheService.add('jmes', {
+      ...(this._cacheService.get('jmes') || {}),
+      [this.sampleKey.value]: this.input.value,
+    });
+    this.sampleKeys.set([...this.sampleKeys(), this.sampleKey.value].sort());
   }
 }
