@@ -17,7 +17,7 @@
       </tr>
     </thead>
     <tbody>
-      @for (m of page.items; track m) {
+      @for (m of page.items; track m.id) {
       <tr>
         <td class="fit-width">
           <button type="button" mat-icon-button (click)="editMapping(m)">
