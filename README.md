@@ -10,7 +10,7 @@ The Cadmus Graph Studio App is a minimalist editor for helping users build and t
 
 🐋 Docker:
 
-1. `npm run build-lib`;
+1. `pnpm run build-lib`;
 2. update [env.js](./src/env.js) version number and version numbers in [docker compose](docker-compose.yml);
 3. `ng build --configuration=production`;
 4. build image like (change version number accordingly):
@@ -51,6 +51,9 @@ When you revert with `npm unlink @myrmidon/paged-data-browser`, the original pac
 
 ## History
 
+- 2025-11-24:
+  - ⚠️ upgraded to Angular 21.
+  - migrated to `pnpm`.
 - 2025-11-07: updated Angular and packages.
 - 2025-09-28: updated Angular and packages.
 
