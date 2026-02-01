@@ -1,4 +1,4 @@
-import { Component, Inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { take } from 'rxjs';
 
@@ -17,6 +17,7 @@ import {
   imports: [MatCardModule, MappingTreeEditorComponent],
   templateUrl: './mapping-editor-page.component.html',
   styleUrls: ['./mapping-editor-page.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingEditorPageComponent {
   public readonly editedMapping = signal<NodeMapping | undefined>(undefined);

@@ -30,7 +30,6 @@ export interface MappingPagedTreeNode extends PagedTreeNode<TreeNodeFilter> {
  * This service is used to browse the tree of a single mapping,
  * set via reset.
  */
-// TODO: remove injectable if this is to be wrapped in another service
 @Injectable({
   providedIn: 'root',
 })

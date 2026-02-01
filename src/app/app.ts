@@ -1,4 +1,4 @@
-import { Component, Inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { take } from 'rxjs';
@@ -39,6 +39,7 @@ import { SampleDataService } from './services/sample-data.service';
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
   public readonly version = signal<string>('');

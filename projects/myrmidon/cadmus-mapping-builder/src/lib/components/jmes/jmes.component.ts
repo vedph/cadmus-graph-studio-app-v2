@@ -1,4 +1,6 @@
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   effect,
   model,
@@ -50,6 +52,7 @@ import { CachedTextPickerComponent } from '../cached-text-picker/cached-text-pic
   ],
   templateUrl: './jmes.component.html',
   styleUrls: ['./jmes.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class JmesComponent implements OnInit, OnDestroy {
   private _sub?: Subscription;
@@ -82,7 +85,8 @@ export class JmesComponent implements OnInit, OnDestroy {
   constructor(
     formBuilder: FormBuilder,
     private _apiService: GraphStudioApiService,
-    private _cacheService: RamCacheService
+    private _cacheService: RamCacheService,
+    private _cdr: ChangeDetectorRef
   ) {
     // form
     this.jmes = formBuilder.control('', {
@@ -118,6 +122,7 @@ export class JmesComponent implements OnInit, OnDestroy {
       this.jmes.setValue(expression || '', { emitEvent: false });
       this.jmes.markAsDirty();
       this.jmes.updateValueAndValidity();
+      this._cdr.markForCheck();
       this._updatingForm = false;
     });
   }
@@ -158,6 +163,7 @@ export class JmesComponent implements OnInit, OnDestroy {
         this.input.setValue(this._inEditorModel!.getValue());
         this.input.markAsDirty();
         this.input.updateValueAndValidity();
+        this._cdr.markForCheck();
       })
     );
   }
@@ -180,6 +186,7 @@ export class JmesComponent implements OnInit, OnDestroy {
         this.output.setValue(this._outEditorModel!.getValue());
         this.output.markAsDirty();
         this.output.updateValueAndValidity();
+        this._cdr.markForCheck();
       })
     );
   }
@@ -203,6 +210,7 @@ export class JmesComponent implements OnInit, OnDestroy {
             this.output.updateValueAndValidity();
             this.output.markAsDirty();
             this._outEditorModel?.setValue(w.value || '');
+            this._cdr.markForCheck();
           }
         },
         error: (error) => {
@@ -218,6 +226,7 @@ export class JmesComponent implements OnInit, OnDestroy {
     this.input.markAsDirty();
 
     this._inEditorModel?.setValue(text);
+    this._cdr.markForCheck();
   }
 
   public addSample(): void {

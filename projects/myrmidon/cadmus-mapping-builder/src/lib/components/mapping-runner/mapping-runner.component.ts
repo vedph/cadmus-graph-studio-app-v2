@@ -1,4 +1,12 @@
-import { Component, effect, model, OnDestroy, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  effect,
+  model,
+  OnDestroy,
+  signal,
+} from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -51,6 +59,7 @@ import { CachedTextPickerComponent } from '../cached-text-picker/cached-text-pic
   ],
   templateUrl: './mapping-runner.component.html',
   styleUrls: ['./mapping-runner.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingRunnerComponent implements OnDestroy {
   // Monaco
@@ -86,7 +95,8 @@ export class MappingRunnerComponent implements OnDestroy {
 
   constructor(
     formBuilder: FormBuilder,
-    private _apiService: GraphStudioApiService
+    private _apiService: GraphStudioApiService,
+    private _cdr: ChangeDetectorRef
   ) {
     // runner form
     this.input = formBuilder.control('', {
@@ -165,6 +175,7 @@ export class MappingRunnerComponent implements OnDestroy {
         this.input.setValue(this._editorModel!.getValue());
         this.input.markAsDirty();
         this.input.updateValueAndValidity();
+        this._cdr.markForCheck();
       })
     );
   }
@@ -174,6 +185,7 @@ export class MappingRunnerComponent implements OnDestroy {
     this.input.markAsDirty();
     this.input.updateValueAndValidity();
     this._editorModel?.setValue(text);
+    this._cdr.markForCheck();
   }
 
   private getMetadata(): NodeMappingMetadata {
@@ -197,6 +209,7 @@ export class MappingRunnerComponent implements OnDestroy {
     this.input.setValue(
       JSON.stringify(JSON.parse(this.input.value || '{}'), null, 2)
     );
+    this._cdr.markForCheck();
   }
 
   public run(): void {

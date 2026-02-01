@@ -1,4 +1,11 @@
-import { Component, effect, model, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  effect,
+  model,
+  output,
+} from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -43,6 +50,7 @@ import { MappingRunnerComponent } from '../mapping-runner/mapping-runner.compone
   ],
   templateUrl: './mapping-editor.component.html',
   styleUrls: ['./mapping-editor.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingEditorComponent {
   public readonly mapping = model<NodeMapping>();
@@ -65,7 +73,7 @@ export class MappingEditorComponent {
   public output: FormControl<NodeMappingOutput | null>;
   public form: FormGroup;
 
-  constructor(formBuilder: FormBuilder) {
+  constructor(formBuilder: FormBuilder, private _cdr: ChangeDetectorRef) {
     this.ordinal = formBuilder.control(null);
     this.name = formBuilder.control('', {
       validators: [Validators.required, Validators.maxLength(100)],
@@ -120,6 +128,7 @@ export class MappingEditorComponent {
   private updateForm(mapping: NodeMapping | undefined): void {
     if (!mapping) {
       this.form.reset();
+      this._cdr.markForCheck();
       return;
     }
     this.ordinal.setValue(mapping.ordinal || 0);
@@ -137,12 +146,14 @@ export class MappingEditorComponent {
     this.scalarPattern.setValue(mapping.scalarPattern || null);
     this.output.setValue(mapping.output || null);
     this.form.markAsPristine();
+    this._cdr.markForCheck();
   }
 
   public onOutputChange(output: NodeMappingOutput): void {
     this.output.setValue(output);
     this.output.markAsDirty();
     this.output.updateValueAndValidity();
+    this._cdr.markForCheck();
   }
 
   private getMapping(): NodeMapping {
@@ -170,6 +181,7 @@ export class MappingEditorComponent {
     this.source.setValue(expression);
     this.source.markAsDirty();
     this.source.updateValueAndValidity();
+    this._cdr.markForCheck();
   }
 
   public cancel(): void {

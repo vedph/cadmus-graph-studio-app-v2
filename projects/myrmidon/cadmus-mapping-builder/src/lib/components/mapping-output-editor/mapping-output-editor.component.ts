@@ -1,4 +1,11 @@
-import { Component, effect, model, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  effect,
+  model,
+  output,
+} from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -35,6 +42,7 @@ import { MappedTriple } from '../../models';
   ],
   templateUrl: './mapping-output-editor.component.html',
   styleUrls: ['./mapping-output-editor.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingOutputEditorComponent {
   public readonly mappingOutput = model<NodeMappingOutput>();
@@ -46,7 +54,7 @@ export class MappingOutputEditorComponent {
   public metadata: FormControl<string | null>;
   public form: FormGroup;
 
-  constructor(formBuilder: FormBuilder) {
+  constructor(formBuilder: FormBuilder, private _cdr: ChangeDetectorRef) {
     this.nodes = formBuilder.control(null, [
       Validators.pattern(
         /^(?:(\S+)\s*(\S+)\s+([^[\r\n]+)(?:\[([^\]]+)\])?[\r\n]?)+$/
@@ -228,6 +236,7 @@ export class MappingOutputEditorComponent {
   private updateForm(output: NodeMappingOutput | undefined): void {
     if (!output) {
       this.form.reset();
+      this._cdr.markForCheck();
       return;
     }
     // nodes
@@ -246,6 +255,7 @@ export class MappingOutputEditorComponent {
     );
     // metadata
     this.metadata.setValue(this.metadataToString(output.metadata));
+    this._cdr.markForCheck();
   }
 
   private getOutput(): NodeMappingOutput {

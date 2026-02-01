@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   OnDestroy,
   effect,
@@ -63,6 +64,7 @@ import { NodeMapping } from '../../models';
   ],
   templateUrl: './mapping-tree.component.html',
   styleUrls: ['./mapping-tree.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingTreeComponent implements OnDestroy {
   private readonly _store: PagedTreeStore<

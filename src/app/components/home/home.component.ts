@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { combineLatest, debounceTime, startWith } from 'rxjs';
@@ -37,6 +37,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
   public jsonSource: FormControl<string> = new FormControl<string>('', {
@@ -57,11 +58,13 @@ export class HomeComponent {
 
   constructor(
     private _router: Router,
-    private _sampleDataService: SampleDataService
+    private _sampleDataService: SampleDataService,
+    private _cdr: ChangeDetectorRef
   ) {
     // set default values to first items
     this.jsonSource.setValue(this.jsonSources()[0]);
     this.presetSource.setValue(this.presetSources()[0]);
+    this._cdr.markForCheck();
 
     // combine both form control changes with debounce
     combineLatest([

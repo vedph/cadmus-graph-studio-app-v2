@@ -1,4 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -32,6 +38,7 @@ import { NodeMappingListService } from '../../state/node-mapping-list.service';
   ],
   templateUrl: './mapping-filter.component.html',
   styleUrls: ['./mapping-filter.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingFilterComponent implements OnInit, OnDestroy {
   private _sub?: Subscription;
@@ -50,7 +57,8 @@ export class MappingFilterComponent implements OnInit, OnDestroy {
 
   constructor(
     private _repository: NodeMappingListService,
-    formBuilder: FormBuilder
+    formBuilder: FormBuilder,
+    private _cdr: ChangeDetectorRef
   ) {
     this.filter$ = _repository.filter$;
     this.loading$ = _repository.loading$;
@@ -95,6 +103,7 @@ export class MappingFilterComponent implements OnInit, OnDestroy {
     this.partType.setValue(filter.partType || null);
     this.partRole.setValue(filter.partRole || null);
     this.form.markAsPristine();
+    this._cdr.markForCheck();
   }
 
   private getFilter(): NodeMappingFilter {
@@ -112,6 +121,7 @@ export class MappingFilterComponent implements OnInit, OnDestroy {
 
   public reset(): void {
     this.form.reset();
+    this._cdr.markForCheck();
     this.apply();
   }
 

@@ -1,4 +1,12 @@
-import { Component, effect, input, OnInit, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  input,
+  OnInit,
+  output,
+  signal,
+} from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -34,6 +42,7 @@ import { RamCacheService } from '../../services/ram-cache.service';
   ],
   templateUrl: './cached-text-picker.component.html',
   styleUrls: ['./cached-text-picker.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CachedTextPickerComponent implements OnInit {
   /**
@@ -106,12 +115,12 @@ export class CachedTextPickerComponent implements OnInit {
   }
 
   public add(): void {
-    if (this.form.invalid || !this.text || !this.keyPrefix()) {
+    if (this.form.invalid || !this.text() || !this.keyPrefix()) {
       return;
     }
     this._cacheService.add(
       `${this.keyPrefix()}${this.newKey.value}`,
-      this.text
+      this.text()!
     );
     this.keys.set([...this.keys(), this.newKey.value].sort());
   }

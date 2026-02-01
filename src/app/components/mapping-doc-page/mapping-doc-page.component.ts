@@ -1,4 +1,10 @@
-import { Component, Inject, OnDestroy } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  OnDestroy,
+} from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -46,6 +52,7 @@ function jsonValidator(): ValidatorFn {
   ],
   templateUrl: './mapping-doc-page.component.html',
   styleUrls: ['./mapping-doc-page.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingDocPageComponent implements OnDestroy {
   // Monaco
@@ -60,7 +67,8 @@ export class MappingDocPageComponent implements OnDestroy {
     formBuilder: FormBuilder,
     private _snackbar: MatSnackBar,
     private _repository: NodeMappingListService,
-    @Inject(NODE_MAPPING_SERVICE) private _mappingService: NodeMappingService
+    @Inject(NODE_MAPPING_SERVICE) private _mappingService: NodeMappingService,
+    private _cdr: ChangeDetectorRef
   ) {
     this.json = formBuilder.control('', {
       validators: [Validators.required, jsonValidator()],
@@ -91,6 +99,7 @@ export class MappingDocPageComponent implements OnDestroy {
         this.json.setValue(this._editorModel!.getValue());
         this.json.markAsDirty();
         this.json.updateValueAndValidity();
+        this._cdr.markForCheck();
       })
     );
   }
@@ -102,6 +111,7 @@ export class MappingDocPageComponent implements OnDestroy {
   public exportToDocument() {
     this._mappingService.exportMappings().subscribe((json) => {
       this.json.setValue(json);
+      this._cdr.markForCheck();
     });
   }
 

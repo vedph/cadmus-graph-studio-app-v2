@@ -1,4 +1,6 @@
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   effect,
   inject,
@@ -35,6 +37,7 @@ import { MappingTreeFilter } from '../../services/mapping-paged-tree-store.servi
   ],
   templateUrl: './mapping-tree-filter.html',
   styleUrl: './mapping-tree-filter.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingTreeFilterComponent implements OnInit {
   public readonly dialogRef = inject<MatDialogRef<MappingTreeFilterComponent>>(
@@ -44,6 +47,7 @@ export class MappingTreeFilterComponent implements OnInit {
     }
   );
   public readonly data = inject(MAT_DIALOG_DATA, { optional: true });
+  private readonly _cdr = inject(ChangeDetectorRef);
 
   /**
    * The filter.
@@ -87,10 +91,12 @@ export class MappingTreeFilterComponent implements OnInit {
   private updateForm(filter?: MappingTreeFilter | null): void {
     if (!filter) {
       this.form.reset();
+      this._cdr.markForCheck();
       return;
     }
     this.name.setValue(filter.name ?? null);
     this.form.markAsPristine();
+    this._cdr.markForCheck();
   }
 
   private getFilter(): MappingTreeFilter {
@@ -101,6 +107,7 @@ export class MappingTreeFilterComponent implements OnInit {
 
   public reset(): void {
     this.form.reset();
+    this._cdr.markForCheck();
     this.filter.set(undefined);
     this.dialogRef?.close(null);
   }

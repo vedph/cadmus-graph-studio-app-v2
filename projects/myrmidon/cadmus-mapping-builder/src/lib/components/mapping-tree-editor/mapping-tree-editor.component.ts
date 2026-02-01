@@ -1,4 +1,4 @@
-import { Component, effect, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, model, signal } from '@angular/core';
 
 import { NodeMapping } from '../../models';
 import { MappingJsonService } from '../../services/mapping-json.service';
@@ -23,6 +23,7 @@ import { MappingEditorComponent } from '../mapping-editor/mapping-editor.compone
   imports: [MappingTreeComponent, MappingEditorComponent],
   templateUrl: './mapping-tree-editor.component.html',
   styleUrls: ['./mapping-tree-editor.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingTreeEditorComponent {
   /**

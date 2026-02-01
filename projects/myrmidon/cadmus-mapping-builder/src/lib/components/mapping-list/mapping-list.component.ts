@@ -1,4 +1,4 @@
-import { Component, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, output } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
@@ -36,6 +36,7 @@ import { NodeMapping } from '../../models';
   ],
   templateUrl: './mapping-list.component.html',
   styleUrls: ['./mapping-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingListComponent {
   public page$: Observable<DataPage<NodeMapping>>;
