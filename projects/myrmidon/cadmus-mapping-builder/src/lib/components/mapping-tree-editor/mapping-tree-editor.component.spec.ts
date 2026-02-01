@@ -1,25 +1,14 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { render } from '@testing-library/angular';
 import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { MappingTreeEditorComponent } from './mapping-tree-editor.component';
 
 describe('MappingTreeEditorComponent', () => {
-  let component: MappingTreeEditorComponent;
-  let fixture: ComponentFixture<MappingTreeEditorComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MappingTreeEditorComponent],
+  it('should create', async () => {
+    const { fixture } = await render(MappingTreeEditorComponent, {
       providers: [provideHttpClient(), provideHttpClientTesting()],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(MappingTreeEditorComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    });
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });

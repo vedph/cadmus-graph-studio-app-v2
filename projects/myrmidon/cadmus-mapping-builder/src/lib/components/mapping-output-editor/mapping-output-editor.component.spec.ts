@@ -1,22 +1,10 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { render } from '@testing-library/angular';
 
 import { MappingOutputEditorComponent } from './mapping-output-editor.component';
 
 describe('MappingOutputEditorComponent', () => {
-  let component: MappingOutputEditorComponent;
-  let fixture: ComponentFixture<MappingOutputEditorComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MappingOutputEditorComponent],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(MappingOutputEditorComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should create', async () => {
+    const { fixture } = await render(MappingOutputEditorComponent);
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });

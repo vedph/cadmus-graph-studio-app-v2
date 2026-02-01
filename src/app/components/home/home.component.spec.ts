@@ -1,23 +1,21 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { render } from '@testing-library/angular';
 
 import { HomeComponent } from './home.component';
+import {
+  NODE_MAPPING_SERVICE,
+  RamNodeMappingService,
+} from '@myrmidon/cadmus-mapping-builder';
 
 describe('HomeComponent', () => {
-  let component: HomeComponent;
-  let fixture: ComponentFixture<HomeComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [ HomeComponent ]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(HomeComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should create', async () => {
+    const { fixture } = await render(HomeComponent, {
+      providers: [
+        {
+          provide: NODE_MAPPING_SERVICE,
+          useClass: RamNodeMappingService,
+        },
+      ],
+    });
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });

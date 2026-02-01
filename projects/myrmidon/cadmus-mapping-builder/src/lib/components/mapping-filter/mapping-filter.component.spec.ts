@@ -1,30 +1,19 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { render } from '@testing-library/angular';
 
 import { MappingFilterComponent } from './mapping-filter.component';
 import { NODE_MAPPING_SERVICE } from '../../models';
 import { RamNodeMappingService } from '../../services/ram-node-mapping.service';
 
 describe('MappingFilterComponent', () => {
-  let component: MappingFilterComponent;
-  let fixture: ComponentFixture<MappingFilterComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MappingFilterComponent],
+  it('should create', async () => {
+    const { fixture } = await render(MappingFilterComponent, {
       providers: [
         {
           provide: NODE_MAPPING_SERVICE,
           useClass: RamNodeMappingService,
         },
       ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(MappingFilterComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    });
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });

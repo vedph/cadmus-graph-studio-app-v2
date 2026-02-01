@@ -3,6 +3,7 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 
 import { AssetService } from './asset.service';
 
@@ -12,8 +13,7 @@ describe('AssetService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [provideHttpClientTesting()],
-      providers: [],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     service = TestBed.inject(AssetService);
     httpMock = TestBed.inject(HttpTestingController);

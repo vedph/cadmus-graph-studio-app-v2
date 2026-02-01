@@ -69,7 +69,11 @@
           "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest"
+          }
         }
       }
     },
@@ -92,10 +96,10 @@
           "defaultConfiguration": "production"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "projects/myrmidon/cadmus-mapping-builder/tsconfig.spec.json",
-            "polyfills": ["zone.js", "zone.js/testing"]
+            "runner": "vitest"
           }
         }
       }

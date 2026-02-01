@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ReplaceStringPipe } from '@myrmidon/ngx-tools';
 import { NodeMapping } from '@myrmidon/cadmus-mapping-builder';
@@ -18,7 +19,6 @@ import {
   MappingListComponent,
 } from '@myrmidon/cadmus-mapping-builder';
 import { SampleDataService } from '../../services/sample-data.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-home',

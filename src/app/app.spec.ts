@@ -1,6 +1,6 @@
 import { provideZonelessChangeDetection } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { render } from '@testing-library/angular';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { vi } from 'vitest';
 
@@ -74,9 +74,8 @@ class MockRamCacheService {
 }
 
 describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
+  const renderApp = async () => {
+    return render(App, {
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -90,21 +89,18 @@ describe('App', () => {
         { provide: RamCacheService, useClass: MockRamCacheService },
         { provide: EnvService, useClass: MockEnvService },
       ],
-    }).compileComponents();
+    });
+  };
+
+  it('should create the app', async () => {
+    const { fixture } = await renderApp();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('#title')?.textContent).toContain(
-      'Cadmus Graph Studio',
-    );
+  it('should render title', async () => {
+    await renderApp();
+    const titleElement = document.getElementById('title');
+    expect(titleElement).toBeTruthy();
+    expect(titleElement?.textContent).toContain('Cadmus Graph Studio');
   });
 });

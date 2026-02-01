@@ -1,0 +1,5 @@
+{
+  // Disable Vitest extension's automatic test running for Angular projects
+  // Angular requires `ng test` to compile templates before running tests
+  "vitest.enable": false
+}

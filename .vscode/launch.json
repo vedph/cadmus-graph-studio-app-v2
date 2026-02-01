@@ -10,11 +10,25 @@
       "url": "http://localhost:4200/"
     },
     {
-      "name": "ng test",
-      "type": "chrome",
+      "name": "Debug Angular Tests",
+      "type": "node",
       "request": "launch",
-      "preLaunchTask": "npm: test",
-      "url": "http://localhost:9876/debug.html"
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["ng", "test", "--watch=false"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Debug Angular Tests (specific file)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "ng", "test", "--watch=false",
+        "--", "--testPathPattern=${relativeFileDirname}"
+      ],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }
