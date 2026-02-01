@@ -8,9 +8,8 @@ describe('MappingOutputEditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ MappingOutputEditorComponent ]
-    })
-    .compileComponents();
+      imports: [MappingOutputEditorComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(MappingOutputEditorComponent);
     component = fixture.componentInstance;

@@ -96,7 +96,7 @@ export class MappingRunnerComponent implements OnDestroy {
   constructor(
     formBuilder: FormBuilder,
     private _apiService: GraphStudioApiService,
-    private _cdr: ChangeDetectorRef
+    private _cdr: ChangeDetectorRef,
   ) {
     // runner form
     this.input = formBuilder.control('', {
@@ -110,11 +110,11 @@ export class MappingRunnerComponent implements OnDestroy {
     // const guidPattern =
     //   '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$';
     this.itemId = formBuilder.control(
-      'IID'
+      'IID',
       // Validators.pattern(guidPattern)
     );
     this.partId = formBuilder.control(
-      'PID'
+      'PID',
       // Validators.pattern(guidPattern)
     );
     this.partTypeId = formBuilder.control(null, Validators.maxLength(50));
@@ -122,7 +122,7 @@ export class MappingRunnerComponent implements OnDestroy {
     this.facetId = formBuilder.control(null, Validators.maxLength(50));
     this.itemTitle = formBuilder.control(
       'Alpha item',
-      Validators.maxLength(500)
+      Validators.maxLength(500),
     );
     this.itemUri = formBuilder.control(null, Validators.maxLength(500));
     this.itemLabel = formBuilder.control(null, Validators.maxLength(500));
@@ -176,7 +176,7 @@ export class MappingRunnerComponent implements OnDestroy {
         this.input.markAsDirty();
         this.input.updateValueAndValidity();
         this._cdr.markForCheck();
-      })
+      }),
     );
   }
 
@@ -207,7 +207,7 @@ export class MappingRunnerComponent implements OnDestroy {
 
   public prettifyInput(): void {
     this.input.setValue(
-      JSON.stringify(JSON.parse(this.input.value || '{}'), null, 2)
+      JSON.stringify(JSON.parse(this.input.value || '{}'), null, 2),
     );
     this._cdr.markForCheck();
   }

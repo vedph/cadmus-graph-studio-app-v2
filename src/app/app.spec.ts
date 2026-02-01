@@ -2,11 +2,11 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
+import { vi } from 'vitest';
 
 import {
   NODE_MAPPING_SERVICE,
   NodeMapping,
-  NodeMappingFilter,
   NodeMappingListService,
   NodeMappingService,
   RamCacheService,
@@ -18,13 +18,19 @@ import { SampleDataService } from './services/sample-data.service';
 import { App } from './app';
 
 class MockNodeMappingListService {
-  reset = jasmine.createSpy('reset').and.resolveTo();
-  addMapping = jasmine.createSpy('addMapping');
+  reset = vi.fn().mockResolvedValue(undefined);
+  addMapping = vi.fn();
 }
 
 class MockNodeMappingService implements NodeMappingService {
   getMappings(): Observable<any> {
-    return of({ pageNumber: 1, pageSize: 0, pageCount: 0, total: 0, items: [] });
+    return of({
+      pageNumber: 1,
+      pageSize: 0,
+      pageCount: 0,
+      total: 0,
+      items: [],
+    });
   }
   getMapping(): Observable<NodeMapping | null> {
     return of(null);
@@ -49,12 +55,12 @@ class MockNodeMappingService implements NodeMappingService {
 class MockSampleDataService {
   json$ = new BehaviorSubject<string>('{}');
   presets$ = new BehaviorSubject<Record<string, unknown>>({});
-  load = jasmine.createSpy('load');
-  reset = jasmine.createSpy('reset');
+  load = vi.fn();
+  reset = vi.fn();
 }
 
 class MockDialogService {
-  confirm = jasmine.createSpy('confirm').and.returnValue(of(true));
+  confirm = vi.fn().mockReturnValue(of(true));
 }
 
 class MockEnvService {
@@ -64,7 +70,7 @@ class MockEnvService {
 }
 
 class MockRamCacheService {
-  add = jasmine.createSpy('add');
+  add = vi.fn();
 }
 
 describe('App', () => {
@@ -75,7 +81,10 @@ describe('App', () => {
         provideZonelessChangeDetection(),
         provideRouter([]),
         { provide: DialogService, useClass: MockDialogService },
-        { provide: NodeMappingListService, useClass: MockNodeMappingListService },
+        {
+          provide: NodeMappingListService,
+          useClass: MockNodeMappingListService,
+        },
         { provide: NODE_MAPPING_SERVICE, useClass: MockNodeMappingService },
         { provide: SampleDataService, useClass: MockSampleDataService },
         { provide: RamCacheService, useClass: MockRamCacheService },
@@ -95,7 +104,7 @@ describe('App', () => {
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('#title')?.textContent).toContain(
-      'Cadmus Graph Studio'
+      'Cadmus Graph Studio',
     );
   });
 });

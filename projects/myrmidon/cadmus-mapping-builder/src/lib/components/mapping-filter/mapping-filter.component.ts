@@ -58,7 +58,7 @@ export class MappingFilterComponent implements OnInit, OnDestroy {
   constructor(
     private _repository: NodeMappingListService,
     formBuilder: FormBuilder,
-    private _cdr: ChangeDetectorRef
+    private _cdr: ChangeDetectorRef,
   ) {
     this.filter$ = _repository.filter$;
     this.loading$ = _repository.loading$;

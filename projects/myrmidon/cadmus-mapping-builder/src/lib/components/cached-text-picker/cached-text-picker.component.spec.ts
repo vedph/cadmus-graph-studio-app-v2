@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 import { CachedTextPickerComponent } from './cached-text-picker.component';
 
@@ -8,13 +9,12 @@ describe('CachedTextPickerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ CachedTextPickerComponent ]
-    })
-    .compileComponents();
+      imports: [CachedTextPickerComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(CachedTextPickerComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {

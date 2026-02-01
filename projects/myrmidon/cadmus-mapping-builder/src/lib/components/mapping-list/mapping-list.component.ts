@@ -51,7 +51,7 @@ export class MappingListComponent {
 
   constructor(
     private _listService: NodeMappingListService,
-    private _dialogService: DialogService
+    private _dialogService: DialogService,
   ) {
     this.page$ = _listService.page$;
     this.loading$ = _listService.loading$;

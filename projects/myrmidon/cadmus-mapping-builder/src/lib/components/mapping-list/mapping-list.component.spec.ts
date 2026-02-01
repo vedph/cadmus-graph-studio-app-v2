@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { MappingListComponent } from './mapping-list.component';
 import { NODE_MAPPING_SERVICE } from '../../models';
@@ -11,15 +10,14 @@ describe('MappingListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ MappingListComponent, NoopAnimationsModule ],
+      imports: [MappingListComponent],
       providers: [
         {
           provide: NODE_MAPPING_SERVICE,
           useClass: RamNodeMappingService,
         },
-      ]
-    })
-    .compileComponents();
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(MappingListComponent);
     component = fixture.componentInstance;

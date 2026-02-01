@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { MappingTreeFilterComponent } from './mapping-tree-filter';
 import { NODE_MAPPING_SERVICE } from '../../models';
@@ -11,7 +10,7 @@ describe('MappingTreeFilter', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MappingTreeFilterComponent, NoopAnimationsModule],
+      imports: [MappingTreeFilterComponent],
       providers: [
         {
           provide: NODE_MAPPING_SERVICE,

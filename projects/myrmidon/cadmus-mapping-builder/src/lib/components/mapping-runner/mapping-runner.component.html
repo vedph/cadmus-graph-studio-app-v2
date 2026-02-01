@@ -2,7 +2,7 @@
   <div id="container">
     <div>
       @if (busy()) {
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
       }
     </div>
     <!-- input -->
@@ -23,7 +23,7 @@
         </button>
       </div>
       @if (error()) {
-      <div class="error">{{ error() }}</div>
+        <div class="error">{{ error() }}</div>
       }
       <fieldset>
         <legend>presets</legend>
@@ -37,89 +37,96 @@
       <div>
         <mat-label>input</mat-label>
         <nge-monaco-editor class="monaco" (ready)="onCreateEditor($event)" />
-        @if (input.hasError('required') && (input.touched || input.dirty)) {
-        <mat-error>input required</mat-error>
-        } @if (input.hasError('maxLength') && (input.touched || input.dirty)) {
-        <mat-error>input too long</mat-error>
+        @if (input.hasError("required") && (input.touched || input.dirty)) {
+          <mat-error>input required</mat-error>
+        }
+        @if (input.hasError("maxLength") && (input.touched || input.dirty)) {
+          <mat-error>input too long</mat-error>
         }
       </div>
     </div>
 
     <!-- output -->
     @if (graphSet()) {
-    <div id="output">
-      <!-- nodes -->
-      <mat-expansion-panel [expanded]="graphSet()!.nodes.length">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon class="head-icon">hub</mat-icon> nodes
-          </mat-panel-title>
-          <mat-panel-description>
-            {{ graphSet()!.nodes.length }}
-          </mat-panel-description>
-        </mat-expansion-panel-header>
-        <table>
-          <thead>
-            <th>label</th>
-            <th>uri</th>
-            <th>sid</th>
-          </thead>
-          <tbody>
-            @for (n of graphSet()!.nodes; track n) {
-            <tr>
-              <td>{{ n.label }}</td>
-              <td class="uri">{{ n.uri }}</td>
-              <td>{{ n.sid }}</td>
-            </tr>
-            }
-          </tbody>
-        </table>
-      </mat-expansion-panel>
-      <br />
+      <div id="output">
+        <!-- nodes -->
+        <mat-expansion-panel [expanded]="graphSet()!.nodes.length">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon class="head-icon">hub</mat-icon> nodes
+            </mat-panel-title>
+            <mat-panel-description>
+              {{ graphSet()!.nodes.length }}
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <table>
+            <thead>
+              <th>label</th>
+              <th>uri</th>
+              <th>sid</th>
+            </thead>
+            <tbody>
+              @for (n of graphSet()!.nodes; track n) {
+                <tr>
+                  <td>{{ n.label }}</td>
+                  <td class="uri">{{ n.uri }}</td>
+                  <td>{{ n.sid }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </mat-expansion-panel>
+        <br />
 
-      <!-- triples -->
-      <mat-expansion-panel [expanded]="graphSet()!.triples.length">
-        <mat-expansion-panel-header>
-          <mat-panel-title
-            ><mat-icon class="head-icon">linear_scale</mat-icon> triples
-          </mat-panel-title>
-          <mat-panel-description>
-            {{ graphSet()!.triples.length }}
-          </mat-panel-description>
-        </mat-expansion-panel-header>
-        <table>
-          <thead>
-            <th>S</th>
-            <th>P</th>
-            <th>O</th>
-            <th>sid</th>
-          </thead>
-          <tbody>
-            @for (t of graphSet()!.triples; track t) {
-            <tr>
-              <td class="uri">{{ t.subjectUri }}</td>
-              <td class="tp">{{ t.predicateUri }}</td>
-              <td [class.tol]="t.objectLiteral" [class.to]="t.objectUri">
-                {{ t.objectUri || t.objectLiteral }}
-                @if (t.literalType || t.literalLanguage || t.literalNumber) {
-                <ul>
-                  @if (t.literalType) {
-                  <li>type: {{ t.literalType }}</li>
-                  } @if (t.literalLanguage) {
-                  <li>language: {{ t.literalLanguage }}</li>
-                  } @if (t.literalNumber) {
-                  <li>numeric: {{ t.literalNumber | number : "1.0-2" }}</li>
-                  }
-                </ul>
-                }
-              </td>
-              <td>{{ t.sid }}</td>
-            </tr>
-            }
-          </tbody>
-        </table>
-      </mat-expansion-panel>
-    </div>
+        <!-- triples -->
+        <mat-expansion-panel [expanded]="graphSet()!.triples.length">
+          <mat-expansion-panel-header>
+            <mat-panel-title
+              ><mat-icon class="head-icon">linear_scale</mat-icon> triples
+            </mat-panel-title>
+            <mat-panel-description>
+              {{ graphSet()!.triples.length }}
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <table>
+            <thead>
+              <th>S</th>
+              <th>P</th>
+              <th>O</th>
+              <th>sid</th>
+            </thead>
+            <tbody>
+              @for (t of graphSet()!.triples; track t) {
+                <tr>
+                  <td class="uri">{{ t.subjectUri }}</td>
+                  <td class="tp">{{ t.predicateUri }}</td>
+                  <td [class.tol]="t.objectLiteral" [class.to]="t.objectUri">
+                    {{ t.objectUri || t.objectLiteral }}
+                    @if (
+                      t.literalType || t.literalLanguage || t.literalNumber
+                    ) {
+                      <ul>
+                        @if (t.literalType) {
+                          <li>type: {{ t.literalType }}</li>
+                        }
+                        @if (t.literalLanguage) {
+                          <li>language: {{ t.literalLanguage }}</li>
+                        }
+                        @if (t.literalNumber) {
+                          <li>
+                            numeric: {{ t.literalNumber | number: "1.0-2" }}
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </td>
+                  <td>{{ t.sid }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </mat-expansion-panel>
+      </div>
     }
   </div>
 
@@ -135,45 +142,52 @@
           <mat-form-field>
             <mat-label>item ID</mat-label>
             <input matInput [formControl]="itemId" />
-            @if ( $any(itemId).errors?.pattern && (itemId.dirty ||
-            itemId.touched) ) {
-            <mat-error>invalid GUID</mat-error>
+            @if (
+              $any(itemId).errors?.pattern && (itemId.dirty || itemId.touched)
+            ) {
+              <mat-error>invalid GUID</mat-error>
             }
           </mat-form-field>
           <!-- partId -->
           <mat-form-field>
             <mat-label>part ID</mat-label>
             <input matInput [formControl]="partId" />
-            @if ( $any(partId).errors?.pattern && (partId.dirty ||
-            partId.touched) ) {
-            <mat-error>invalid GUID</mat-error>
+            @if (
+              $any(partId).errors?.pattern && (partId.dirty || partId.touched)
+            ) {
+              <mat-error>invalid GUID</mat-error>
             }
           </mat-form-field>
           <!-- partTypeId -->
           <mat-form-field>
             <mat-label>part type ID</mat-label>
             <input matInput [formControl]="partTypeId" />
-            @if ( $any(partTypeId).errors?.maxLength && (partTypeId.dirty ||
-            partTypeId.touched) ) {
-            <mat-error>part type ID too long</mat-error>
+            @if (
+              $any(partTypeId).errors?.maxLength &&
+              (partTypeId.dirty || partTypeId.touched)
+            ) {
+              <mat-error>part type ID too long</mat-error>
             }
           </mat-form-field>
           <!-- roleId -->
           <mat-form-field>
             <mat-label>part role ID</mat-label>
             <input matInput [formControl]="roleId" />
-            @if ( $any(roleId).errors?.maxLength && (roleId.dirty ||
-            roleId.touched) ) {
-            <mat-error>role ID too long</mat-error>
+            @if (
+              $any(roleId).errors?.maxLength && (roleId.dirty || roleId.touched)
+            ) {
+              <mat-error>role ID too long</mat-error>
             }
           </mat-form-field>
           <!-- facetId -->
           <mat-form-field>
             <mat-label>facet ID</mat-label>
             <input matInput [formControl]="facetId" />
-            @if ( $any(facetId).errors?.maxLength && (facetId.dirty ||
-            facetId.touched) ) {
-            <mat-error>facet ID too long</mat-error>
+            @if (
+              $any(facetId).errors?.maxLength &&
+              (facetId.dirty || facetId.touched)
+            ) {
+              <mat-error>facet ID too long</mat-error>
             }
           </mat-form-field>
         </div>
@@ -183,45 +197,55 @@
           <mat-form-field>
             <mat-label>item title</mat-label>
             <input matInput [formControl]="itemTitle" />
-            @if ( $any(itemTitle).errors?.maxLength && (itemTitle.dirty ||
-            itemTitle.touched) ) {
-            <mat-error>item title too long</mat-error>
+            @if (
+              $any(itemTitle).errors?.maxLength &&
+              (itemTitle.dirty || itemTitle.touched)
+            ) {
+              <mat-error>item title too long</mat-error>
             }
           </mat-form-field>
           <!-- itemUri -->
           <mat-form-field>
             <mat-label>item URI</mat-label>
             <input matInput [formControl]="itemUri" />
-            @if ( $any(itemUri).errors?.maxLength && (itemUri.dirty ||
-            itemUri.touched) ) {
-            <mat-error>item URI too long</mat-error>
+            @if (
+              $any(itemUri).errors?.maxLength &&
+              (itemUri.dirty || itemUri.touched)
+            ) {
+              <mat-error>item URI too long</mat-error>
             }
           </mat-form-field>
           <!-- itemLabel -->
           <mat-form-field>
             <mat-label>item label</mat-label>
             <input matInput [formControl]="itemLabel" />
-            @if ( $any(itemLabel).errors?.maxLength && (itemLabel.dirty ||
-            itemLabel.touched) ) {
-            <mat-error>item label too long</mat-error>
+            @if (
+              $any(itemLabel).errors?.maxLength &&
+              (itemLabel.dirty || itemLabel.touched)
+            ) {
+              <mat-error>item label too long</mat-error>
             }
           </mat-form-field>
           <!-- itemEid -->
           <mat-form-field>
             <mat-label>item EID</mat-label>
             <input matInput [formControl]="itemEid" />
-            @if ( $any(itemEid).errors?.maxLength && (itemEid.dirty ||
-            itemEid.touched) ) {
-            <mat-error>item EID too long</mat-error>
+            @if (
+              $any(itemEid).errors?.maxLength &&
+              (itemEid.dirty || itemEid.touched)
+            ) {
+              <mat-error>item EID too long</mat-error>
             }
           </mat-form-field>
           <!-- metadataPid -->
           <mat-form-field>
             <mat-label>metadata part ID</mat-label>
             <input matInput [formControl]="metadataPid" />
-            @if ( $any(metadataPid).errors?.maxLength && (metadataPid.dirty ||
-            metadataPid.touched) ) {
-            <mat-error>metadata PID too long</mat-error>
+            @if (
+              $any(metadataPid).errors?.maxLength &&
+              (metadataPid.dirty || metadataPid.touched)
+            ) {
+              <mat-error>metadata PID too long</mat-error>
             }
           </mat-form-field>
         </div>
@@ -230,9 +254,11 @@
           <mat-form-field>
             <mat-label>group ID</mat-label>
             <input matInput [formControl]="groupId" />
-            @if ( $any(groupId).errors?.maxLength && (groupId.dirty ||
-            groupId.touched) ) {
-            <mat-error>group ID too long</mat-error>
+            @if (
+              $any(groupId).errors?.maxLength &&
+              (groupId.dirty || groupId.touched)
+            ) {
+              <mat-error>group ID too long</mat-error>
             }
           </mat-form-field>
           <!-- flags -->

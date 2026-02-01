@@ -38,7 +38,7 @@ import { RamCacheService } from '../../services/ram-cache.service';
     MatIconModule,
     MatInputModule,
     MatSelectModule,
-    MatTooltipModule
+    MatTooltipModule,
   ],
   templateUrl: './cached-text-picker.component.html',
   styleUrls: ['./cached-text-picker.component.css'],
@@ -70,7 +70,7 @@ export class CachedTextPickerComponent implements OnInit {
 
   constructor(
     formBuilder: FormBuilder,
-    private _cacheService: RamCacheService
+    private _cacheService: RamCacheService,
   ) {
     this.key = formBuilder.control(null);
 
@@ -107,7 +107,7 @@ export class CachedTextPickerComponent implements OnInit {
       return;
     }
     const text = this._cacheService.get(
-      this.buildPrefixedKey(this.key.value)
+      this.buildPrefixedKey(this.key.value),
     ) as string;
     if (text) {
       this.textPick.emit(text);
@@ -120,7 +120,7 @@ export class CachedTextPickerComponent implements OnInit {
     }
     this._cacheService.add(
       `${this.keyPrefix()}${this.newKey.value}`,
-      this.text()!
+      this.text()!,
     );
     this.keys.set([...this.keys(), this.newKey.value].sort());
   }
