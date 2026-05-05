@@ -7,24 +7,22 @@ div#container {
 }
 div#tree {
   grid-area: tree;
-  border: 1px solid silver;
+  border: 1px solid var(--mat-sys-on-surface-variant);
   border-radius: 6px;
   padding: 4px;
 }
 div#editor {
   grid-area: editor;
-  border: 1px solid silver;
+  border: 1px solid var(--mat-sys-on-surface-variant);
   border-radius: 6px;
   padding: 4px;
 }
 div#header {
   font-size: 1.5em 24px;
   margin: 16px;
-  background-color: silver;
-  color: white;
   font-weight: normal;
   padding: 4px;
-  border: 1px solid silver;
+  border: 1px solid var(--mat-sys-on-surface-variant);
   border-radius: 6px;
 }
 

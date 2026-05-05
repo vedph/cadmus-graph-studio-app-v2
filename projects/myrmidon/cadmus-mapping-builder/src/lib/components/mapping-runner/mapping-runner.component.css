@@ -5,52 +5,50 @@
 table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid silver;
+  color: var(--mat-sys-on-surface-variant);
 }
-tr {
-  border-top: 1px solid silver;
-  border-bottom: 1px solid silver;
+tbody tr:nth-child(odd) {
+  background-color: var(--mat-sys-surface-container);
 }
 th {
-  font-weight: normal;
   text-align: left;
-  color: white;
-  background-color: #bbb;
+  font-weight: normal;
+  color: var(--mat-sys-on-surface-variant);
 }
-th,td {
-  border-right: 1px solid silver;
-  padding: 0 4px;
+tbody tr:hover {
+  background-color: var(--mat-sys-surface-container-high);
 }
-td ul {
-  margin-block: 0;
+td.fit-width {
+  width: 1px;
+  white-space: nowrap;
+}
+tbody tr.selected {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
 }
 .uri, .to {
   color: darkgreen;
   background: #d4f1d4;
 }
 .tp {
-  color: darkred;
-  background: #f1dcd4;
+  color: var(--mat-sys-error);
 }
 .tol {
   color: royalblue;
-  background: #d4e8f1;
 }
 fieldset {
-  border: 1px solid silver;
+  border: 1px solid var(--mat-sys-on-surface-variant);
   border-radius: 6px;
   padding: 4px;
   margin: 8px 0;
 }
 legend {
-  color: white;
-  background-color: #bbb;
-  border: 1px solid #bbb;
+  border: 1px solid var(--mat-sys-on-surface-variant);
   border-radius: 6px;
   padding: 4px;
 }
 .error {
-  color: red;
+  color: var(--mat-sys-error);
 }
 .monaco {
   height: 600px;
@@ -82,7 +80,7 @@ div#container {
 }
 div#input {
   grid-area: input;
-  border-right: 1px solid silver;
+  border-right: 1px solid var(--mat-sys-on-surface-variant);
   margin-right: 8px;
   padding: 0 8px;
 }

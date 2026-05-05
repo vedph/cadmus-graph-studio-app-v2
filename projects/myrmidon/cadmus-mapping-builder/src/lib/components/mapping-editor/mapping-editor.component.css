@@ -18,18 +18,16 @@
   width: 7em;
 }
 fieldset {
-  border: 1px solid silver;
+  border: 1px solid var(--mat-sys-on-surface-variant);
   border-radius: 6px;
   padding: 4px;
   margin: 8px 0;
 }
 legend {
-  color: white;
-  background-color: #bbb;
-  border: 1px solid #bbb;
+  border: 1px solid var(--mat-sys-on-surface-variant);
   border-radius: 6px;
   padding: 4px;
 }
 h3 {
-  border-bottom: 1px solid silver;
+  border-bottom: 1px solid var(--mat-sys-on-surface-variant);
 }

@@ -16,9 +16,9 @@
     "name": "Daniele Fusi"
   },
   "peerDependencies": {
-    "@angular/common": "^20.0.0 || ^21.0.0",
-    "@angular/core": "^20.0.0 || ^21.0.0",
-    "@angular/material": "^20.0.0 || ^21.0.0"
+    "@angular/common": "^21.2.11",
+    "@angular/core": "^21.2.11",
+    "@angular/material": "^21.2.9"
   },
   "dependencies": {
     "tslib": "^2.3.0"

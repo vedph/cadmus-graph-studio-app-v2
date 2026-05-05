@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, Inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  signal,
+} from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { take } from 'rxjs';
@@ -13,7 +18,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { EnvService } from '@myrmidon/ngx-tools';
-import { DialogService } from '@myrmidon/ngx-mat-tools';
+import { DialogService, ThemeToggleComponent } from '@myrmidon/ngx-mat-tools';
 
 import {
   NODE_MAPPING_SERVICE,
@@ -36,6 +41,7 @@ import { SampleDataService } from './services/sample-data.service';
     MatSelectModule,
     MatToolbarModule,
     MatTooltipModule,
+    ThemeToggleComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -51,7 +57,7 @@ export class App {
     @Inject(NODE_MAPPING_SERVICE) private _mappingService: NodeMappingService,
     private _sampleService: SampleDataService,
     cacheService: RamCacheService,
-    envService: EnvService
+    envService: EnvService,
   ) {
     this.version.set(envService.get('version') || '');
 

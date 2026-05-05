@@ -1,7 +1,7 @@
 services:
   cadmus-graph-studio-api:
     container_name: cadmus-graph-studio-api
-    image: vedph2020/cadmus-graph-studio-api:0.0.10
+    image: vedph2020/cadmus-graph-studio-api:1.0.0
     ports:
       - 5257:8080
     networks:
@@ -9,11 +9,14 @@ services:
 
   cadmus-graph-studio-app:
     container_name: cadmus-graph-studio-app
-    image: vedph2020/cadmus-graph-studio-app:1.0.0
+    image: vedph2020/cadmus-graph-studio-app:2.0.1
     ports:
       - 4200:80
     depends_on:
       - cadmus-graph-studio-api
+    volumes:
+      # add env.js file with overrides in the same folder of this compose script
+      - ./env.js:/usr/share/nginx/html/env.js
     networks:
       - cadmus-graph-studio-network
 

@@ -17,8 +17,8 @@ div#filters {
   border: 1px solid transparent;
 }
 .selected {
-  background-color: #f0f0f0;
-  border: 1px solid tan;
+  background-color: var(--mat-sys-secondary-container);
+  border: 1px solid var(--mat-sys-on-secondary-container);
 }
 .button-row {
   display: flex;

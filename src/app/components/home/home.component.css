@@ -2,7 +2,7 @@
   margin: 8px;
 }
 fieldset {
-  border: 1px solid #ccc;
+  border: 1px solid var(--mat-sys-on-surface-variant);
   border-radius: 6px;
   padding: 8px;
 }
@@ -16,9 +16,8 @@ fieldset {
   flex: 0 0 auto;
 }
 legend {
-  color: white;
-  background-color: #bbb;
-  border: 1px solid #bbb;
+  color: var(--mat-sys-on-surface-variant);
+  border: 1px solid var(--mat-sys-on-surface-variant);
   border-radius: 6px;
   padding: 4px;
 }

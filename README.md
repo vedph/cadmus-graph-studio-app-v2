@@ -10,28 +10,24 @@ The Cadmus Graph Studio App is a minimalist editor for helping users build and t
 
 🐋 Docker:
 
-1. `pnpm run build-lib`;
-2. update [env.js](./src/env.js) version number and version numbers in [docker compose](docker-compose.yml);
+1. update [env.js](./src/env.js) version number, and version numbers in [docker compose](docker-compose.yml) and [package.json](package.json);
+2. `pnpm run build-lib`;
 3. `ng build --configuration=production`;
-4. build image like (change version number accordingly):
+4. build image (change version number accordingly):
 
 ```bash
-docker build . -t vedph2020/cadmus-graph-studio-app:1.0.0 -t vedph2020/cadmus-graph-studio-app:latest
+docker build . -t vedph2020/cadmus-graph-studio-app:2.0.1 -t vedph2020/cadmus-graph-studio-app:latest
 ```
 
 🚀 For production:
 
-(1) build as above for 1-3.
-(2) in `dist/cadmus-graph-studio-app/browser/env.js` replace the host address (and eventually version number by appending `-prod`) as follows:
+(1) build as above.
+(2) add an `env.js` file next to your `docker-compose.yml` script in your host to override the host address as in this example:
 
 ```js
+// ... leave the rest unchanged except for API URL and version:
 window.__env.apiUrl = "https://cadmus-graph-studio-api.fusi-soft.com/api/";
-```
-
-(3) build prod image:
-
-```bash
-docker build . -t vedph2020/cadmus-graph-studio-app:1.0.0-prod
+window.__env.version = "2.0.0";
 ```
 
 ## Debug Hints
@@ -51,7 +47,11 @@ When you revert with `npm unlink @myrmidon/paged-data-browser`, the original pac
 
 ## History
 
-- 2026-05-05: updated Angular and packages.
+### 2.0.1
+
+- 2026-05-05:
+  - updated Angular and packages.
+  - migrated to M3 syles and var-based colors.
 - 2026-02-28: updated Angular and packages.
 - 2026-02-01:
   - updated Angular and packages.
