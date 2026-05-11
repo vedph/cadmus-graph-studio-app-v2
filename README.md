@@ -47,6 +47,8 @@ When you revert with `npm unlink @myrmidon/paged-data-browser`, the original pac
 
 ## History
 
+- 2026-05-11: updated Angular and packages.
+
 ### 2.0.1
 
 - 2026-05-05:
