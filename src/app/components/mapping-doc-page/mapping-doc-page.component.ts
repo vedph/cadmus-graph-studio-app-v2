@@ -21,7 +21,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-import { NgeMonacoModule } from '@cisstech/nge/monaco';
+import {
+  EditorInitializedEvent,
+  NgxMonacoEditorComponent,
+  StandaloneCodeEditor,
+  StandaloneEditorConstructionOptions,
+} from '@jean-merelis/ngx-monaco-editor';
 
 import {
   NODE_MAPPING_SERVICE,
@@ -48,17 +53,21 @@ function jsonValidator(): ValidatorFn {
     MatCardModule,
     MatFormFieldModule,
     MatIconModule,
-    NgeMonacoModule,
+    NgxMonacoEditorComponent,
   ],
   templateUrl: './mapping-doc-page.component.html',
   styleUrls: ['./mapping-doc-page.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MappingDocPageComponent implements OnDestroy {
+export class MappingDocPageComponent {
   // Monaco
-  private readonly _disposables: monaco.IDisposable[] = [];
-  private _editorModel?: monaco.editor.ITextModel;
-  private _editor?: monaco.editor.IStandaloneCodeEditor;
+  private _editor?: StandaloneCodeEditor;
+
+  public readonly editorOptions: StandaloneEditorConstructionOptions = {
+    minimap: { side: 'right' },
+    wordWrap: 'on',
+    automaticLayout: true,
+  };
 
   public json: FormControl<string>;
   public form: FormGroup;
@@ -68,7 +77,6 @@ export class MappingDocPageComponent implements OnDestroy {
     private _snackbar: MatSnackBar,
     private _repository: NodeMappingListService,
     @Inject(NODE_MAPPING_SERVICE) private _mappingService: NodeMappingService,
-    private _cdr: ChangeDetectorRef
   ) {
     this.json = formBuilder.control('', {
       validators: [Validators.required, jsonValidator()],
@@ -80,38 +88,14 @@ export class MappingDocPageComponent implements OnDestroy {
     this.exportToDocument();
   }
 
-  public onCreateEditor(editor: monaco.editor.IEditor) {
-    editor.updateOptions({
-      minimap: {
-        side: 'right',
-      },
-      wordWrap: 'on',
-      automaticLayout: true,
-    });
-    this._editorModel =
-      this._editorModel ||
-      monaco.editor.createModel(this.json?.value || '', 'json');
-    editor.setModel(this._editorModel);
-    this._editor = editor as monaco.editor.IStandaloneCodeEditor;
-
-    this._disposables.push(
-      this._editorModel.onDidChangeContent((e) => {
-        this.json.setValue(this._editorModel!.getValue());
-        this.json.markAsDirty();
-        this.json.updateValueAndValidity();
-        this._cdr.markForCheck();
-      })
-    );
-  }
-
-  public ngOnDestroy() {
-    this._disposables.forEach((d) => d.dispose());
+  public onEditorInit(event: EditorInitializedEvent) {
+    this._editor = event.editor;
+    this._editor.focus();
   }
 
   public exportToDocument() {
     this._mappingService.exportMappings().subscribe((json) => {
       this.json.setValue(json);
-      this._cdr.markForCheck();
     });
   }
 

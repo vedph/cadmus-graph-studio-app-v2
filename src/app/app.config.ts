@@ -1,11 +1,10 @@
 import {
   ApplicationConfig,
-  importProvidersFrom,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideRouter, withViewTransitions } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 
 import { provideNativeDateAdapter } from '@angular/material/core';
 
@@ -14,7 +13,10 @@ import {
   RamNodeMappingService,
 } from '@myrmidon/cadmus-mapping-builder';
 
-import { NgeMonacoModule } from '@cisstech/nge/monaco';
+import {
+  DefaultMonacoLoader,
+  NGX_MONACO_LOADER_PROVIDER,
+} from '@jean-merelis/ngx-monaco-editor';
 
 import { routes } from './app.routes';
 
@@ -24,9 +26,12 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes, withViewTransitions()),
     provideNativeDateAdapter(),
-    provideHttpClient(),
+    provideHttpClient(withXhr()),
     // monaco
-    importProvidersFrom(NgeMonacoModule.forRoot({})),
+    {
+      provide: NGX_MONACO_LOADER_PROVIDER,
+      useFactory: () => new DefaultMonacoLoader({ paths: { vs: '/vs' } }),
+    },
     // use RAM-based store for mappings: note we must useExisting
     // because the service is already provided in the root, and
     // when using the injection token NODE_MAPPING_SERVICE useClass

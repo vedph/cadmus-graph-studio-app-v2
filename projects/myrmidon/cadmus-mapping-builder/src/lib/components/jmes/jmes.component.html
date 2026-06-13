@@ -5,11 +5,13 @@
       <mat-label>jmes</mat-label>
       <input matInput [formControl]="jmes" />
       @if ($any(jmes).errors?.required && (jmes.dirty || jmes.touched)) {
-      <mat-error>JMES required</mat-error>
-      } @if ($any(jmes).errors?.maxLength && (jmes.dirty || jmes.touched)) {
-      <mat-error>JMES too long</mat-error>
-      } @if (error()) {
-      <mat-error>{{ error() }}</mat-error>
+        <mat-error>JMES required</mat-error>
+      }
+      @if ($any(jmes).errors?.maxLength && (jmes.dirty || jmes.touched)) {
+        <mat-error>JMES too long</mat-error>
+      }
+      @if (error()) {
+        <mat-error>{{ error() }}</mat-error>
       }
     </mat-form-field>
     <button
@@ -22,7 +24,7 @@
     </button>
     <div>
       @if (busy()) {
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
       }
     </div>
   </div>
@@ -33,15 +35,19 @@
     <div id="input">
       <div>
         <mat-label>input</mat-label>
-        <nge-monaco-editor
-          style="height: 600px"
-          class="monaco"
-          (ready)="onCreateInputEditor($event)"
-        />
-        @if (input.hasError('required') && (input.touched || input.dirty)) {
-        <mat-error>please enter some text</mat-error>
-        } @if (input.hasError('maxlength') && (input.touched || input.dirty)) {
-        <mat-error>input too long</mat-error>
+        <div class="editor">
+          <ngx-monaco-editor
+            [formControl]="input"
+            [language]="'markdown'"
+            [options]="editorOptions"
+            (editorInitialized)="onInEditorInit($event)"
+          />
+        </div>
+        @if (input.hasError("required") && (input.touched || input.dirty)) {
+          <mat-error>please enter some text</mat-error>
+        }
+        @if (input.hasError("maxlength") && (input.touched || input.dirty)) {
+          <mat-error>input too long</mat-error>
         }
       </div>
       <!-- presets -->
@@ -58,11 +64,14 @@
     <!-- output -->
     <div id="output">
       <mat-label>output</mat-label>
-      <nge-monaco-editor
-        style="height: 600px"
-        class="monaco"
-        (ready)="onCreateOutputEditor($event)"
-      />
+      <div class="editor">
+        <ngx-monaco-editor
+          [formControl]="output"
+          [language]="'markdown'"
+          [options]="editorOptions"
+          (editorInitialized)="onOutEditorInit($event)"
+        />
+      </div>
     </div>
   </fieldset>
 </form>

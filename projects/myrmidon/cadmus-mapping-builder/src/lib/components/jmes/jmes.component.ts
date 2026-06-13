@@ -1,6 +1,5 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   effect,
   model,
@@ -25,7 +24,12 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { NgeMonacoModule } from '@cisstech/nge/monaco';
+import {
+  EditorInitializedEvent,
+  NgxMonacoEditorComponent,
+  StandaloneCodeEditor,
+  StandaloneEditorConstructionOptions,
+} from '@jean-merelis/ngx-monaco-editor';
 
 import { RamCacheService } from '../../services/ram-cache.service';
 import { GraphStudioApiService } from '../../services/graph-studio-api.service';
@@ -46,7 +50,7 @@ import { CachedTextPickerComponent } from '../cached-text-picker/cached-text-pic
     MatSelectModule,
     MatTooltipModule,
     // vendor
-    NgeMonacoModule,
+    NgxMonacoEditorComponent,
     // local
     CachedTextPickerComponent,
   ],
@@ -59,11 +63,14 @@ export class JmesComponent implements OnInit, OnDestroy {
   private _updatingForm?: boolean;
 
   // monaco
-  private readonly _disposables: monaco.IDisposable[] = [];
-  private _inEditorModel?: monaco.editor.ITextModel;
-  private _inEditor?: monaco.editor.IStandaloneCodeEditor;
-  private _outEditorModel?: monaco.editor.ITextModel;
-  private _outEditor?: monaco.editor.IStandaloneCodeEditor;
+  private _inEditor?: StandaloneCodeEditor;
+  private _outEditor?: StandaloneCodeEditor;
+
+  public readonly editorOptions: StandaloneEditorConstructionOptions = {
+    minimap: { side: 'right' },
+    wordWrap: 'on',
+    automaticLayout: true,
+  };
 
   /**
    * The JMES expression being edited.
@@ -86,7 +93,6 @@ export class JmesComponent implements OnInit, OnDestroy {
     formBuilder: FormBuilder,
     private _apiService: GraphStudioApiService,
     private _cacheService: RamCacheService,
-    private _cdr: ChangeDetectorRef
   ) {
     // form
     this.jmes = formBuilder.control('', {
@@ -105,7 +111,7 @@ export class JmesComponent implements OnInit, OnDestroy {
     });
     // sample
     this.sampleKeys.set(
-      Object.keys(this._cacheService.get('jmes') || {}).sort()
+      Object.keys(this._cacheService.get('jmes') || {}).sort(),
     );
     this.sampleKey = formBuilder.control('', {
       validators: [Validators.required, Validators.maxLength(50)],
@@ -122,7 +128,6 @@ export class JmesComponent implements OnInit, OnDestroy {
       this.jmes.setValue(expression || '', { emitEvent: false });
       this.jmes.markAsDirty();
       this.jmes.updateValueAndValidity();
-      this._cdr.markForCheck();
       this._updatingForm = false;
     });
   }
@@ -141,54 +146,16 @@ export class JmesComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this._sub?.unsubscribe();
-    this._disposables.forEach((d) => d.dispose());
   }
 
-  public onCreateInputEditor(editor: monaco.editor.IEditor) {
-    editor.updateOptions({
-      minimap: {
-        side: 'right',
-      },
-      wordWrap: 'on',
-      automaticLayout: true,
-    });
-    this._inEditorModel =
-      this._inEditorModel ||
-      monaco.editor.createModel(this.input?.value || '', 'json');
-    editor.setModel(this._inEditorModel);
-    this._inEditor = editor as monaco.editor.IStandaloneCodeEditor;
-
-    this._disposables.push(
-      this._inEditorModel.onDidChangeContent((e) => {
-        this.input.setValue(this._inEditorModel!.getValue());
-        this.input.markAsDirty();
-        this.input.updateValueAndValidity();
-        this._cdr.markForCheck();
-      })
-    );
+  public onInEditorInit(event: EditorInitializedEvent) {
+    this._inEditor = event.editor;
+    this._inEditor.focus();
   }
 
-  public onCreateOutputEditor(editor: monaco.editor.IEditor) {
-    editor.updateOptions({
-      minimap: {
-        side: 'right',
-      },
-      wordWrap: 'on',
-      automaticLayout: true,
-    });
-    this._outEditorModel =
-      this._outEditorModel ||
-      monaco.editor.createModel(this.output?.value || '', 'json');
-    editor.setModel(this._outEditorModel);
-    this._outEditor = editor as monaco.editor.IStandaloneCodeEditor;
-    this._disposables.push(
-      this._outEditorModel.onDidChangeContent((e) => {
-        this.output.setValue(this._outEditorModel!.getValue());
-        this.output.markAsDirty();
-        this.output.updateValueAndValidity();
-        this._cdr.markForCheck();
-      })
-    );
+  public onOutEditorInit(event: EditorInitializedEvent) {
+    this._outEditor = event.editor;
+    this._outEditor.focus();
   }
 
   public transform(): void {
@@ -209,8 +176,6 @@ export class JmesComponent implements OnInit, OnDestroy {
             this.output.setValue(w.value || '');
             this.output.updateValueAndValidity();
             this.output.markAsDirty();
-            this._outEditorModel?.setValue(w.value || '');
-            this._cdr.markForCheck();
           }
         },
         error: (error) => {
@@ -224,9 +189,6 @@ export class JmesComponent implements OnInit, OnDestroy {
     this.input.setValue(text);
     this.input.updateValueAndValidity();
     this.input.markAsDirty();
-
-    this._inEditorModel?.setValue(text);
-    this._cdr.markForCheck();
   }
 
   public addSample(): void {

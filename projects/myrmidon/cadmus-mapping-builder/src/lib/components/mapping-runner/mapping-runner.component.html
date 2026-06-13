@@ -36,7 +36,14 @@
       <!-- monaco -->
       <div>
         <mat-label>input</mat-label>
-        <nge-monaco-editor class="monaco" (ready)="onCreateEditor($event)" />
+        <div id="editor">
+          <ngx-monaco-editor
+            [formControl]="input"
+            [language]="'markdown'"
+            [options]="editorOptions"
+            (editorInitialized)="onEditorInit($event)"
+          />
+        </div>
         @if (input.hasError("required") && (input.touched || input.dirty)) {
           <mat-error>input required</mat-error>
         }

@@ -1,5 +1,5 @@
 import { render } from '@testing-library/angular';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
@@ -9,7 +9,7 @@ describe('MappingEditorComponent', () => {
   it('should create', async () => {
     const { fixture } = await render(MappingEditorComponent, {
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         provideNoopAnimations(),
       ],

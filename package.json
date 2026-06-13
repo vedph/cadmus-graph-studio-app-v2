@@ -10,39 +10,39 @@
     "build-lib": "ng build @myrmidon/cadmus-mapping-builder"
   },
   "private": true,
-  "packageManager": "pnpm@10.33.4",
+  "packageManager": "pnpm@11.6.0",
   "dependencies": {
-    "@angular/animations": "^21.2.12",
-    "@angular/cdk": "^21.2.10",
-    "@angular/common": "^21.2.12",
-    "@angular/compiler": "^21.2.12",
-    "@angular/core": "^21.2.12",
-    "@angular/forms": "^21.2.12",
-    "@angular/localize": "^21.2.12",
-    "@angular/material": "^21.2.10",
-    "@angular/platform-browser": "^21.2.12",
-    "@angular/router": "^21.2.12",
-    "@cisstech/nge": "^18.3.0",
-    "@myrmidon/ngx-mat-tools": "^1.0.2",
-    "@myrmidon/ngx-tools": "^2.0.3",
-    "@myrmidon/paged-data-browsers": "^5.2.2",
-    "monaco-editor": "^0.54.0",
+    "@angular/animations": "^22.0.1",
+    "@angular/cdk": "^22.0.1",
+    "@angular/common": "^22.0.1",
+    "@angular/compiler": "^22.0.1",
+    "@angular/core": "^22.0.1",
+    "@angular/forms": "^22.0.1",
+    "@angular/localize": "^22.0.1",
+    "@angular/material": "^22.0.1",
+    "@angular/platform-browser": "^22.0.1",
+    "@angular/router": "^22.0.1",
+    "@jean-merelis/ngx-monaco-editor": "^21.0.0",
+    "@myrmidon/ngx-mat-tools": "^2.0.0",
+    "@myrmidon/ngx-tools": "^3.0.0",
+    "@myrmidon/paged-data-browsers": "^6.0.0",
+    "monaco-editor": "^0.47.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.10",
-    "@angular/cli": "^21.2.10",
-    "@angular/compiler-cli": "^21.2.12",
-    "@testing-library/angular": "^19.2.1",
+    "@angular/build": "^22.0.1",
+    "@angular/cli": "^22.0.1",
+    "@angular/compiler-cli": "^22.0.1",
+    "@testing-library/angular": "^19.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "jsdom": "^29.1.1",
-    "ng-packagr": "^21.2.3",
-    "typescript": "~5.9.3",
-    "vitest": "^4.1.5"
+    "ng-packagr": "^22.0.0",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.8"
   },
   "optionalDependencies": {
-    "@rollup/rollup-win32-arm64-msvc": "^4.60.3"
+    "@rollup/rollup-win32-arm64-msvc": "^4.61.1"
   },
   "pnpm": {
     "overrides": {

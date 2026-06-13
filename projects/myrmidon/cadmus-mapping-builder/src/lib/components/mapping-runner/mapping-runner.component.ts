@@ -26,7 +26,12 @@ import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { NgeMonacoModule } from '@cisstech/nge/monaco';
+import {
+  EditorInitializedEvent,
+  NgxMonacoEditorComponent,
+  StandaloneCodeEditor,
+  StandaloneEditorConstructionOptions,
+} from '@jean-merelis/ngx-monaco-editor';
 
 import { GraphSet, NodeMapping } from '../../models';
 import {
@@ -53,7 +58,7 @@ import { CachedTextPickerComponent } from '../cached-text-picker/cached-text-pic
     MatSelectModule,
     MatTooltipModule,
     // vendor
-    NgeMonacoModule,
+    NgxMonacoEditorComponent,
     // local
     CachedTextPickerComponent,
   ],
@@ -61,11 +66,15 @@ import { CachedTextPickerComponent } from '../cached-text-picker/cached-text-pic
   styleUrls: ['./mapping-runner.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MappingRunnerComponent implements OnDestroy {
+export class MappingRunnerComponent {
   // Monaco
-  private readonly _disposables: monaco.IDisposable[] = [];
-  private _editorModel?: monaco.editor.ITextModel;
-  private _editor?: monaco.editor.IStandaloneCodeEditor;
+  private _editor?: StandaloneCodeEditor;
+
+  public readonly editorOptions: StandaloneEditorConstructionOptions = {
+    minimap: { side: 'right' },
+    wordWrap: 'on',
+    automaticLayout: true,
+  };
 
   /**
    * The mapping to run.
@@ -152,40 +161,15 @@ export class MappingRunnerComponent implements OnDestroy {
     });
   }
 
-  public ngOnDestroy() {
-    this._disposables.forEach((d) => d.dispose());
-  }
-
-  public onCreateEditor(editor: monaco.editor.IEditor) {
-    editor.updateOptions({
-      minimap: {
-        side: 'right',
-      },
-      wordWrap: 'on',
-      automaticLayout: true,
-    });
-    this._editorModel =
-      this._editorModel ||
-      monaco.editor.createModel(this.input?.value || '', 'json');
-    editor.setModel(this._editorModel);
-    this._editor = editor as monaco.editor.IStandaloneCodeEditor;
-
-    this._disposables.push(
-      this._editorModel.onDidChangeContent((e) => {
-        this.input.setValue(this._editorModel!.getValue());
-        this.input.markAsDirty();
-        this.input.updateValueAndValidity();
-        this._cdr.markForCheck();
-      }),
-    );
+  public onEditorInit(event: EditorInitializedEvent) {
+    this._editor = event.editor;
+    this._editor.focus();
   }
 
   public onTextPick(text: string): void {
     this.input.setValue(text);
     this.input.markAsDirty();
     this.input.updateValueAndValidity();
-    this._editorModel?.setValue(text);
-    this._cdr.markForCheck();
   }
 
   private getMetadata(): NodeMappingMetadata {

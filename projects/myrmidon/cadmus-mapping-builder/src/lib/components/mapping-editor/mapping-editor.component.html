@@ -135,7 +135,7 @@
         <mat-icon class="tab-icon">logout</mat-icon> output
       </ng-template>
       <cadmus-mapping-output-editor
-        [mappingOutput]="mapping()?.output"
+        [mappingOutput]="$safeNavigationMigration(mapping()?.output)"
         (mappingOutputChange)="onOutputChange($event!)"
       />
     </mat-tab>
