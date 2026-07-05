@@ -47,6 +47,7 @@ When you revert with `npm unlink @myrmidon/paged-data-browser`, the original pac
 
 ## History
 
+- 2026-07-02: API port for unified backend.
 - 2026-03-13: ⚠️ migrated to new [Monaco wrapper](https://vedph.github.io/cadmus-doc/history/20260613-monaco.html).
 - 2026-05-11: updated Angular and packages.
 

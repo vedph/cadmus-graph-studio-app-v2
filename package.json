@@ -10,7 +10,7 @@
     "build-lib": "ng build @myrmidon/cadmus-mapping-builder"
   },
   "private": true,
-  "packageManager": "pnpm@11.6.0",
+  "packageManager": "pnpm@11.9.0",
   "dependencies": {
     "@angular/animations": "^22.0.1",
     "@angular/cdk": "^22.0.1",
@@ -39,10 +39,10 @@
     "jsdom": "^29.1.1",
     "ng-packagr": "^22.0.0",
     "typescript": "~6.0.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   },
   "optionalDependencies": {
-    "@rollup/rollup-win32-arm64-msvc": "^4.61.1"
+    "@rollup/rollup-win32-arm64-msvc": "^4.62.2"
   },
   "pnpm": {
     "overrides": {
