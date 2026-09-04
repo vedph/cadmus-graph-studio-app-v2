@@ -1,5 +1,6 @@
 # History
 
+- 2026-09-04: updated packages.
 - 2026-07-29: updated packages.
 - 2026-07-02: API port for unified backend.
 - 2026-03-13: ⚠️ migrated to new [Monaco wrapper](https://vedph.github.io/cadmus-doc/history/20260613-monaco.html).
