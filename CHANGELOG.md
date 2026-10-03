@@ -1,5 +1,6 @@
 # History
 
+- 2026-10-03: updated Angular and packages.
 - 2026-09-04: updated packages.
 - 2026-07-29: updated packages.
 - 2026-07-02: API port for unified backend.
