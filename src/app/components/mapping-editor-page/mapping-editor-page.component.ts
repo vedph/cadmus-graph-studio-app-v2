@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, Inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { take } from 'rxjs';
+import { filter, switchMap, take } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MatCardModule } from '@angular/material/card';
 
@@ -11,6 +12,8 @@ import {
   NodeMappingListService,
   NodeMappingService,
 } from '@myrmidon/cadmus-mapping-builder';
+
+import { SampleDataService } from '../../services/sample-data.service';
 
 @Component({
   selector: 'app-mapping-editor-page',
@@ -27,7 +30,8 @@ export class MappingEditorPageComponent {
     @Inject(NODE_MAPPING_SERVICE)
     mappingService: NodeMappingService,
     private _router: Router,
-    private _listService: NodeMappingListService
+    private _listService: NodeMappingListService,
+    sampleDataService: SampleDataService
   ) {
     // get mapping from id parameter: 0 means a new mapping
     const id = +(route.snapshot.paramMap.get('id') || 0);
@@ -40,11 +44,19 @@ export class MappingEditorPageComponent {
         sid: '',
       });
     } else {
-      mappingService
-        .getMapping(id)
-        .pipe(take(1))
+      // on a deep link (e.g. a page reload) the mappings may not be
+      // imported yet: get the mapping again whenever samples are loaded,
+      // until it is found (the app shell imports them before this runs,
+      // as it subscribed first)
+      sampleDataService.json$
+        .pipe(
+          switchMap(() => mappingService.getMapping(id).pipe(take(1))),
+          filter((m) => !!m),
+          take(1),
+          takeUntilDestroyed()
+        )
         .subscribe((m) => {
-          this.editedMapping.set(m || undefined);
+          this.editedMapping.set(m!);
         });
     }
   }

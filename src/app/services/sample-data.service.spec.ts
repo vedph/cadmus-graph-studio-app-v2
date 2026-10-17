@@ -61,6 +61,7 @@ describe('SampleDataService', () => {
 
   it('should default unspecified samples', () => {
     const service = create();
+    service.load('a.json', 'b.json');
     assets.loadText.mockClear();
     assets.loadObject.mockClear();
     service.load();
@@ -71,13 +72,47 @@ describe('SampleDataService', () => {
   it('should default unspecified mappings from the environment', () => {
     env['presetMappings'] = 'env-mappings.json';
     const service = create();
+    service.load('a.json', 'p.json');
     assets.loadText.mockClear();
     service.load(undefined, 'p.json');
     expect(assets.loadText).toHaveBeenCalledWith('env-mappings.json');
   });
 
-  it('should reload the defaults on reset', () => {
+  it('should expose the loaded samples', () => {
     const service = create();
+    expect(service.mappings()).toBe('sample-mappings.json');
+    expect(service.presets()).toBe('person-presets.json');
+    service.load('a.json', 'b.json');
+    expect(service.mappings()).toBe('a.json');
+    expect(service.presets()).toBe('b.json');
+  });
+
+  it('should not reload samples already loaded', () => {
+    const service = create();
+    assets.loadText.mockClear();
+    assets.loadObject.mockClear();
+    service.load('sample-mappings.json', 'person-presets.json');
+    expect(assets.loadText).not.toHaveBeenCalled();
+    expect(assets.loadObject).not.toHaveBeenCalled();
+  });
+
+  it('should not reload the mappings when only the presets change', async () => {
+    const service = create();
+    const jsons: string[] = [];
+    service.json$.subscribe((j) => jsons.push(j));
+    service.load('sample-mappings.json', 'other-presets.json');
+    expect(jsons).toEqual(['text of sample-mappings.json']);
+    expect(assets.loadObject).toHaveBeenLastCalledWith('other-presets.json');
+    expect(await firstValueFrom(service.presets$)).toEqual({
+      path: 'other-presets.json',
+    });
+  });
+
+  it('should reload the defaults on reset, even if loaded', () => {
+    const service = create();
+    assets.loadText.mockClear();
+    service.reset();
+    expect(assets.loadText).toHaveBeenCalledWith('sample-mappings.json');
     service.load('a.json', 'b.json');
     service.reset();
     expect(assets.loadText).toHaveBeenLastCalledWith('sample-mappings.json');

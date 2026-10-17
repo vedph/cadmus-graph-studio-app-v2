@@ -159,7 +159,51 @@ three person mappings with the 13 sample ones. Mappings document page: 0
 `{oops`, and importing a one-mapping document showed "Mappings imported:
 1". No console errors or warnings.
 
-## Report: outside the migration's scope (not fixed)
+## Reported issues: fixed
+
+All the issues reported below were then fixed, except the backend CORS
+origin (development only).
+
+- **Going Home discarded all edits.** `SampleDataService` now exposes the
+  loaded samples (`mappings()`, `presets()`) and does not reload a sample
+  already loaded; changing only the presets no longer reloads the mappings.
+  `HomeComponent` starts its selectors from the loaded samples (adding them
+  to the options if missing), so coming back keeps both the selection and
+  the edits. `reset()` still forces a reload. Measured in the browser:
+  `-mappings.json` fetched once at startup (it was twice: the service and
+  Home each loaded it) and not again when returning Home; a renamed mapping,
+  an edited description and output metadata were all still there after
+  going Home and reopening the mapping; selecting `sample-mappings` still
+  loaded it, and Home showed that selection after editing one of its
+  mappings. Specs cover the service rules and Home's initial selection.
+- **Deep links opened an empty editor.** The editor page now gets the
+  mapping again on each `json$` emission until it is found
+  (`switchMap` + `filter` + `take(1)`). The app shell subscribed to `json$`
+  first, so it has imported the sample when the page reads the store.
+  Measured: a full page load of `/mappings/11` opened `person_birth_event`.
+  A spec covers the deep link, and another that a later sample load does
+  not replace the mapping being edited. A full reload still resets the
+  in-memory store to the default sample, so links to mappings of another
+  sample find nothing (by design: nothing is persisted).
+- Dead code removed: `JmesComponent` sample members (and its now unused
+  `RamCacheService` dependency); `MappingTreeComponent.onEditFilterRequest`
+  with its `MatDialog` and the template binding, and `options.mockRoot`;
+  the runner's "invalid GUID" messages.
+- `console.log` calls removed from `MappingPagedTreeStoreService`,
+  `MappingTreeComponent` and `SampleDataService` (grep finds none left).
+
+Tests: library 247, app 42, green. Builds clean. The library flow and the
+nested-child flow were rerun in the browser on a fresh server and cache,
+with no console errors.
+
+**Measured tooling hazard:** stopping a backgrounded `npx ng serve` left
+its `ng serve` node processes running (twice), still holding the port
+and the `.angular/cache` compiler db, so a new server failed with "Port
+4200 is already in use" and the cache could not be deleted. Check with
+`Get-CimInstance Win32_Process -Filter "Name='node.exe'"` and kill them
+before restarting.
+
+## Report: outside the migration's scope (as first reported)
 
 - **Going Home discards all edits.** `HomeComponent` loads the sample
   mappings every time it is created; the app shell then re-imports them

@@ -1,3 +1,4 @@
+import { WritableSignal, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { render, screen, waitFor } from '@testing-library/angular';
@@ -13,7 +14,11 @@ import { HomeComponent } from './home.component';
 import { SampleDataService } from '../../services/sample-data.service';
 
 describe('HomeComponent', () => {
-  let sampleService: { load: ReturnType<typeof vi.fn> };
+  let sampleService: {
+    load: ReturnType<typeof vi.fn>;
+    mappings: WritableSignal<string | undefined>;
+    presets: WritableSignal<string | undefined>;
+  };
 
   const setup = async () => {
     const result = await render(HomeComponent, {
@@ -43,7 +48,11 @@ describe('HomeComponent', () => {
   };
 
   beforeEach(() => {
-    sampleService = { load: vi.fn() };
+    sampleService = {
+      load: vi.fn(),
+      mappings: signal(undefined),
+      presets: signal(undefined),
+    };
   });
 
   afterEach(() => vi.restoreAllMocks());
@@ -70,6 +79,44 @@ describe('HomeComponent', () => {
         'person-presets.json'
       )
     );
+  });
+
+  it('should start from the samples already loaded', async () => {
+    sampleService.mappings.set('sample-mappings.json');
+    sampleService.presets.set('sample-presets.json');
+    await setup();
+    await waitFor(() =>
+      expect(
+        screen.getByRole('combobox', { name: 'mappings' })
+      ).toHaveTextContent('sample-mappings')
+    );
+    expect(
+      screen.getByRole('combobox', { name: 'sample data' })
+    ).toHaveTextContent('sample-presets');
+    // the same selection, which the service does not reload
+    await waitFor(() =>
+      expect(sampleService.load).toHaveBeenCalledExactlyOnceWith(
+        'sample-mappings.json',
+        'sample-presets.json'
+      )
+    );
+  });
+
+  it('should list loaded samples missing from the options', async () => {
+    sampleService.mappings.set('custom.json');
+    const { user } = await setup();
+    await waitFor(() =>
+      expect(
+        screen.getByRole('combobox', { name: 'mappings' })
+      ).toHaveTextContent('custom')
+    );
+    await user.click(screen.getByRole('combobox', { name: 'mappings' }));
+    const options = await screen.findAllByRole('option');
+    expect(options.map((o) => o.textContent?.trim())).toEqual([
+      'custom',
+      'person-mappings',
+      'sample-mappings',
+    ]);
   });
 
   it('should load the selected samples', async () => {

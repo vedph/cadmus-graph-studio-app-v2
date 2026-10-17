@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import { debounceTime } from 'rxjs';
@@ -20,6 +20,13 @@ import {
 } from '@myrmidon/cadmus-mapping-builder';
 import { SampleDataService } from '../../services/sample-data.service';
 
+/**
+ * Get the specified options, adding the current value when not among them.
+ */
+function withCurrent(options: string[], current: string | undefined): string[] {
+  return current && !options.includes(current) ? [current, ...options] : options;
+}
+
 @Component({
   selector: 'app-home',
   imports: [
@@ -40,28 +47,39 @@ import { SampleDataService } from '../../services/sample-data.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
-  public readonly jsonSources = signal<string[]>([
-    'person-mappings.json',
-    'sample-mappings.json',
-  ]);
-  public readonly presetSources = signal<string[]>([
-    'person-presets.json',
-    'sample-presets.json',
-  ]);
+  private readonly _router = inject(Router);
+  private readonly _sampleDataService = inject(SampleDataService);
 
-  /** The selected samples, defaulting to the first ones. */
+  public readonly jsonSources = signal<string[]>(
+    withCurrent(
+      ['person-mappings.json', 'sample-mappings.json'],
+      this._sampleDataService.mappings()
+    )
+  );
+  public readonly presetSources = signal<string[]>(
+    withCurrent(
+      ['person-presets.json', 'sample-presets.json'],
+      this._sampleDataService.presets()
+    )
+  );
+
+  /**
+   * The selected samples: the ones already loaded, if any (so that coming
+   * back here does not reload them over the edited mappings), else the
+   * first ones.
+   */
   public readonly sources = form(
     signal({
-      jsonSource: this.jsonSources()[0],
-      presetSource: this.presetSources()[0],
+      jsonSource:
+        this._sampleDataService.mappings() || this.jsonSources()[0],
+      presetSource:
+        this._sampleDataService.presets() || this.presetSources()[0],
     })
   );
 
-  constructor(
-    private _router: Router,
-    private _sampleDataService: SampleDataService
-  ) {
-    // load the selected samples (initially and on change), debounced
+  constructor() {
+    // load the selected samples (initially and on change), debounced;
+    // the service does not reload samples already loaded
     toObservable(this.sources().value)
       .pipe(debounceTime(100), takeUntilDestroyed())
       .subscribe(({ jsonSource, presetSource }) => {

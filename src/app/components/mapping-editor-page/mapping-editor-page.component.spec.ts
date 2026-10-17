@@ -9,7 +9,7 @@ import {
 } from '@angular/router';
 import { render, screen, waitFor, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 
 import {
   NODE_MAPPING_SERVICE,
@@ -19,6 +19,7 @@ import {
 
 import { MappingEditorPageComponent } from './mapping-editor-page.component';
 import { provideInertMonacoLoader } from '../../../testing/monaco-testing';
+import { SampleDataService } from '../../services/sample-data.service';
 
 const DOC = {
   documentMappings: [
@@ -34,9 +35,17 @@ const DOC = {
 };
 
 describe('MappingEditorPageComponent', () => {
-  const setup = async (id: string) => {
+  let json$: BehaviorSubject<string>;
+
+  /**
+   * Render the page for the mapping ID; the store is seeded with DOC unless
+   * `imported` is false (as on a deep link, before samples are imported).
+   */
+  const setup = async (id: string, imported = true) => {
+    json$ = new BehaviorSubject<string>('{}');
     const result = await render(MappingEditorPageComponent, {
       providers: [
+        { provide: SampleDataService, useValue: { json$ } },
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -48,10 +57,12 @@ describe('MappingEditorPageComponent', () => {
         },
       ],
       configureTestBed: (testBed) => {
-        testBed
-          .inject(RamNodeMappingService)
-          .importMappings(JSON.stringify(DOC))
-          .subscribe();
+        if (imported) {
+          testBed
+            .inject(RamNodeMappingService)
+            .importMappings(JSON.stringify(DOC))
+            .subscribe();
+        }
       },
     });
     vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -96,6 +107,30 @@ describe('MappingEditorPageComponent', () => {
     expect(
       screen.getByRole('button', { name: 'actions for person' })
     ).toBeInTheDocument();
+  });
+
+  it('should edit the mapping of a deep link once samples are imported', async () => {
+    const { ram } = await setup('1', false);
+    expect(nameField()).toHaveValue('');
+
+    // like the app shell: import the loaded sample, then it is emitted
+    ram.importMappings(JSON.stringify(DOC)).subscribe();
+    json$.next(JSON.stringify(DOC));
+
+    await waitFor(() => expect(nameField()).toHaveValue('person'));
+  });
+
+  it('should not reload the mapping on later sample loads', async () => {
+    const { user, ram } = await setup('1');
+    await waitFor(() => expect(nameField()).toHaveValue('person'));
+    await user.clear(nameField());
+    await user.type(nameField(), 'edited');
+
+    ram.importMappings(JSON.stringify(DOC)).subscribe();
+    json$.next(JSON.stringify(DOC));
+    await new Promise((resolve) => setTimeout(resolve));
+
+    expect(nameField()).toHaveValue('edited');
   });
 
   it('should be empty for an unknown mapping ID', async () => {
