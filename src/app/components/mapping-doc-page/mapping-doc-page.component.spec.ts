@@ -133,6 +133,11 @@ describe('MappingDocPageComponent', () => {
     expect(importButton()).toBeDisabled();
   });
 
+  it('should render no <form> element', async () => {
+    const { container } = await setup();
+    expect(container.querySelector('form')).toBeNull();
+  });
+
   it('should refresh the document from the store', async () => {
     const { editor, ram, user } = await setup();
     await firstValueFrom(ram.clear());

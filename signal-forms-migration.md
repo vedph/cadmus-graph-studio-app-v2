@@ -133,6 +133,32 @@ state.
   child. Adding a child switched the editor to "New mapping".
 - No console errors or warnings in any of these runs.
 
+## App (`cadmus-graph-studio-app`)
+
+Tests: 35, green. Build clean.
+
+- `HomeComponent`: the two sample selectors are a local form, defaulting to
+  the first sample of each list. The old `combineLatest` of two
+  `valueChanges` with `startWith` became `toObservable(sources().value)`
+  with the same 100 ms debounce: one load on creation (spec: exactly one
+  call), one per change.
+- `MappingDocPageComponent`: the JSON validator became a `validate` rule
+  (`invalidJson`), next to `required`. The page renders no `<form>`; the
+  import button was a `type="submit"` outside any form, and is now
+  `type="button"`.
+- `App`: dropped an unused `ReactiveFormsModule` import.
+
+No component in the workspace imports `ReactiveFormsModule`, `FormControl`,
+`FormGroup`, `FormBuilder` or `NgxToolsValidators` any more (grep).
+
+**Browser check (measured):** the served `main.js` contained the migrated
+app code and none of the old Home subscription. Home: 0 `<form>`
+elements; picking "sample-mappings" in the mappings selector replaced the
+three person mappings with the 13 sample ones. Mappings document page: 0
+`<form>` elements; import enabled for the exported document, disabled for
+`{oops`, and importing a one-mapping document showed "Mappings imported:
+1". No console errors or warnings.
+
 ## Report: outside the migration's scope (not fixed)
 
 - **Going Home discards all edits.** `HomeComponent` loads the sample

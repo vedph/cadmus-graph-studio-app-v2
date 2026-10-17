@@ -4,7 +4,6 @@ import {
   Inject,
   signal,
 } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { take } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -33,7 +32,6 @@ import { SampleDataService } from './services/sample-data.service';
   imports: [
     RouterOutlet,
     RouterLink,
-    ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,

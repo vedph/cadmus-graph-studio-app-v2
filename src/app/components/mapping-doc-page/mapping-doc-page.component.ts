@@ -1,19 +1,5 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  OnDestroy,
-} from '@angular/core';
-import {
-  AbstractControl,
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, Inject, signal } from '@angular/core';
+import { FormField, form, required, validate } from '@angular/forms/signals';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -34,21 +20,19 @@ import {
   NodeMappingService,
 } from '@myrmidon/cadmus-mapping-builder';
 
-function jsonValidator(): ValidatorFn {
-  return (control: AbstractControl): { [key: string]: any } | null => {
-    try {
-      JSON.parse(control.value);
-      return null;
-    } catch (error) {
-      return { invalidJson: true };
-    }
-  };
+function isJson(text: string): boolean {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 @Component({
   selector: 'app-mapping-doc-page',
   imports: [
-    ReactiveFormsModule,
+    FormField,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
@@ -69,22 +53,18 @@ export class MappingDocPageComponent {
     automaticLayout: true,
   };
 
-  public json: FormControl<string>;
-  public form: FormGroup;
+  public readonly form = form(signal({ json: '' }), (path) => {
+    required(path.json);
+    validate(path.json, ({ value }) =>
+      isJson(value()) ? undefined : { kind: 'invalidJson' }
+    );
+  });
 
   constructor(
-    formBuilder: FormBuilder,
     private _snackbar: MatSnackBar,
     private _repository: NodeMappingListService,
     @Inject(NODE_MAPPING_SERVICE) private _mappingService: NodeMappingService,
   ) {
-    this.json = formBuilder.control('', {
-      validators: [Validators.required, jsonValidator()],
-      nonNullable: true,
-    });
-    this.form = formBuilder.group({
-      json: this.json,
-    });
     this.exportToDocument();
   }
 
@@ -95,7 +75,7 @@ export class MappingDocPageComponent {
 
   public exportToDocument() {
     this._mappingService.exportMappings().subscribe((json) => {
-      this.json.setValue(json);
+      this.form.json().value.set(json);
     });
   }
 
@@ -111,7 +91,7 @@ export class MappingDocPageComponent {
     // a valid JSON document may still be an invalid mappings document,
     // which makes the import throw
     try {
-      this._mappingService.importMappings(this.json.value).subscribe({
+      this._mappingService.importMappings(this.form.json().value()).subscribe({
         next: (mappings) => {
           this._repository.reset();
           this._snackbar.open('Mappings imported: ' + mappings.length, 'OK', {

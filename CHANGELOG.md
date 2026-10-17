@@ -1,5 +1,6 @@
 # History
 
+- 2026-10-17: ⚠️ migrated from reactive forms to signal forms (see [migration log](./signal-forms-migration.md)). Behavior changes: text length limits now stop typing at the limit instead of showing an error afterwards; negative or out-of-range flags (mapping editor, mappings filter) are now invalid; no component renders a `<form>` any more, while Enter still confirms where it did before.
 - 2026-10-17:
   - replaced the library build script with `scripts/build-libs.mjs` (`pnpm run build:libs`), building libraries in dependency order, guarded by `scripts/check-local-libs.js`.
   - completed the Vitest infrastructure: jest-dom matchers (`setup-test.ts`) and global test providers (`test-providers.ts`) wired into `angular.json`; added `@testing-library/user-event` and `@vitest/coverage-v8`; removed the unused `vitest.config.ts`.

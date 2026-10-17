@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { Router } from '@angular/router';
-import { combineLatest, debounceTime, startWith } from 'rxjs';
+import { debounceTime } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 
 import { ReplaceStringPipe } from '@myrmidon/ngx-tools';
 import { NodeMapping } from '@myrmidon/cadmus-mapping-builder';
@@ -23,7 +23,7 @@ import { SampleDataService } from '../../services/sample-data.service';
 @Component({
   selector: 'app-home',
   imports: [
-    ReactiveFormsModule,
+    FormField,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
@@ -40,13 +40,6 @@ import { SampleDataService } from '../../services/sample-data.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
-  public jsonSource: FormControl<string> = new FormControl<string>('', {
-    nonNullable: true,
-  });
-  public presetSource: FormControl<string> = new FormControl<string>('', {
-    nonNullable: true,
-  });
-
   public readonly jsonSources = signal<string[]>([
     'person-mappings.json',
     'sample-mappings.json',
@@ -56,23 +49,22 @@ export class HomeComponent {
     'sample-presets.json',
   ]);
 
+  /** The selected samples, defaulting to the first ones. */
+  public readonly sources = form(
+    signal({
+      jsonSource: this.jsonSources()[0],
+      presetSource: this.presetSources()[0],
+    })
+  );
+
   constructor(
     private _router: Router,
-    private _sampleDataService: SampleDataService,
-    private _cdr: ChangeDetectorRef
+    private _sampleDataService: SampleDataService
   ) {
-    // set default values to first items
-    this.jsonSource.setValue(this.jsonSources()[0]);
-    this.presetSource.setValue(this.presetSources()[0]);
-    this._cdr.markForCheck();
-
-    // combine both form control changes with debounce
-    combineLatest([
-      this.jsonSource.valueChanges.pipe(startWith(this.jsonSource.value)),
-      this.presetSource.valueChanges.pipe(startWith(this.presetSource.value)),
-    ])
+    // load the selected samples (initially and on change), debounced
+    toObservable(this.sources().value)
       .pipe(debounceTime(100), takeUntilDestroyed())
-      .subscribe(([jsonSource, presetSource]) => {
+      .subscribe(({ jsonSource, presetSource }) => {
         if (jsonSource && presetSource) {
           this._sampleDataService.load(jsonSource, presetSource);
         }

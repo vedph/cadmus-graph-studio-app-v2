@@ -3,20 +3,23 @@
     <mat-card-title>Mappings Document</mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <form [formGroup]="form">
+    <div>
       <div id="editor">
         <ngx-monaco-editor
-          [formControl]="json"
+          [formField]="form.json"
           [language]="'json'"
           [options]="editorOptions"
           (editorInitialized)="onEditorInit($event)"
         />
       </div>
 
-      @if (json.hasError("required") && (json.touched || json.dirty)) {
+      @if (
+        form.json().getError("required") &&
+        (form.json().touched() || form.json().dirty())
+      ) {
         <mat-error>please enter some text</mat-error>
       }
-    </form>
+    </div>
     <div class="form-row">
       <button
         type="button"
@@ -28,10 +31,10 @@
         export in doc
       </button>
       <button
-        type="submit"
+        type="button"
         mat-flat-button
         class="mat-warn"
-        [disabled]="form.invalid"
+        [disabled]="form().invalid()"
         (click)="importFromDocument()"
       >
         <mat-icon>file_upload</mat-icon>
