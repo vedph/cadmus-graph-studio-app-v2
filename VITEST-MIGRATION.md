@@ -2,6 +2,8 @@
 
 This guide covers migrating Angular 21 applications from Karma to Vitest, with separate paths for zone-enabled and zoneless apps.
 
+> **This workspace** runs tests only through `ng test` (the `@angular/build:unit-test` builder), so it has no `vitest.config.ts`. Each test target in `angular.json` sets `setupFiles: ["setup-test.ts"]` (jest-dom matchers only: the builder itself initializes TestBed, so the setup file must not call `initTestEnvironment`) and `providersFile: "test-providers.ts"` (global test providers, e.g. disabling Material animations). Use `pnpm run test:lib`, `pnpm run test:app`, `pnpm run test:all` or `pnpm run test:coverage`.
+
 - [Migrating Angular 21 Apps from Karma to Vitest](#migrating-angular-21-apps-from-karma-to-vitest)
   - [Prerequisites](#prerequisites)
   - [Step 1: Install Required Packages](#step-1-install-required-packages)
@@ -583,16 +585,12 @@ const { fixture } = await render(MyComponent, {
 
 ### Issue: `toBeInTheDocument()` not available
 
-**Cause**: jest-dom matchers aren't loaded when using Angular's test builder.
+**Cause**: jest-dom matchers aren't loaded when using Angular's test builder, unless a setup file registers them.
 
-**Solution**: Use standard Vitest assertions instead:
+**Solution**: register them in a setup file listed in the `setupFiles` option of each test target in `angular.json` (this workspace does so with `setup-test.ts`):
 
 ```ts
-// Instead of:
-expect(element).toBeInTheDocument();
-
-// Use:
-expect(element).toBeTruthy();
+import '@testing-library/jest-dom/vitest';
 ```
 
 ### Issue: HTTP errors in tests

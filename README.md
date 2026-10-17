@@ -11,7 +11,7 @@ The Cadmus Graph Studio App is a minimalist editor for helping users build and t
 🐋 Docker:
 
 1. update [env.js](./src/env.js) version number, and version numbers in [docker compose](docker-compose.yml) and [package.json](package.json);
-2. `pnpm run build-lib`;
+2. `pnpm run build:libs` (builds all the libraries in dependency order);
 3. `ng build --configuration=production`;
 4. build image (change version number accordingly):
 
