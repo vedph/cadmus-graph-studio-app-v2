@@ -40,7 +40,7 @@
               type="button"
               matIconButton
               [matMenuTriggerFor]="menu"
-              aria-label="Actions"
+              [attr.aria-label]="'actions for ' + node.label"
             >
               <mat-icon>more_vert</mat-icon>
             </button>
@@ -87,6 +87,7 @@
         mat-icon-button
         (click)="expandAll()"
         matTooltip="Expand all"
+        aria-label="expand all"
       >
         <mat-icon>unfold_more</mat-icon>
       </button>
@@ -95,6 +96,7 @@
         mat-icon-button
         (click)="collapseAll()"
         matTooltip="Collapse all"
+        aria-label="collapse all"
       >
         <mat-icon>unfold_less</mat-icon>
       </button>

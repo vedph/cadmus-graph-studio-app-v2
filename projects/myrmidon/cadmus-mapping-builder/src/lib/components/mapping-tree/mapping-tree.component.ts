@@ -122,12 +122,10 @@ export class MappingTreeComponent implements OnDestroy {
     this.nodes$ = this._store.nodes$;
     this.filter$ = this._store.filter$;
 
+    // (re)build the tree from the mapping, or clear it when there is none,
+    // so that a previously displayed mapping does not linger
     effect(() => {
-      const mapping = this.mapping();
-      if (mapping) {
-        console.log('tree mapping', mapping);
-        this._treeService.reset(mapping.id);
-      }
+      this._treeService.reset(this.mapping());
     });
   }
 

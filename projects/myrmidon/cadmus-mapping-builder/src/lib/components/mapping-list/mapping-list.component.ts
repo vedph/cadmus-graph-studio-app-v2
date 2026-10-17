@@ -67,7 +67,7 @@ export class MappingListComponent {
 
   public deleteMapping(mapping: NodeMapping): void {
     this._dialogService
-      .confirm(`Delete mapping ${mapping.name}?`, 'Delete')
+      .confirm('Confirm Delete', `Delete mapping ${mapping.name}?`)
       .subscribe((yes) => {
         if (yes) {
           this._listService.deleteMapping(mapping.id);

@@ -9,7 +9,7 @@
       @if ( $any(metadata).errors?.pattern && (metadata.dirty ||
       metadata.touched) ) {
       <mat-error>invalid metadata</mat-error>
-      } @if ( $any(metadata).errors?.maxLength && (metadata.dirty ||
+      } @if ( $any(metadata).errors?.maxlength && (metadata.dirty ||
       metadata.touched) ) {
       <mat-error>metadata too long</mat-error>
       }
@@ -25,7 +25,7 @@
       <mat-hint>key uid [label|tag]</mat-hint>
       @if ($any(nodes).errors?.pattern && (nodes.dirty || nodes.touched)) {
       <mat-error>invalid nodes</mat-error>
-      } @if ($any(nodes).errors?.maxLength && (nodes.dirty || nodes.touched)) {
+      } @if ($any(nodes).errors?.maxlength && (nodes.dirty || nodes.touched)) {
       <mat-error>nodes too long</mat-error>
       }
     </mat-form-field>
@@ -41,7 +41,7 @@
       @if ( $any(triples).errors?.pattern && (triples.dirty || triples.touched)
       ) {
       <mat-error>invalid triples</mat-error>
-      } @if ( $any(triples).errors?.maxLength && (triples.dirty ||
+      } @if ( $any(triples).errors?.maxlength && (triples.dirty ||
       triples.touched) ) {
       <mat-error>triples too long</mat-error>
       }
@@ -53,6 +53,7 @@
       type="button"
       mat-icon-button
       matTooltip="Close without saving"
+      aria-label="close output"
       (click)="cancel()"
     >
       <mat-icon class="mat-warn">cancel</mat-icon>
@@ -62,6 +63,7 @@
       [disabled]="form.invalid"
       mat-icon-button
       matTooltip="Save mapping output"
+      aria-label="save output"
     >
       <mat-icon class="mat-primary">check_circle</mat-icon>
     </button>

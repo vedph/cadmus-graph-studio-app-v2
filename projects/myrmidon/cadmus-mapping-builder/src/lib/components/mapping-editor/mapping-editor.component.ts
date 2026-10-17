@@ -93,8 +93,9 @@ export class MappingEditorComponent {
     });
     this.sid = formBuilder.control('', {
       validators: [
+        // SID is required for root mappings only
         NgxToolsValidators.conditionalValidator(
-          () => !this.mapping()?.parent,
+          () => !this.isChild(),
           Validators.required
         ),
         Validators.maxLength(500),
@@ -123,6 +124,15 @@ export class MappingEditorComponent {
     effect(() => {
       this.updateForm(this.mapping());
     });
+  }
+
+  /**
+   * True if the edited mapping is a child mapping. A root mapping has no
+   * parent ID (note that a child of a new root has parent ID 0).
+   */
+  public isChild(): boolean {
+    const mapping = this.mapping();
+    return !!mapping?.parent || (mapping?.parentId ?? null) !== null;
   }
 
   private updateForm(mapping: NodeMapping | undefined): void {
@@ -159,7 +169,7 @@ export class MappingEditorComponent {
   private getMapping(): NodeMapping {
     return {
       id: this.mapping()?.id || 0,
-      parentId: this.mapping()?.parentId || undefined,
+      parentId: this.mapping()?.parentId ?? undefined,
       ordinal: this.ordinal.value || undefined,
       name: this.name.value,
       sourceType: this.sourceType.value,

@@ -97,11 +97,20 @@ export class MappingPagedTreeStoreService
 
   /**
    * Reset the store with a new mapping.
-   * If no mapping ID is provided, it clears the current mapping and nodes.
-   * @param mappingId The ID of the mapping to set.
+   * If no mapping is provided, it clears the current mapping and nodes.
+   * @param mapping The mapping to set, or the ID of the mapping to fetch
+   * from the RAM mappings store.
    * @returns A Promise that resolves when the reset operation is complete.
    */
-  public reset(mappingId?: number): Promise<boolean> {
+  public reset(mapping?: number | NodeMapping): Promise<boolean> {
+    // a mapping object is used as is
+    if (mapping && typeof mapping === 'object') {
+      this._mapping = mapping;
+      this._nodes = this.flattenMapping(mapping);
+      return Promise.resolve(true);
+    }
+    const mappingId = mapping as number | undefined;
+
     return new Promise((resolve, reject) => {
       if (!mappingId) {
         this._mapping = undefined;
@@ -155,8 +164,9 @@ export class MappingPagedTreeStoreService
       filtered = filtered.filter((node) => node.parentId === undefined);
     }
 
-    // name filter
-    if (filter.name?.trim()) {
+    // name filter: not applied to the root, which is the single mapping
+    // whose descendants are filtered (else the whole tree would vanish)
+    if (filter.parentId !== undefined && filter.name?.trim()) {
       const name = filter.name.toLowerCase().trim();
       filtered = filtered.filter(
         (node) =>

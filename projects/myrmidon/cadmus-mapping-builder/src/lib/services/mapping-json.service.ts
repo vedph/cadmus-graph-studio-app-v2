@@ -134,7 +134,7 @@ export class MappingJsonService {
       let node = nodes[key];
       if (node.label || node.tag) {
         result[key] = node.tag
-          ? `${node.uid} [${node.label}|${node.tag}]`
+          ? `${node.uid} [${node.label || ''}|${node.tag}]`
           : `${node.uid} [${node.label}]`;
       } else {
         result[key] = node.uid;
@@ -159,7 +159,7 @@ export class MappingJsonService {
       if (t.o) {
         o = t.o;
       } else {
-        o = t.ol?.startsWith('"') ? t.ol : `"${t.ol}"`;
+        o = t.ol?.startsWith('"') ? t.ol : `"${t.ol || ''}"`;
       }
       return `${t.s} ${t.p} ${o}`;
     });
@@ -414,6 +414,13 @@ export class MappingJsonService {
       return [];
     }
 
+    // IDs assigned during hydration must not collide with the explicit
+    // IDs found in the document
+    this._nextId = Math.max(
+      this._nextId,
+      this.getMaxId(doc.documentMappings) + 1
+    );
+
     // 1. read all named mappings into a dictionary
     let named: { [key: string]: NodeMapping } = {};
     if (doc.namedMappings) {
@@ -463,6 +470,20 @@ export class MappingJsonService {
    */
   public getNextId(): number {
     return this._nextId++;
+  }
+
+  /**
+   * Get the maximum explicit ID in the specified serialized mappings and
+   * all their descendants.
+   * @param nodes The serialized mappings.
+   * @returns The maximum ID, or 0 if none.
+   */
+  private getMaxId(nodes?: SerializedMappedNode[]): number {
+    let max = 0;
+    for (const node of nodes || []) {
+      max = Math.max(max, node.id || 0, this.getMaxId(node.children));
+    }
+    return max;
   }
 
   /**

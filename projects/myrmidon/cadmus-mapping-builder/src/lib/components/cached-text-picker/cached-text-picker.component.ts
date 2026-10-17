@@ -3,7 +3,6 @@ import {
   Component,
   effect,
   input,
-  OnInit,
   output,
   signal,
 } from '@angular/core';
@@ -44,7 +43,7 @@ import { RamCacheService } from '../../services/ram-cache.service';
   styleUrls: ['./cached-text-picker.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CachedTextPickerComponent implements OnInit {
+export class CachedTextPickerComponent {
   /**
    * The cache key prefix to use for this picker.
    */
@@ -92,14 +91,9 @@ export class CachedTextPickerComponent implements OnInit {
     this.keys.set(this._cacheService.getKeys(keyPrefix).sort());
   }
 
-  public ngOnInit(): void {
-    this.loadKeys();
-  }
-
   private buildPrefixedKey(key: string): string {
-    return this.keyPrefix() && key.startsWith(this.keyPrefix()!)
-      ? key
-      : `${this.keyPrefix()}${key}`;
+    const prefix = this.keyPrefix() || '';
+    return key.startsWith(prefix) ? key : `${prefix}${key}`;
   }
 
   public pick(): void {
@@ -118,11 +112,12 @@ export class CachedTextPickerComponent implements OnInit {
     if (this.form.invalid || !this.text() || !this.keyPrefix()) {
       return;
     }
-    this._cacheService.add(
-      `${this.keyPrefix()}${this.newKey.value}`,
-      this.text()!,
-    );
-    this.keys.set([...this.keys(), this.newKey.value].sort());
+    // keys are listed with their prefix, as they are loaded from the cache
+    const key = this.buildPrefixedKey(this.newKey.value);
+    this._cacheService.add(key, this.text()!);
+    if (!this.keys().includes(key)) {
+      this.keys.set([...this.keys(), key].sort());
+    }
   }
 
   public remove(): void {
@@ -132,5 +127,6 @@ export class CachedTextPickerComponent implements OnInit {
     const key = this.buildPrefixedKey(this.key.value);
     this._cacheService.remove(key);
     this.keys.set(this.keys().filter((k) => k !== key));
+    this.key.setValue(null);
   }
 }

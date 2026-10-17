@@ -17,6 +17,7 @@
       [disabled]="!key.value"
       (click)="pick()"
       matTooltip="Pick this preset"
+      aria-label="pick preset"
     >
       <mat-icon class="mat-primary">login</mat-icon>
     </button>
@@ -26,6 +27,7 @@
       [disabled]="!key.value"
       (click)="remove()"
       matTooltip="Delete this preset"
+      aria-label="delete preset"
     >
       <mat-icon class="mat-warn">delete</mat-icon>
     </button>
@@ -38,7 +40,7 @@
       @if ( $any(newKey).errors?.required && (newKey.dirty || newKey.touched) )
       {
       <mat-error>key required</mat-error>
-      } @if ( $any(newKey).errors?.maxLength && (newKey.dirty || newKey.touched)
+      } @if ( $any(newKey).errors?.maxlength && (newKey.dirty || newKey.touched)
       ) {
       <mat-error>key too long</mat-error>
       }
@@ -48,6 +50,7 @@
       mat-icon-button
       [disabled]="form.invalid || !text()"
       matTooltip="Add text as preset"
+      aria-label="add preset"
     >
       <mat-icon class="mat-primary">add_circle</mat-icon>
     </button>

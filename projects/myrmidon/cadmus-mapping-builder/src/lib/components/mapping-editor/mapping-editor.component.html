@@ -1,4 +1,4 @@
-<form (submit)="save()">
+<form aria-label="mapping" (submit)="save()">
   <mat-tab-group>
     <!-- METADATA -->
     <mat-tab label="metadata">
@@ -12,17 +12,17 @@
           <input matInput [formControl]="name" />
           @if ($any(name).errors?.required && (name.dirty || name.touched)) {
           <mat-error>name required</mat-error>
-          } @if ($any(name).errors?.maxLength && (name.dirty || name.touched)) {
+          } @if ($any(name).errors?.maxlength && (name.dirty || name.touched)) {
           <mat-error>name too long</mat-error>
           }
         </mat-form-field>
 
         <!-- sourceType (only for root nodes) -->
-        @if (!mapping()?.parentId) {
+        @if (!isChild()) {
         <mat-form-field>
           <mat-label>source type</mat-label>
           <mat-select [formControl]="sourceType">
-            <mat-option [value]="undefined">n/a</mat-option>
+            <mat-option [value]="0">n/a</mat-option>
             <mat-option [value]="1">item</mat-option>
             <mat-option [value]="2">part</mat-option>
           </mat-select>
@@ -37,7 +37,7 @@
         <mat-form-field>
           <mat-label>scalar pattern</mat-label>
           <input matInput [formControl]="scalarPattern" />
-          @if ( $any(scalarPattern).errors?.maxLength && (scalarPattern.dirty ||
+          @if ( $any(scalarPattern).errors?.maxlength && (scalarPattern.dirty ||
           scalarPattern.touched) ) {
           <mat-error>pattern too long</mat-error>
           }
@@ -49,7 +49,7 @@
           <input matInput [formControl]="sid" />
           @if ($any(sid).errors?.required && (sid.dirty || sid.touched)) {
           <mat-error>SID required</mat-error>
-          } @if ($any(sid).errors?.maxLength && (sid.dirty || sid.touched)) {
+          } @if ($any(sid).errors?.maxlength && (sid.dirty || sid.touched)) {
           <mat-error>SID too long</mat-error>
           }
         </mat-form-field>
@@ -60,7 +60,7 @@
         <mat-form-field>
           <mat-label>facet filter</mat-label>
           <input matInput [formControl]="facetFilter" />
-          @if ( $any(facetFilter).errors?.maxLength && (facetFilter.dirty ||
+          @if ( $any(facetFilter).errors?.maxlength && (facetFilter.dirty ||
           facetFilter.touched) ) {
           <mat-error>facet filter too long</mat-error>
           }
@@ -70,7 +70,7 @@
         <mat-form-field>
           <mat-label>group filter</mat-label>
           <input matInput [formControl]="groupFilter" />
-          @if ( $any(groupFilter).errors?.maxLength && (groupFilter.dirty ||
+          @if ( $any(groupFilter).errors?.maxlength && (groupFilter.dirty ||
           groupFilter.touched) ) {
           <mat-error>group filter too long</mat-error>
           }
@@ -88,7 +88,7 @@
         <mat-form-field>
           <mat-label>part type filter</mat-label>
           <input matInput [formControl]="partTypeFilter" />
-          @if ( $any(partTypeFilter).errors?.maxLength && (partTypeFilter.dirty
+          @if ( $any(partTypeFilter).errors?.maxlength && (partTypeFilter.dirty
           || partTypeFilter.touched) ) {
           <mat-error>part type filter too long</mat-error>
           }
@@ -98,7 +98,7 @@
         <mat-form-field>
           <mat-label>part role filter</mat-label>
           <input matInput [formControl]="partRoleFilter" />
-          @if ( $any(partRoleFilter).errors?.maxLength && (partRoleFilter.dirty
+          @if ( $any(partRoleFilter).errors?.maxlength && (partRoleFilter.dirty
           || partRoleFilter.touched) ) {
           <mat-error>part role filter too long</mat-error>
           }
@@ -110,7 +110,7 @@
         <mat-form-field class="long-text">
           <mat-label>description</mat-label>
           <textarea rows="3" matInput [formControl]="description"></textarea>
-          @if ( $any(description).errors?.maxLength && (description.dirty ||
+          @if ( $any(description).errors?.maxlength && (description.dirty ||
           description.touched) ) {
           <mat-error>description too long</mat-error>
           }

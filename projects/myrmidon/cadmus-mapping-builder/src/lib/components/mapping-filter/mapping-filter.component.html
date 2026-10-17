@@ -81,6 +81,7 @@
         mat-icon-button
         (click)="reset()"
         matTooltip="Reset all the filters"
+        aria-label="reset filters"
       >
         <mat-icon class="mat-warn">clear</mat-icon>
       </button>
@@ -89,6 +90,7 @@
         mat-icon-button
         [disabled]="form.invalid || (loading$ | async)"
         matTooltip="Apply filters"
+        aria-label="apply filters"
       >
         <mat-icon class="mat-primary">check_circle</mat-icon>
       </button>

@@ -21,10 +21,20 @@
         @for (m of page.items; track m.id) {
           <tr>
             <td class="fit-width">
-              <button type="button" mat-icon-button (click)="editMapping(m)">
+              <button
+                type="button"
+                mat-icon-button
+                (click)="editMapping(m)"
+                [attr.aria-label]="'edit ' + m.name"
+              >
                 <mat-icon class="mat-primary">edit</mat-icon>
               </button>
-              <button type="button" mat-icon-button (click)="deleteMapping(m)">
+              <button
+                type="button"
+                mat-icon-button
+                (click)="deleteMapping(m)"
+                [attr.aria-label]="'delete ' + m.name"
+              >
                 <mat-icon class="mat-warn">delete</mat-icon>
               </button>
             </td>

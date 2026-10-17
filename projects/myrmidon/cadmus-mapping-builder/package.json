@@ -18,7 +18,13 @@
   "peerDependencies": {
     "@angular/common": "^22.0.5",
     "@angular/core": "^22.0.5",
-    "@angular/material": "^22.0.3"
+    "@angular/forms": "^22.0.5",
+    "@angular/material": "^22.0.3",
+    "@jean-merelis/ngx-monaco-editor": "^21.0.0",
+    "@myrmidon/ngx-mat-tools": "^3.0.1",
+    "@myrmidon/ngx-tools": "^3.0.2",
+    "@myrmidon/paged-data-browsers": "^6.0.1",
+    "rxjs": "^7.8.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"

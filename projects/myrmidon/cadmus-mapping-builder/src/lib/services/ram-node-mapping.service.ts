@@ -67,7 +67,11 @@ export class RamNodeMappingService implements NodeMappingService {
     return of({
       pageNumber: pageNumber,
       pageSize: pageSize || filtered.length,
-      pageCount: Math.trunc(Math.ceil(filtered.length / pageSize)),
+      pageCount: pageSize
+        ? Math.ceil(filtered.length / pageSize)
+        : filtered.length
+          ? 1
+          : 0,
       total: filtered.length,
       items: pageSize
         ? filtered.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
@@ -83,11 +87,21 @@ export class RamNodeMappingService implements NodeMappingService {
 
   public addMapping(mapping: NodeMapping): Observable<NodeMapping> {
     const mappings = [...this._mappings.value];
-    if (!mapping.id) {
-      const id = Math.max(...mappings.map((m) => m.id)) + 1;
-      mapping.id = id;
+    const index = mapping.id
+      ? mappings.findIndex((m) => m.id === mapping.id)
+      : -1;
+    if (index > -1) {
+      // update: replace the existing mapping
+      mappings[index] = mapping;
+    } else {
+      // add: assign a new ID if required
+      if (!mapping.id) {
+        mapping.id = mappings.reduce((max, m) => Math.max(max, m.id), 0) + 1;
+        // children of a new mapping refer to the new parent ID
+        mapping.children?.forEach((c) => (c.parentId = mapping.id));
+      }
+      mappings.push(mapping);
     }
-    mappings.push(mapping);
     // sort mappings by name
     mappings.sort((a, b) => a.name.localeCompare(b.name));
     this._mappings.next(mappings);

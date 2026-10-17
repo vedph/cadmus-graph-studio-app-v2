@@ -7,11 +7,8 @@
       @if ($any(jmes).errors?.required && (jmes.dirty || jmes.touched)) {
         <mat-error>JMES required</mat-error>
       }
-      @if ($any(jmes).errors?.maxLength && (jmes.dirty || jmes.touched)) {
+      @if ($any(jmes).errors?.maxlength && (jmes.dirty || jmes.touched)) {
         <mat-error>JMES too long</mat-error>
-      }
-      @if (error()) {
-        <mat-error>{{ error() }}</mat-error>
       }
     </mat-form-field>
     <button
@@ -28,6 +25,10 @@
       }
     </div>
   </div>
+  <!-- transform error (outside of the field, as it is not a validation error) -->
+  @if (error()) {
+    <div class="error" role="alert">{{ error() }}</div>
+  }
 
   <fieldset id="container">
     <legend>JMES test</legend>

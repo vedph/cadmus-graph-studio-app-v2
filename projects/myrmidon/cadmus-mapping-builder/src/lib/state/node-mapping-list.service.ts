@@ -94,6 +94,11 @@ export class NodeMappingListService
   public async setPage(pageNumber: number, pageSize: number): Promise<void> {
     this._loading$.next(true);
     try {
+      // the store's page cache key does not include the page size,
+      // so cached pages must be dropped when the page size changes
+      if (pageSize && pageSize !== this._store.pageSize) {
+        this._store.clearCache();
+      }
       await this._store.setPage(pageNumber, pageSize);
     } catch (error) {
       throw error;

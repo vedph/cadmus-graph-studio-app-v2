@@ -155,8 +155,8 @@ export class MappingRunnerComponent {
     });
 
     effect(() => {
-      const mapping = this.mapping();
-      console.log('runner mapping', mapping);
+      // a new mapping invalidates the previous result
+      this.mapping();
       this.graphSet.set(undefined);
     });
   }
@@ -190,14 +190,24 @@ export class MappingRunnerComponent {
   }
 
   public prettifyInput(): void {
-    this.input.setValue(
-      JSON.stringify(JSON.parse(this.input.value || '{}'), null, 2),
-    );
+    try {
+      this.input.setValue(
+        JSON.stringify(JSON.parse(this.input.value || '{}'), null, 2),
+      );
+      this.error.set(undefined);
+    } catch (error) {
+      this.error.set(`Invalid JSON: ${(error as Error).message}`);
+    }
     this._cdr.markForCheck();
   }
 
   public run(): void {
-    if (this.busy() || this.form.invalid || !this.mapping()) {
+    if (
+      this.busy() ||
+      this.form.invalid ||
+      this.metaForm.invalid ||
+      !this.mapping()
+    ) {
       return;
     }
     this.busy.set(true);

@@ -55,10 +55,10 @@ export class MappingOutputEditorComponent {
   public form: FormGroup;
 
   constructor(formBuilder: FormBuilder, private _cdr: ChangeDetectorRef) {
+    // each line is "key uid [label|tag]" (uid may contain spaces and
+    // brackets, as it is a template); blank lines are ignored
     this.nodes = formBuilder.control(null, [
-      Validators.pattern(
-        /^(?:(\S+)\s*(\S+)\s+([^[\r\n]+)(?:\[([^\]]+)\])?[\r\n]?)+$/
-      ),
+      Validators.pattern(/^(?:(?:\S+[ \t]+\S[^\r\n]*)?(?:\r?\n|$))+$/),
       Validators.maxLength(5000),
     ]);
     this.triples = formBuilder.control(null, [

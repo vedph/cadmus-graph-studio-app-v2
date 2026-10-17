@@ -11,6 +11,28 @@ describe('MappingJsonService', () => {
     service = TestBed.inject(MappingJsonService);
   });
 
+  function collectAllIds(mapping: NodeMapping): number[] {
+    const ids: number[] = [];
+    service.visitMappings(mapping, false, (m) => {
+      if (m.id) {
+        ids.push(m.id);
+      }
+      return true;
+    });
+    return ids;
+  }
+
+  function hasDuplicateIds(ids: number[]): boolean {
+    const seen = new Set<number>();
+    for (const id of ids) {
+      if (seen.has(id)) {
+        return true;
+      }
+      seen.add(id);
+    }
+    return false;
+  }
+
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
@@ -388,27 +410,6 @@ describe('MappingJsonService', () => {
   });
 
   describe('ID Assignment and Uniqueness', () => {
-    function collectAllIds(mapping: NodeMapping): number[] {
-      const ids: number[] = [];
-      service.visitMappings(mapping, false, (m) => {
-        if (m.id) {
-          ids.push(m.id);
-        }
-        return true;
-      });
-      return ids;
-    }
-
-    function hasDuplicateIds(ids: number[]): boolean {
-      const seen = new Set<number>();
-      for (const id of ids) {
-        if (seen.has(id)) {
-          return true;
-        }
-        seen.add(id);
-      }
-      return false;
-    }
 
     it('should assign unique IDs to all mappings in a simple document', () => {
       const json = JSON.stringify({
@@ -646,6 +647,364 @@ describe('MappingJsonService', () => {
       expect(result[0].children![0].id).toBeDefined();
       expect(result[0].children![0].id).not.toBe(100);
       expect(result[0].children![0].id).not.toBe(200);
+    });
+
+    it('should not assign IDs colliding with low pre-existing IDs', () => {
+      const json = JSON.stringify({
+        namedMappings: {
+          tpl: { name: 'tpl', source: 'tpl', sid: 'tpl-sid' },
+        },
+        documentMappings: [
+          {
+            id: 1,
+            name: 'root',
+            sourceType: 1,
+            source: 'root',
+            sid: 'root-sid',
+            children: [
+              { id: 2, name: 'explicit', source: 'x' },
+              { name: 'implicit', source: 'y' },
+              { name: 'tpl' },
+            ],
+          },
+        ],
+      });
+
+      const result = service.readMappingsDocument(json);
+      const allIds = collectAllIds(result[0]);
+
+      expect(allIds.length).toBe(4);
+      expect(hasDuplicateIds(allIds)).toBe(false);
+      expect(result[0].id).toBe(1);
+      expect(result[0].children![0].id).toBe(2);
+    });
+
+    it('should keep the next ID above the document IDs', () => {
+      service.readMappingsDocument(
+        JSON.stringify({
+          documentMappings: [
+            {
+              id: 5,
+              name: 'root',
+              sourceType: 1,
+              source: 'r',
+              sid: 's',
+              children: [{ id: 9, name: 'c', source: 'c' }],
+            },
+          ],
+        })
+      );
+      expect(service.getNextId()).toBe(10);
+    });
+
+    it('should continue numbering when not resetting IDs', () => {
+      const json = JSON.stringify({
+        documentMappings: [{ name: 'a', sourceType: 1, source: 'a', sid: 'a' }],
+      });
+      const first = service.readMappingsDocument(json);
+      const second = service.readMappingsDocument(json, false);
+      expect(first[0].id).toBe(1);
+      expect(second[0].id).toBe(2);
+      // reset restarts from 1
+      expect(service.readMappingsDocument(json)[0].id).toBe(1);
+    });
+  });
+
+  describe('readMappingsDocument output parsing', () => {
+    it('should parse nodes with label and tag', () => {
+      const result = service.readMappingsDocument(
+        JSON.stringify({
+          documentMappings: [
+            {
+              name: 'm',
+              sourceType: 1,
+              source: 's',
+              sid: 'sid',
+              output: {
+                nodes: {
+                  plain: 'x:plain',
+                  labeled: 'x:labeled [Label]',
+                  tagged: 'x:tagged [Label|tag]',
+                  tagOnly: 'x:tag-only [|tag]',
+                  bracketed: 'x:{@a[0]} [L]',
+                },
+                metadata: { k: 'v' },
+              },
+            },
+          ],
+        })
+      );
+      const nodes = result[0].output!.nodes!;
+      expect(nodes['plain']).toEqual({
+        uid: 'x:plain',
+        label: undefined,
+        tag: undefined,
+      });
+      expect(nodes['labeled']).toEqual({
+        uid: 'x:labeled',
+        label: 'Label',
+        tag: undefined,
+      });
+      expect(nodes['tagged']).toEqual({
+        uid: 'x:tagged',
+        label: 'Label',
+        tag: 'tag',
+      });
+      expect(nodes['tagOnly']).toEqual({
+        uid: 'x:tag-only',
+        label: undefined,
+        tag: 'tag',
+      });
+      expect(nodes['bracketed']).toEqual({
+        uid: 'x:{@a[0]}',
+        label: 'L',
+        tag: undefined,
+      });
+      expect(result[0].output!.metadata).toEqual({ k: 'v' });
+    });
+
+    it('should parse entity and literal triples', () => {
+      const result = service.readMappingsDocument(
+        JSON.stringify({
+          documentMappings: [
+            {
+              name: 'm',
+              sourceType: 1,
+              source: 's',
+              sid: 'sid',
+              output: {
+                triples: [
+                  '{?a} a crm:E21_Person',
+                  '{?a} crm:P3_has_note "a note with spaces"@en',
+                ],
+              },
+            },
+          ],
+        })
+      );
+      expect(result[0].output!.triples).toEqual([
+        { s: '{?a}', p: 'a', o: 'crm:E21_Person' },
+        { s: '{?a}', p: 'crm:P3_has_note', ol: '"a note with spaces"@en' },
+      ]);
+    });
+
+    it('should throw on an invalid triple', () => {
+      expect(() =>
+        service.readMappingsDocument(
+          JSON.stringify({
+            documentMappings: [
+              {
+                name: 'm',
+                sourceType: 1,
+                source: 's',
+                sid: 'sid',
+                output: { triples: ['only-two tokens'] },
+              },
+            ],
+          })
+        )
+      ).toThrowError(/Invalid triple format/);
+    });
+
+    it('should default missing source type, source and SID', () => {
+      const result = service.readMappingsDocument(
+        JSON.stringify({ documentMappings: [{ name: 'bare' }] })
+      );
+      expect(result[0].sourceType).toBe(0);
+      expect(result[0].source).toBe('');
+      expect(result[0].sid).toBe('');
+      expect(result[0].output).toBeUndefined();
+    });
+  });
+
+  describe('serializeMapping', () => {
+    const buildMapping = (): NodeMapping => ({
+      id: 3,
+      parentId: 1,
+      ordinal: 2,
+      name: 'person',
+      sourceType: 2,
+      facetFilter: 'person',
+      groupFilter: 'g',
+      flagsFilter: 4,
+      titleFilter: 't',
+      partTypeFilter: 'it.vedph.events',
+      partRoleFilter: 'r',
+      description: 'd',
+      source: 'events',
+      sid: '{$part-id}',
+      scalarPattern: '^x',
+      output: {
+        nodes: {
+          plain: { uid: 'x:plain', label: '' },
+          labeled: { uid: 'x:labeled', label: 'Label' },
+          tagged: { uid: 'x:tagged', label: 'Label', tag: 'tag' },
+          tagOnly: { uid: 'x:tag-only', label: '', tag: 'tag' },
+        },
+        triples: [
+          { s: '{?a}', p: 'a', o: 'crm:E21_Person' },
+          { s: '{?a}', p: 'crm:P3_has_note', ol: '"quoted"' },
+          { s: '{?a}', p: 'crm:P3_has_note', ol: 'unquoted' },
+          { s: '{?a}', p: 'crm:P3_has_note' },
+        ],
+        metadata: { key: 'value' },
+      },
+      children: [{ id: 4, parentId: 3, name: 'child', sourceType: 2, source: 'c', sid: '' }],
+    });
+
+    it('should serialize all the properties in compact format', () => {
+      const obj = JSON.parse(service.serializeMapping(buildMapping()));
+      expect(obj.id).toBe(3);
+      expect(obj.parentId).toBe(1);
+      expect(obj.ordinal).toBe(2);
+      expect(obj.name).toBe('person');
+      expect(obj.sourceType).toBe(2);
+      expect(obj.facetFilter).toBe('person');
+      expect(obj.groupFilter).toBe('g');
+      expect(obj.flagsFilter).toBe(4);
+      expect(obj.titleFilter).toBe('t');
+      expect(obj.partTypeFilter).toBe('it.vedph.events');
+      expect(obj.partRoleFilter).toBe('r');
+      expect(obj.description).toBe('d');
+      expect(obj.source).toBe('events');
+      expect(obj.sid).toBe('{$part-id}');
+      expect(obj.scalarPattern).toBe('^x');
+      expect(obj.output.nodes).toEqual({
+        plain: 'x:plain',
+        labeled: 'x:labeled [Label]',
+        tagged: 'x:tagged [Label|tag]',
+        tagOnly: 'x:tag-only [|tag]',
+      });
+      expect(obj.output.triples).toEqual([
+        '{?a} a crm:E21_Person',
+        '{?a} crm:P3_has_note "quoted"',
+        '{?a} crm:P3_has_note "unquoted"',
+        '{?a} crm:P3_has_note ""',
+      ]);
+      expect(obj.output.metadata).toEqual({ key: 'value' });
+      expect(obj.children.length).toBe(1);
+      expect(obj.children[0].id).toBe(4);
+      expect(obj.children[0].parentId).toBe(3);
+    });
+
+    it('should drop IDs when requested', () => {
+      const obj = JSON.parse(service.serializeMapping(buildMapping(), true));
+      expect(obj.id).toBeUndefined();
+      expect(obj.parentId).toBeUndefined();
+      expect(obj.children[0].id).toBeUndefined();
+      expect(obj.children[0].parentId).toBeUndefined();
+    });
+
+    it('should omit an empty output', () => {
+      const obj = JSON.parse(
+        service.serializeMapping({
+          id: 1,
+          name: 'm',
+          sourceType: 1,
+          source: 's',
+          sid: 'sid',
+          output: {},
+        })
+      );
+      expect(obj.output).toBeUndefined();
+      expect(obj.children).toBeUndefined();
+    });
+
+    it('should round-trip through readMappingsDocument', () => {
+      const original = buildMapping();
+      original.parentId = undefined;
+      const json = `{"documentMappings":[${service.serializeMapping(original)}]}`;
+      const read = service.readMappingsDocument(json)[0];
+
+      expect(read.name).toBe(original.name);
+      expect(read.output!.nodes!['tagged']).toEqual({
+        uid: 'x:tagged',
+        label: 'Label',
+        tag: 'tag',
+      });
+      expect(read.output!.nodes!['tagOnly']).toEqual({
+        uid: 'x:tag-only',
+        label: undefined,
+        tag: 'tag',
+      });
+      expect(read.output!.triples![1]).toEqual({
+        s: '{?a}',
+        p: 'crm:P3_has_note',
+        ol: '"quoted"',
+      });
+      expect(read.children![0].parent).toBe(read);
+    });
+  });
+
+  describe('visitMappings', () => {
+    const buildTree = (): NodeMapping => ({
+      id: 0,
+      name: 'root',
+      sourceType: 1,
+      source: 'r',
+      sid: 's',
+      children: [
+        {
+          id: 0,
+          name: 'a',
+          sourceType: 1,
+          source: 'a',
+          sid: '',
+          children: [{ id: 0, name: 'a1', sourceType: 1, source: 'a1', sid: '' }],
+        },
+        { id: 0, name: 'b', sourceType: 1, source: 'b', sid: '' },
+      ],
+    });
+
+    it('should do nothing for a null mapping', () => {
+      const visitor = vi.fn().mockReturnValue(true);
+      service.visitMappings(null, true, visitor);
+      expect(visitor).not.toHaveBeenCalled();
+    });
+
+    it('should visit all the mappings depth-first', () => {
+      const names: string[] = [];
+      service.visitMappings(buildTree(), false, (m) => {
+        names.push(m.name);
+        return true;
+      });
+      expect(names).toEqual(['root', 'a', 'a1', 'b']);
+    });
+
+    it('should hydrate IDs and parents', () => {
+      const root = buildTree();
+      service.visitMappings(root);
+      const a = root.children![0];
+      expect(root.id).toBeTruthy();
+      expect(a.parentId).toBe(root.id);
+      expect(a.parent).toBe(root);
+      expect(a.children![0].parent).toBe(a);
+      const ids = collectAllIds(root);
+      expect(hasDuplicateIds(ids)).toBe(false);
+    });
+
+    it('should not hydrate when not requested', () => {
+      const root = buildTree();
+      service.visitMappings(root, false);
+      expect(root.id).toBe(0);
+      expect(root.children![0].parent).toBeUndefined();
+    });
+
+    it('should skip descendants when the visitor returns false', () => {
+      const names: string[] = [];
+      service.visitMappings(buildTree(), false, (m) => {
+        names.push(m.name);
+        return m.name !== 'a';
+      });
+      expect(names).toEqual(['root', 'a', 'b']);
+    });
+  });
+
+  describe('getNextId', () => {
+    it('should return increasing IDs', () => {
+      const a = service.getNextId();
+      const b = service.getNextId();
+      expect(b).toBe(a + 1);
     });
   });
 });

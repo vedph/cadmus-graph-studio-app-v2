@@ -11,13 +11,20 @@
     </mat-form-field>
 
     <!-- buttons -->
-    <button type="button" mat-icon-button matTooltip="Reset" (click)="reset()">
+    <button
+      type="button"
+      mat-icon-button
+      matTooltip="Reset"
+      aria-label="reset filter"
+      (click)="reset()"
+    >
       <mat-icon class="mat-warn">clear</mat-icon>
     </button>
     <button
       type="submit"
       mat-icon-button
       matTooltip="Apply"
+      aria-label="apply filter"
       [disabled]="form.invalid"
     >
       <mat-icon class="mat-primary">check_circle</mat-icon>

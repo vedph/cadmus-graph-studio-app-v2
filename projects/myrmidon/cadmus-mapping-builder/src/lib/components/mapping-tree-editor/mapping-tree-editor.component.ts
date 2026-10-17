@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, effect, model, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  model,
+  output,
+  signal,
+} from '@angular/core';
 
 import { NodeMapping } from '../../models';
 import { MappingJsonService } from '../../services/mapping-json.service';
@@ -16,7 +23,8 @@ import { MappingEditorComponent } from '../mapping-editor/mapping-editor.compone
  * The editor component allows the user to edit a mapping node. It is
  * bound to the currently edited mapping node, which is set by the tree.
  * Whenever a change is made to the mapping, this component fires the
- * `mappingChange` event.
+ * `mappingChange` event. When the user closes the editor, it fires the
+ * `editorClose` event.
  */
 @Component({
   selector: 'cadmus-mapping-tree-editor',
@@ -36,12 +44,23 @@ export class MappingTreeEditorComponent {
    */
   public readonly editedMapping = signal<NodeMapping | undefined>(undefined);
 
+  /**
+   * Emitted when the user closes the mapping editor.
+   */
+  public readonly editorClose = output();
+
+  // the last mapping set by this component, rather than by its consumer
+  private _ownMapping?: NodeMapping;
+
   constructor(private _jsonService: MappingJsonService) {
-    // whenever the mapping changes, update the edited mapping
-    // to the root mapping
+    // whenever the mapping is changed by the consumer, update the edited
+    // mapping to the root mapping; changes made by this component instead
+    // keep the edited mapping it set
     effect(() => {
       const mapping = this.mapping();
-      this.editedMapping.set(mapping);
+      if (mapping !== this._ownMapping) {
+        this.editedMapping.set(mapping);
+      }
     });
   }
 
@@ -61,6 +80,20 @@ export class MappingTreeEditorComponent {
       }
     }
     return undefined;
+  }
+
+  /**
+   * Get the maximum ID in the specified mapping and its descendants.
+   */
+  private getMaxId(mapping: NodeMapping): number {
+    let maxId = 0;
+    this._jsonService.visitMappings(mapping, false, (m) => {
+      if (m.id && m.id > maxId) {
+        maxId = m.id;
+      }
+      return true;
+    });
+    return maxId;
   }
 
   /**
@@ -118,23 +151,16 @@ export class MappingTreeEditorComponent {
       Object.assign(clonedMapping, mapping, {
         children: clonedMapping.children, // Preserve children
       });
+      // keep editing the updated root rather than the stale one
+      this.editedMapping.set(clonedMapping);
     } else {
       if (!mapping.id) {
         // insert as new child
         const parent = this.findMappingById(clonedMapping, mapping.parentId!);
         if (parent) {
-          // calculate the max ID in the cloned tree
-          let maxId = 0;
-          this._jsonService.visitMappings(clonedMapping, false, (m) => {
-            if (m.id && m.id > maxId) {
-              maxId = m.id;
-            }
-            return true;
-          });
-
           const newMapping: NodeMapping = {
             ...mapping,
-            id: maxId + 1,
+            id: this.getMaxId(clonedMapping) + 1,
             parent: parent,
           };
 
@@ -162,7 +188,7 @@ export class MappingTreeEditorComponent {
       }
     }
 
-    this.mapping.set(clonedMapping);
+    this.setOwnMapping(clonedMapping);
   }
 
   /**
@@ -175,11 +201,6 @@ export class MappingTreeEditorComponent {
     // cannot delete the root mapping
     if (id === currentMapping.id) {
       return;
-    }
-
-    // close edited mapping if it is the one being deleted
-    if (this.editedMapping()?.id === id) {
-      this.editedMapping.set(undefined);
     }
 
     // clone the entire tree
@@ -197,10 +218,17 @@ export class MappingTreeEditorComponent {
       parent.children = parent.children.filter((child) => child.id !== id);
     }
 
-    this.mapping.set(clonedMapping);
-  }
+    // close the edited mapping if it was deleted (with its descendants),
+    // else keep editing it in the cloned tree
+    const editedId = this.editedMapping()?.id;
+    this.editedMapping.set(
+      editedId !== undefined
+        ? this.findMappingById(clonedMapping, editedId)
+        : undefined
+    );
 
-  // ...existing code...
+    this.setOwnMapping(clonedMapping);
+  }
 
   public onMappingAddChild(id: number): void {
     const currentMapping = this.mapping();
@@ -215,8 +243,12 @@ export class MappingTreeEditorComponent {
       return;
     }
 
-    // get an ID for the new mapping
-    let newId = this._jsonService.getNextId();
+    // get an ID for the new mapping, ensuring it is unique in the tree
+    // (the mapping's IDs might not come from the JSON service counter)
+    const newId = Math.max(
+      this._jsonService.getNextId(),
+      this.getMaxId(clonedMapping) + 1
+    );
 
     // create the new mapping
     const newMapping: NodeMapping = {
@@ -235,14 +267,23 @@ export class MappingTreeEditorComponent {
     }
     parent.children.push(newMapping);
 
-    this.mapping.set(clonedMapping);
+    this.setOwnMapping(clonedMapping);
 
     // find the mapping in the updated tree to avoid stale references
     const updatedMapping = this.findMappingById(this.mapping()!, newId);
     this.editedMapping.set(updatedMapping);
   }
 
+  /**
+   * Set the mapping as changed by this component.
+   */
+  private setOwnMapping(mapping: NodeMapping): void {
+    this._ownMapping = mapping;
+    this.mapping.set(mapping);
+  }
+
   public closeEditor(): void {
     this.editedMapping.set(undefined);
+    this.editorClose.emit();
   }
 }

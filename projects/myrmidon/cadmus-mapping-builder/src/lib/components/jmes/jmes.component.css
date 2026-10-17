@@ -54,3 +54,8 @@ div#output {
       "output";
   }
 }
+
+.error {
+  color: var(--mat-sys-error);
+  margin: 4px 0;
+}

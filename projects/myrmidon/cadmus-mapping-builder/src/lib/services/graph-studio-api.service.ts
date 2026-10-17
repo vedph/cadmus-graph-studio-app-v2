@@ -60,7 +60,7 @@ export class GraphStudioApiService {
     return this._http
       .post<ErrorWrapper<GraphSet>>(
         url,
-        Object.assign(metadata || {}, { source: source, mappings: txMappings })
+        { ...metadata, source: source, mappings: txMappings }
       )
       .pipe(catchError(this._error.handleError));
   }
