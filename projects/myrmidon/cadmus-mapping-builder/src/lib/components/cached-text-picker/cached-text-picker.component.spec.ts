@@ -127,6 +127,24 @@ describe('CachedTextPickerComponent', () => {
     expect(textPick).toHaveBeenCalledWith('fresh');
   });
 
+  it('should add a preset on Enter in the key field', async () => {
+    const { user, fixture } = await setup({ text: 'entered' });
+    await user.type(screen.getByRole('textbox', { name: 'key' }), 'k{Enter}');
+    await fixture.whenStable();
+    expect(cache.get('map_k')).toBe('entered');
+  });
+
+  it('should not add on Enter without text', async () => {
+    const { user } = await setup({ text: '' });
+    await user.type(screen.getByRole('textbox', { name: 'key' }), 'k{Enter}');
+    expect(cache.getKeys()).toEqual([]);
+  });
+
+  it('should render no <form>, as it is embedded in other forms', async () => {
+    const { container } = await setup();
+    expect(container.querySelector('form')).toBeNull();
+  });
+
   it('should disable adding without text', async () => {
     const { user } = await setup({ text: '' });
     await user.type(screen.getByRole('textbox', { name: 'key' }), 'k');
@@ -148,10 +166,16 @@ describe('CachedTextPickerComponent', () => {
     await user.tab();
     expect(await screen.findByText('key required')).toBeInTheDocument();
 
-    await user.type(key, 'k'.repeat(51));
-    await user.tab();
-    expect(await screen.findByText('key too long')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'add preset' })).toBeDisabled();
+  });
+
+  it('should cap the key length', async () => {
+    const { user } = await setup();
+    const key = screen.getByRole('textbox', { name: 'key' });
+    // the maxLength rule is rendered as a native maxlength attribute
+    expect(key).toHaveAttribute('maxlength', '50');
+    await user.type(key, 'k'.repeat(51));
+    expect(key).toHaveValue('k'.repeat(50));
   });
 
   it('should reload the presets when the key prefix changes', async () => {

@@ -1,19 +1,11 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   effect,
   model,
-  OnDestroy,
   signal,
 } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormField, form, maxLength, required } from '@angular/forms/signals';
 import { CommonModule } from '@angular/common';
 import { take } from 'rxjs';
 
@@ -41,6 +33,42 @@ import {
 import { CachedTextPickerComponent } from '../cached-text-picker/cached-text-picker.component';
 
 /**
+ * The runner's input and metadata: local to this component.
+ * Text fields use '' as their empty value.
+ */
+interface MappingRunnerControls {
+  input: string;
+  itemId: string;
+  partId: string;
+  partTypeId: string;
+  roleId: string;
+  facetId: string;
+  itemTitle: string;
+  itemUri: string;
+  itemLabel: string;
+  itemEid: string;
+  metadataPid: string;
+  groupId: string;
+  flags: number | null;
+}
+
+/** The empty metadata, as set by the metadata reset button. */
+const EMPTY_METADATA: Omit<MappingRunnerControls, 'input'> = {
+  itemId: '',
+  partId: '',
+  partTypeId: '',
+  roleId: '',
+  facetId: '',
+  itemTitle: '',
+  itemUri: '',
+  itemLabel: '',
+  itemEid: '',
+  metadataPid: '',
+  groupId: '',
+  flags: 0,
+};
+
+/**
  * Node mapping runner component. This allows you to run a mapping
  * on a given input text, and see the resulting graph set.
  */
@@ -48,7 +76,7 @@ import { CachedTextPickerComponent } from '../cached-text-picker/cached-text-pic
   selector: 'cadmus-mapping-runner',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormField,
     MatButtonModule,
     MatExpansionModule,
     MatFormFieldModule,
@@ -81,79 +109,36 @@ export class MappingRunnerComponent {
    */
   public readonly mapping = model<NodeMapping>();
 
-  public input: FormControl<string>;
-  public form: FormGroup;
+  private readonly _draft = signal<MappingRunnerControls>({
+    ...EMPTY_METADATA,
+    input: '',
+    // sample metadata
+    itemId: 'IID',
+    partId: 'PID',
+    itemTitle: 'Alpha item',
+    itemEid: 'alpha',
+    metadataPid: 'MPID',
+  });
 
-  public itemId: FormControl<string | null>;
-  public partId: FormControl<string | null>;
-  public partTypeId: FormControl<string | null>;
-  public roleId: FormControl<string | null>;
-  public facetId: FormControl<string | null>;
-  public itemTitle: FormControl<string | null>;
-  public itemUri: FormControl<string | null>;
-  public itemLabel: FormControl<string | null>;
-  public itemEid: FormControl<string | null>;
-  public metadataPid: FormControl<string | null>;
-  public groupId: FormControl<string | null>;
-  public flags: FormControl<number>;
-  public metaForm: FormGroup;
+  public readonly form = form(this._draft, (path) => {
+    required(path.input);
+    maxLength(path.input, 5000);
+    maxLength(path.partTypeId, 50);
+    maxLength(path.roleId, 50);
+    maxLength(path.facetId, 50);
+    maxLength(path.itemTitle, 500);
+    maxLength(path.itemUri, 500);
+    maxLength(path.itemLabel, 500);
+    maxLength(path.itemEid, 100);
+    maxLength(path.metadataPid, 100);
+    maxLength(path.groupId, 100);
+  });
 
   public readonly busy = signal<boolean>(false);
   public readonly error = signal<string | undefined>(undefined);
   public readonly graphSet = signal<GraphSet | undefined>(undefined);
 
-  constructor(
-    formBuilder: FormBuilder,
-    private _apiService: GraphStudioApiService,
-    private _cdr: ChangeDetectorRef,
-  ) {
-    // runner form
-    this.input = formBuilder.control('', {
-      validators: [Validators.required, Validators.maxLength(5000)],
-      nonNullable: true,
-    });
-    this.form = formBuilder.group({
-      input: this.input,
-    });
-    // metadata form
-    // const guidPattern =
-    //   '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$';
-    this.itemId = formBuilder.control(
-      'IID',
-      // Validators.pattern(guidPattern)
-    );
-    this.partId = formBuilder.control(
-      'PID',
-      // Validators.pattern(guidPattern)
-    );
-    this.partTypeId = formBuilder.control(null, Validators.maxLength(50));
-    this.roleId = formBuilder.control(null, Validators.maxLength(50));
-    this.facetId = formBuilder.control(null, Validators.maxLength(50));
-    this.itemTitle = formBuilder.control(
-      'Alpha item',
-      Validators.maxLength(500),
-    );
-    this.itemUri = formBuilder.control(null, Validators.maxLength(500));
-    this.itemLabel = formBuilder.control(null, Validators.maxLength(500));
-    this.itemEid = formBuilder.control('alpha', Validators.maxLength(100));
-    this.metadataPid = formBuilder.control('MPID', Validators.maxLength(100));
-    this.groupId = formBuilder.control(null, Validators.maxLength(100));
-    this.flags = formBuilder.control(0, { nonNullable: true });
-    this.metaForm = formBuilder.group({
-      itemId: this.itemId,
-      partId: this.partId,
-      partTypeId: this.partTypeId,
-      roleId: this.roleId,
-      facetId: this.facetId,
-      itemTitle: this.itemTitle,
-      itemUri: this.itemUri,
-      itemLabel: this.itemLabel,
-      itemEid: this.itemEid,
-      metadataPid: this.metadataPid,
-      groupId: this.groupId,
-      flags: this.flags,
-    });
-
+  constructor(private _apiService: GraphStudioApiService) {
     effect(() => {
       // a new mapping invalidates the previous result
       this.mapping();
@@ -167,53 +152,59 @@ export class MappingRunnerComponent {
   }
 
   public onTextPick(text: string): void {
-    this.input.setValue(text);
-    this.input.markAsDirty();
-    this.input.updateValueAndValidity();
+    this.form.input().value.set(text);
+    this.form.input().markAsDirty();
   }
 
   private getMetadata(): NodeMappingMetadata {
+    const v = this._draft();
     return {
-      itemId: this.itemId.value || undefined,
-      partId: this.partId.value || undefined,
-      partTypeId: this.partTypeId.value || undefined,
-      roleId: this.roleId.value || undefined,
-      facetId: this.facetId.value || undefined,
-      itemTitle: this.itemTitle.value || undefined,
-      itemUri: this.itemUri.value || undefined,
-      itemLabel: this.itemLabel.value || undefined,
-      itemEid: this.itemEid.value || undefined,
-      metadataPid: this.metadataPid.value || undefined,
-      groupId: this.groupId.value || undefined,
-      flags: this.flags.value || undefined,
+      itemId: v.itemId || undefined,
+      partId: v.partId || undefined,
+      partTypeId: v.partTypeId || undefined,
+      roleId: v.roleId || undefined,
+      facetId: v.facetId || undefined,
+      itemTitle: v.itemTitle || undefined,
+      itemUri: v.itemUri || undefined,
+      itemLabel: v.itemLabel || undefined,
+      itemEid: v.itemEid || undefined,
+      metadataPid: v.metadataPid || undefined,
+      groupId: v.groupId || undefined,
+      flags: v.flags || undefined,
     };
+  }
+
+  /**
+   * Clear all the metadata (but not the input).
+   */
+  public resetMetadata(): void {
+    this._draft.update((v) => ({ ...v, ...EMPTY_METADATA }));
+    for (const key of Object.keys(EMPTY_METADATA)) {
+      this.form[key as keyof typeof EMPTY_METADATA]().reset();
+    }
   }
 
   public prettifyInput(): void {
     try {
-      this.input.setValue(
-        JSON.stringify(JSON.parse(this.input.value || '{}'), null, 2),
-      );
+      this.form
+        .input()
+        .value.set(
+          JSON.stringify(JSON.parse(this.form.input().value() || '{}'), null, 2),
+        );
       this.error.set(undefined);
     } catch (error) {
       this.error.set(`Invalid JSON: ${(error as Error).message}`);
     }
-    this._cdr.markForCheck();
   }
 
   public run(): void {
-    if (
-      this.busy() ||
-      this.form.invalid ||
-      this.metaForm.invalid ||
-      !this.mapping()
-    ) {
+    if (this.busy() || this.form().invalid() || !this.mapping()) {
       return;
     }
     this.busy.set(true);
     this.error.set(undefined);
     this._apiService
-      .runMappings(this.input.value, [this.mapping()!], this.getMetadata())
+      .runMappings(this.form.input().value(), [this.mapping()!], this.getMetadata())
       .pipe(take(1))
       .subscribe({
         next: (w) => {

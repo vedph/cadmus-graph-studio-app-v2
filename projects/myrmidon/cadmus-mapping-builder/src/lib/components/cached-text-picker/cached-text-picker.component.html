@@ -1,58 +1,66 @@
-<form [formGroup]="form" (submit)="add()">
+<!-- no <form>: this widget is embedded in other components' editors -->
+<div class="form-row">
   <!-- selector-->
-  <div class="form-row">
-    @if (keys().length) {
-    <mat-form-field>
-      <mat-label>preset</mat-label>
-      <mat-select [formControl]="key">
-        @for (k of keys(); track k) {
-        <mat-option [value]="k">{{ k }}</mat-option>
-        }
-      </mat-select>
-      <mat-hint>pick to set</mat-hint>
-    </mat-form-field>
-    <button
-      type="button"
-      mat-icon-button
-      [disabled]="!key.value"
-      (click)="pick()"
-      matTooltip="Pick this preset"
-      aria-label="pick preset"
-    >
-      <mat-icon class="mat-primary">login</mat-icon>
-    </button>
-    <button
-      type="button"
-      mat-icon-button
-      [disabled]="!key.value"
-      (click)="remove()"
-      matTooltip="Delete this preset"
-      aria-label="delete preset"
-    >
-      <mat-icon class="mat-warn">delete</mat-icon>
-    </button>
-    }
-
-    <!-- new -->
-    <mat-form-field>
-      <mat-label>key</mat-label>
-      <input matInput [formControl]="newKey" />
-      @if ( $any(newKey).errors?.required && (newKey.dirty || newKey.touched) )
-      {
-      <mat-error>key required</mat-error>
-      } @if ( $any(newKey).errors?.maxlength && (newKey.dirty || newKey.touched)
-      ) {
-      <mat-error>key too long</mat-error>
+  @if (keys().length) {
+  <mat-form-field>
+    <mat-label>preset</mat-label>
+    <mat-select [formField]="form.key">
+      @for (k of keys(); track k) {
+      <mat-option [value]="k">{{ k }}</mat-option>
       }
-    </mat-form-field>
-    <button
-      type="submit"
-      mat-icon-button
-      [disabled]="form.invalid || !text()"
-      matTooltip="Add text as preset"
-      aria-label="add preset"
-    >
-      <mat-icon class="mat-primary">add_circle</mat-icon>
-    </button>
-  </div>
-</form>
+    </mat-select>
+    <mat-hint>pick to set</mat-hint>
+  </mat-form-field>
+  <button
+    type="button"
+    mat-icon-button
+    [disabled]="!form.key().value()"
+    (click)="pick()"
+    matTooltip="Pick this preset"
+    aria-label="pick preset"
+  >
+    <mat-icon class="mat-primary">login</mat-icon>
+  </button>
+  <button
+    type="button"
+    mat-icon-button
+    [disabled]="!form.key().value()"
+    (click)="remove()"
+    matTooltip="Delete this preset"
+    aria-label="delete preset"
+  >
+    <mat-icon class="mat-warn">delete</mat-icon>
+  </button>
+  }
+
+  <!-- new: Enter adds, as the former implicit form submission did -->
+  <mat-form-field>
+    <mat-label>key</mat-label>
+    <input
+      matInput
+      [formField]="form.newKey"
+      (keydown.enter)="$event.preventDefault(); add()"
+    />
+    @if (
+      form.newKey().getError("required") &&
+      (form.newKey().dirty() || form.newKey().touched())
+    ) {
+    <mat-error>key required</mat-error>
+    } @if (
+      form.newKey().getError("maxLength") &&
+      (form.newKey().dirty() || form.newKey().touched())
+    ) {
+    <mat-error>key too long</mat-error>
+    }
+  </mat-form-field>
+  <button
+    type="button"
+    mat-icon-button
+    [disabled]="!canAdd()"
+    (click)="add()"
+    matTooltip="Add text as preset"
+    aria-label="add preset"
+  >
+    <mat-icon class="mat-primary">add_circle</mat-icon>
+  </button>
+</div>

@@ -178,17 +178,33 @@ describe('MappingRunnerComponent', () => {
     expect(api.runMappings.mock.calls[0][2]).toEqual({});
   });
 
-  it('should not run with invalid metadata', async () => {
-    const { user, editor } = await setup();
+  it('should cap the typed metadata length', async () => {
+    const { user } = await setup();
     await openMetadata(user);
-    await user.click(screen.getByRole('textbox', { name: 'part type ID' }));
-    await user.paste('x'.repeat(51));
-    await user.tab();
-    expect(await screen.findByText('part type ID too long')).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: 'part type ID' })
+    ).toHaveAttribute('maxlength', '50');
+    expect(screen.getByRole('textbox', { name: 'item title' })).toHaveAttribute(
+      'maxlength',
+      '500'
+    );
+    expect(screen.getByRole('textbox', { name: 'item EID' })).toHaveAttribute(
+      'maxlength',
+      '100'
+    );
+  });
 
-    await editor.setValue('{}');
-    await run(user);
-    expect(api.runMappings).not.toHaveBeenCalled();
+  it('should keep the input when resetting the metadata', async () => {
+    const { user, editor } = await setup();
+    await editor.setValue('{"kept":true}');
+    await openMetadata(user);
+    await user.click(screen.getByRole('button', { name: 'reset' }));
+    expect(await editor.getText()).toBe('{"kept":true}');
+  });
+
+  it('should render no <form>, as it is embedded in the mapping editor', async () => {
+    const { container } = await setup();
+    expect(container.querySelector('form')).toBeNull();
   });
 
   it('should show the error returned by the run', async () => {

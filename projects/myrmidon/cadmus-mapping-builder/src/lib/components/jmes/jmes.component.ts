@@ -2,19 +2,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
+  linkedSignal,
   model,
-  OnDestroy,
-  OnInit,
   signal,
+  untracked,
 } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { Subscription, debounceTime, distinctUntilChanged, take } from 'rxjs';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { FormField, form, maxLength, required } from '@angular/forms/signals';
+import { debounceTime, take } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -36,12 +31,20 @@ import { GraphStudioApiService } from '../../services/graph-studio-api.service';
 import { CachedTextPickerComponent } from '../cached-text-picker/cached-text-picker.component';
 
 /**
+ * The JMES test data: local to this component, not part of its model.
+ */
+interface JmesTestControls {
+  input: string;
+  output: string;
+}
+
+/**
  * JMES expression editor with inline test.
  */
 @Component({
   selector: 'cadmus-jmes',
   imports: [
-    ReactiveFormsModule,
+    FormField,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
@@ -58,10 +61,7 @@ import { CachedTextPickerComponent } from '../cached-text-picker/cached-text-pic
   styleUrls: ['./jmes.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class JmesComponent implements OnInit, OnDestroy {
-  private _sub?: Subscription;
-  private _updatingForm?: boolean;
-
+export class JmesComponent {
   // monaco
   private _inEditor?: StandaloneCodeEditor;
   private _outEditor?: StandaloneCodeEditor;
@@ -77,75 +77,64 @@ export class JmesComponent implements OnInit, OnDestroy {
    */
   public readonly expression = model<string>();
 
-  public jmes: FormControl<string>;
-  public input: FormControl<string>;
-  public output: FormControl<string | null>;
-  public form: FormGroup;
+  /**
+   * The edited expression. It is saved into the model unchanged (no
+   * normalization), so the echo of our own autosave recomputes the very
+   * same string, which does not notify: no `previous` check is needed.
+   */
+  private readonly _jmes = linkedSignal(() => this.expression() || '');
 
-  public sampleKey: FormControl<string>;
-  public sampleForm: FormGroup;
+  public readonly jmes = form(this._jmes, (path) => {
+    required(path);
+    maxLength(path, 500);
+  });
+
+  private readonly _test = signal<JmesTestControls>({ input: '', output: '' });
+
+  public readonly test = form(this._test, (path) => {
+    required(path.input);
+    maxLength(path.input, 5000);
+  });
 
   public readonly busy = signal<boolean>(false);
   public readonly error = signal<string | undefined>(undefined);
+
+  // samples (not used by the template)
   public readonly sampleKeys = signal<string[]>([]);
+  public readonly sampleForm = form(signal({ sampleKey: '' }), (path) => {
+    required(path.sampleKey);
+    maxLength(path.sampleKey, 50);
+  });
 
   constructor(
-    formBuilder: FormBuilder,
     private _apiService: GraphStudioApiService,
     private _cacheService: RamCacheService,
   ) {
-    // form
-    this.jmes = formBuilder.control('', {
-      validators: [Validators.required, Validators.maxLength(500)],
-      nonNullable: true,
-    });
-    this.input = formBuilder.control('', {
-      validators: [Validators.required, Validators.maxLength(5000)],
-      nonNullable: true,
-    });
-    this.output = formBuilder.control(null);
-    this.form = formBuilder.group({
-      jmes: this.jmes,
-      input: this.input,
-      output: this.output,
-    });
-    // sample
     this.sampleKeys.set(
       Object.keys(this._cacheService.get('jmes') || {}).sort(),
     );
-    this.sampleKey = formBuilder.control('', {
-      validators: [Validators.required, Validators.maxLength(50)],
-      nonNullable: true,
-    });
-    this.sampleForm = formBuilder.group({
-      sampleKey: this.sampleKey,
-    });
 
-    // when the expression changes, update the JMES form control
+    // once the expression mirrors the model again (a new value from the
+    // consumer), clear interaction state; keyed on the draft, so that the
+    // echo of our own autosave does not clear it under the user
     effect(() => {
-      const expression = this.expression();
-      this._updatingForm = true;
-      this.jmes.setValue(expression || '', { emitEvent: false });
-      this.jmes.markAsDirty();
-      this.jmes.updateValueAndValidity();
-      this._updatingForm = false;
-    });
-  }
-
-  public ngOnInit(): void {
-    // when the JMES expression changes, update the model
-    this._sub = this.jmes.valueChanges
-      .pipe(distinctUntilChanged(), debounceTime(300))
-      .subscribe((_) => {
-        if (this._updatingForm) {
-          return;
+      const jmes = this._jmes();
+      untracked(() => {
+        if (jmes === (this.expression() || '')) {
+          this.jmes().reset();
         }
-        this.expression.set(this.jmes.value);
       });
-  }
+    });
 
-  public ngOnDestroy(): void {
-    this._sub?.unsubscribe();
+    // autosave the expression after a pause in typing (also when invalid,
+    // as the consumer validates it as its own source)
+    toObservable(this._jmes)
+      .pipe(debounceTime(300), takeUntilDestroyed())
+      .subscribe((jmes) => {
+        if (jmes !== (this.expression() || '')) {
+          this.expression.set(jmes);
+        }
+      });
   }
 
   public onInEditorInit(event: EditorInitializedEvent) {
@@ -158,14 +147,19 @@ export class JmesComponent implements OnInit, OnDestroy {
     this._outEditor.focus();
   }
 
+  /** True when the transform can be run. */
+  public canTransform(): boolean {
+    return !this.busy() && this.jmes().valid() && this.test().valid();
+  }
+
   public transform(): void {
-    if (this.busy() || this.form.invalid) {
+    if (!this.canTransform()) {
       return;
     }
     this.busy.set(true);
     this.error.set(undefined);
     this._apiService
-      .jmesTransform(this.input.value, this.jmes.value)
+      .jmesTransform(this.test.input().value(), this._jmes())
       .pipe(take(1))
       .subscribe({
         next: (w) => {
@@ -173,9 +167,8 @@ export class JmesComponent implements OnInit, OnDestroy {
           if (w.error) {
             this.error.set(w.error);
           } else {
-            this.output.setValue(w.value || '');
-            this.output.updateValueAndValidity();
-            this.output.markAsDirty();
+            this.test.output().value.set(w.value || '');
+            this.test.output().markAsDirty();
           }
         },
         error: (error) => {
@@ -186,19 +179,19 @@ export class JmesComponent implements OnInit, OnDestroy {
   }
 
   public onTextPick(text: string): void {
-    this.input.setValue(text);
-    this.input.updateValueAndValidity();
-    this.input.markAsDirty();
+    this.test.input().value.set(text);
+    this.test.input().markAsDirty();
   }
 
   public addSample(): void {
-    if (this.sampleForm.invalid) {
+    if (this.sampleForm().invalid()) {
       return;
     }
+    const sampleKey = this.sampleForm.sampleKey().value();
     this._cacheService.add('jmes', {
       ...(this._cacheService.get('jmes') || {}),
-      [this.sampleKey.value]: this.input.value,
+      [sampleKey]: this.test.input().value(),
     });
-    this.sampleKeys.set([...this.sampleKeys(), this.sampleKey.value].sort());
+    this.sampleKeys.set([...this.sampleKeys(), sampleKey].sort());
   }
 }

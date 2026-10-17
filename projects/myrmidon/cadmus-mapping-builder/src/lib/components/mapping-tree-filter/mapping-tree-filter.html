@@ -1,13 +1,14 @@
-<form
-  [formGroup]="form"
-  [style.margin.px]="wrapped() ? 16 : 0"
-  (submit)="apply()"
->
+<!-- no <form>: this widget is embedded in the mapping tree -->
+<div class="filter" [style.margin.px]="wrapped() ? 16 : 0">
   <div class="form-row">
     <!-- name -->
     <mat-form-field>
       <mat-label>name</mat-label>
-      <input matInput [formControl]="name" />
+      <input
+        matInput
+        [formField]="form.name"
+        (keydown.enter)="$event.preventDefault(); apply()"
+      />
     </mat-form-field>
 
     <!-- buttons -->
@@ -21,13 +22,14 @@
       <mat-icon class="mat-warn">clear</mat-icon>
     </button>
     <button
-      type="submit"
+      type="button"
+      (click)="apply()"
       mat-icon-button
       matTooltip="Apply"
       aria-label="apply filter"
-      [disabled]="form.invalid"
+      [disabled]="form().invalid()"
     >
       <mat-icon class="mat-primary">check_circle</mat-icon>
     </button>
   </div>
-</form>
+</div>

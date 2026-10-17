@@ -125,14 +125,104 @@ describe('MappingEditorComponent', () => {
     expect(save()).toBeDisabled();
   });
 
-  it('should limit the name length', async () => {
-    const { user } = await setup(ROOT);
-    await user.clear(field('name'));
+  it('should cap the typed name length', async () => {
+    await setup(ROOT);
+    expect(field('name')).toHaveAttribute('maxlength', '100');
+  });
+
+  it('should reject a too long bound name', async () => {
+    const { user } = await setup({ ...ROOT, name: 'n'.repeat(101) });
     await user.click(field('name'));
-    await user.paste('n'.repeat(101));
     await user.tab();
     expect(await screen.findByText('name too long')).toBeInTheDocument();
     expect(save()).toBeDisabled();
+  });
+
+  it('should reject negative flags', async () => {
+    const { user } = await setup(ROOT);
+    const flags = screen.getByRole('spinbutton', { name: 'flags filter' });
+    expect(flags).toHaveAttribute('min', '0');
+    await user.clear(flags);
+    await user.type(flags, '-1');
+    expect(save()).toBeDisabled();
+  });
+
+  it('should save on Enter in a text field', async () => {
+    const { user, mappingChange } = await setup(ROOT);
+    await user.type(field('facet filter'), 'x{Enter}');
+    expect(mappingChange).toHaveBeenCalledExactlyOnceWith({
+      ...ROOT,
+      facetFilter: 'personx',
+    });
+  });
+
+  it('should not save on Enter when invalid', async () => {
+    const { user, mappingChange } = await setup(ROOT);
+    await user.clear(field('name'));
+    await user.type(field('SID'), '{Enter}');
+    expect(mappingChange).not.toHaveBeenCalled();
+  });
+
+  it('should accept the saved data sent back with circular references', async () => {
+    const { user, mappingChange, rerender } = await setup(ROOT);
+    await user.clear(field('description'));
+    await user.click(save());
+    const saved: NodeMapping = mappingChange.mock.calls[0][0];
+    expect(saved.description).toBeUndefined();
+
+    // like the tree editor: same data, new object, as a child of a parent
+    const parent: NodeMapping = {
+      id: 9,
+      name: 'p',
+      sourceType: 1,
+      source: 'p',
+      sid: 'p',
+    };
+    const echo: NodeMapping = { ...saved, parentId: 9, parent };
+    parent.children = [echo];
+    await rerender({ inputs: { mapping: echo }, partialUpdate: true });
+
+    // now a child: no source type, SID not required
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('combobox', { name: 'source type' })
+      ).not.toBeInTheDocument()
+    );
+    expect(field('name')).toHaveValue('person');
+    expect(field('description')).toHaveValue('');
+  });
+
+  it('should keep an in-progress edit across its own save', async () => {
+    const { user, mappingChange } = await setup(ROOT);
+    const name = field('name');
+    await user.clear(name);
+    await user.type(name, 'abc');
+    await user.click(save());
+    expect(mappingChange.mock.calls[0][0].name).toBe('abc');
+    await user.type(name, 'd');
+    expect(name).toHaveValue('abcd');
+    await user.click(save());
+    expect(mappingChange.mock.calls[1][0].name).toBe('abcd');
+  });
+
+  it('should not share output objects with the bound or saved mapping', async () => {
+    const mapping: NodeMapping = {
+      ...ROOT,
+      output: { triples: [{ s: 'a', p: 'b', o: 'c' }] },
+    };
+    const { user, mappingChange } = await setup(mapping);
+    await user.click(save());
+    const saved: NodeMapping = mappingChange.mock.calls[0][0];
+    expect(saved.output).toEqual(mapping.output);
+    expect(saved.output).not.toBe(mapping.output);
+    for (const t of [...saved.output!.triples!, ...mapping.output!.triples!]) {
+      expect(Object.getOwnPropertySymbols(t)).toEqual([]);
+    }
+  });
+
+  it('should render no <form> element', async () => {
+    const { container } = await setup(ROOT);
+    expect(container.querySelector('form')).toBeNull();
   });
 
   it('should require the SID for a root mapping', async () => {

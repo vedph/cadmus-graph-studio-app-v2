@@ -6,22 +6,23 @@ import {
   output,
   signal,
 } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { MatSelectModule } from '@angular/material/select';
+import { FormField, form, maxLength, required } from '@angular/forms/signals';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { RamCacheService } from '../../services/ram-cache.service';
+
+interface CachedTextPickerControls {
+  /** The selected preset key, if any (bound to a mat-select). */
+  key: string | null;
+  /** The key for a new preset. */
+  newKey: string;
+}
 
 /**
  * Cached text picker. This allows the user to pick a text from a cache
@@ -31,7 +32,7 @@ import { RamCacheService } from '../../services/ram-cache.service';
 @Component({
   selector: 'cadmus-cached-text-picker',
   imports: [
-    ReactiveFormsModule,
+    FormField,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
@@ -62,26 +63,18 @@ export class CachedTextPickerComponent {
 
   public readonly keys = signal<string[]>([]);
 
-  public key: FormControl<string | null>;
+  // local state only: nothing here derives from a model
+  private readonly _draft = signal<CachedTextPickerControls>({
+    key: null,
+    newKey: '',
+  });
 
-  public newKey: FormControl<string>;
-  public form: FormGroup;
+  public readonly form = form(this._draft, (path) => {
+    required(path.newKey);
+    maxLength(path.newKey, 50);
+  });
 
-  constructor(
-    formBuilder: FormBuilder,
-    private _cacheService: RamCacheService,
-  ) {
-    this.key = formBuilder.control(null);
-
-    // new key form
-    this.newKey = formBuilder.control('', {
-      validators: [Validators.required, Validators.maxLength(50)],
-      nonNullable: true,
-    });
-    this.form = formBuilder.group({
-      newKey: this.newKey,
-    });
-
+  constructor(private _cacheService: RamCacheService) {
     effect(() => {
       this.loadKeys(this.keyPrefix());
     });
@@ -97,23 +90,27 @@ export class CachedTextPickerComponent {
   }
 
   public pick(): void {
-    if (!this.key.value) {
+    const key = this.form.key().value();
+    if (!key) {
       return;
     }
-    const text = this._cacheService.get(
-      this.buildPrefixedKey(this.key.value),
-    ) as string;
+    const text = this._cacheService.get(this.buildPrefixedKey(key)) as string;
     if (text) {
       this.textPick.emit(text);
     }
   }
 
+  /** True when the text can be added as a preset. */
+  public canAdd(): boolean {
+    return this.form.newKey().valid() && !!this.text();
+  }
+
   public add(): void {
-    if (this.form.invalid || !this.text() || !this.keyPrefix()) {
+    if (!this.canAdd() || !this.keyPrefix()) {
       return;
     }
     // keys are listed with their prefix, as they are loaded from the cache
-    const key = this.buildPrefixedKey(this.newKey.value);
+    const key = this.buildPrefixedKey(this.form.newKey().value());
     this._cacheService.add(key, this.text()!);
     if (!this.keys().includes(key)) {
       this.keys.set([...this.keys(), key].sort());
@@ -121,12 +118,13 @@ export class CachedTextPickerComponent {
   }
 
   public remove(): void {
-    if (!this.key.value) {
+    const key = this.form.key().value();
+    if (!key) {
       return;
     }
-    const key = this.buildPrefixedKey(this.key.value);
-    this._cacheService.remove(key);
-    this.keys.set(this.keys().filter((k) => k !== key));
-    this.key.setValue(null);
+    const prefixedKey = this.buildPrefixedKey(key);
+    this._cacheService.remove(prefixedKey);
+    this.keys.set(this.keys().filter((k) => k !== prefixedKey));
+    this.form.key().value.set(null);
   }
 }

@@ -138,10 +138,56 @@ describe('MappingOutputEditorComponent', () => {
     expect(screen.getByRole('button', { name: 'save output' })).toBeDisabled();
   });
 
-  it('should reject too long text', async () => {
-    const { user } = await setup();
-    await fill(user, 'metadata', 'k=' + 'v'.repeat(5000));
+  it('should cap the typed text length', async () => {
+    await setup();
+    for (const name of ['metadata', 'nodes', 'triples']) {
+      expect(field(name)).toHaveAttribute('maxlength', '5000');
+    }
+  });
+
+  it('should reject too long bound text', async () => {
+    const { user } = await setup({ metadata: { k: 'v'.repeat(5000) } });
+    await user.click(field('metadata'));
+    await user.tab();
     expect(await screen.findByText('metadata too long')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'save output' })).toBeDisabled();
+  });
+
+  it('should keep the typed text when its own save echoes back normalized', async () => {
+    const { user, outputChange } = await setup();
+
+    await fill(user, 'metadata', 'a = 1');
+    await user.click(screen.getByRole('button', { name: 'save output' }));
+    // the model got the normalized value...
+    expect(outputChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ metadata: { a: '1' } })
+    );
+    // ...but the text still reads as typed
+    expect(field('metadata')).toHaveValue('a = 1');
+
+    await user.click(field('metadata'));
+    await user.keyboard('{End}{Enter}b=2');
+    await user.click(screen.getByRole('button', { name: 'save output' }));
+    expect(field('metadata')).toHaveValue('a = 1\nb=2');
+    expect(outputChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ metadata: { a: '1', b: '2' } })
+    );
+  });
+
+  it('should rebuild the text for a different bound output', async () => {
+    const { user, rerender } = await setup();
+    await fill(user, 'metadata', 'a = 1');
+    await user.click(screen.getByRole('button', { name: 'save output' }));
+    await rerender({
+      inputs: { mappingOutput: { metadata: { c: '3' } } },
+      partialUpdate: true,
+    });
+    await waitFor(() => expect(field('metadata')).toHaveValue('c=3'));
+  });
+
+  it('should render no <form>, as it is embedded in the mapping editor', async () => {
+    const { container } = await setup();
+    expect(container.querySelector('form')).toBeNull();
   });
 
   it('should update when the bound output changes', async () => {

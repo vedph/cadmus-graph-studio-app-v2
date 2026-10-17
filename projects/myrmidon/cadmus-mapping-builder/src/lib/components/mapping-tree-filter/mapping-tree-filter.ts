@@ -1,20 +1,14 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   effect,
   inject,
+  linkedSignal,
   model,
-  OnInit,
   signal,
+  untracked,
 } from '@angular/core';
-
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormField, form } from '@angular/forms/signals';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -25,10 +19,24 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { MappingTreeFilter } from '../../services/mapping-paged-tree-store.service';
 
+interface MappingTreeFilterControls {
+  name: string;
+}
+
+function toDraft(
+  filter: MappingTreeFilter | null | undefined
+): MappingTreeFilterControls {
+  return { name: filter?.name ?? '' };
+}
+
+function toData(draft: MappingTreeFilterControls): MappingTreeFilter {
+  return { name: draft.name || undefined };
+}
+
 @Component({
   selector: 'cadmus-mapping-tree-filter',
   imports: [
-    ReactiveFormsModule,
+    FormField,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
@@ -39,7 +47,7 @@ import { MappingTreeFilter } from '../../services/mapping-paged-tree-store.servi
   styleUrl: './mapping-tree-filter.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MappingTreeFilterComponent implements OnInit {
+export class MappingTreeFilterComponent {
   public readonly dialogRef = inject<MatDialogRef<MappingTreeFilterComponent>>(
     MatDialogRef,
     {
@@ -47,73 +55,60 @@ export class MappingTreeFilterComponent implements OnInit {
     }
   );
   public readonly data = inject(MAT_DIALOG_DATA, { optional: true });
-  private readonly _cdr = inject(ChangeDetectorRef);
 
   /**
    * The filter.
    */
   public readonly filter = model<MappingTreeFilter>();
 
-  public readonly wrapped = signal<boolean>(false);
+  public readonly wrapped = signal<boolean>(!!this.dialogRef);
 
-  public name: FormControl<string | null>;
-  public form: FormGroup;
+  /**
+   * The edited filter. `previous` tells the echo of an applied filter apart
+   * from a new filter, so that applying keeps the text as typed.
+   */
+  private readonly _draft = linkedSignal<
+    MappingTreeFilter | undefined,
+    MappingTreeFilterControls
+  >({
+    source: () => this.filter(),
+    computation: (filter, previous) =>
+      previous &&
+      JSON.stringify(filter) === JSON.stringify(toData(previous.value))
+        ? previous.value
+        : toDraft(filter),
+  });
+
+  public readonly form = form(this._draft);
 
   constructor() {
-    const formBuilder = inject(FormBuilder);
-    const data = this.data;
-
-    // form
-    this.name = formBuilder.control<string | null>(null);
-    this.form = formBuilder.group({
-      name: this.name,
-    });
     // bind dialog data if any
-    if (this.dialogRef) {
-      this.wrapped.set(true);
-      if (data) {
-        this.filter.set(data.filter);
-      }
-    } else {
-      this.wrapped.set(false);
+    if (this.dialogRef && this.data) {
+      this.filter.set(this.data.filter);
     }
 
-    // update form when filter changes
+    // once the draft mirrors the bound filter again, clear interaction
+    // state; keyed on the draft, so the echo of an applied filter does not
     effect(() => {
-      this.updateForm(this.filter());
+      const draft = this._draft();
+      untracked(() => {
+        if (JSON.stringify(draft) === JSON.stringify(toDraft(this.filter()))) {
+          this.form().reset();
+        }
+      });
     });
-  }
-
-  public ngOnInit(): void {
-    this.updateForm(this.filter());
-  }
-
-  private updateForm(filter?: MappingTreeFilter | null): void {
-    if (!filter) {
-      this.form.reset();
-      this._cdr.markForCheck();
-      return;
-    }
-    this.name.setValue(filter.name ?? null);
-    this.form.markAsPristine();
-    this._cdr.markForCheck();
-  }
-
-  private getFilter(): MappingTreeFilter {
-    return {
-      name: this.name.value ?? undefined,
-    };
   }
 
   public reset(): void {
-    this.form.reset();
-    this._cdr.markForCheck();
+    // signal forms reset() clears interaction state, not values; the value
+    // must be cleared too, as the filter might already be undefined
+    this.form().reset(toDraft(undefined));
     this.filter.set(undefined);
     this.dialogRef?.close(null);
   }
 
   public apply(): void {
-    this.filter.set(this.getFilter());
+    this.filter.set(toData(this._draft()));
     this.dialogRef?.close(this.filter());
   }
 }

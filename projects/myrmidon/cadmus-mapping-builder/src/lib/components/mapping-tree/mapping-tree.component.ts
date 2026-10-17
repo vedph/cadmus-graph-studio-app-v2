@@ -9,7 +9,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormField, form } from '@angular/forms/signals';
 import { AsyncPipe } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
 
@@ -48,7 +48,7 @@ import { NodeMapping } from '../../models';
   selector: 'cadmus-mapping-tree',
   imports: [
     AsyncPipe,
-    ReactiveFormsModule,
+    FormField,
     MatButtonModule,
     MatCheckboxModule,
     MatFormFieldModule,
@@ -99,15 +99,13 @@ export class MappingTreeComponent implements OnDestroy {
    */
   public readonly deleteRequest = output<number>();
 
-  public debug: FormControl<boolean> = new FormControl(false, {
-    nonNullable: true,
-  });
-  public mockRoot: FormControl<boolean> = new FormControl(false, {
-    nonNullable: true,
-  });
-  public hideLoc: FormControl<boolean> = new FormControl(false, {
-    nonNullable: true,
-  });
+  /**
+   * Display options: debug shows more node data, hideLoc hides node
+   * locations (mockRoot is currently unused).
+   */
+  public readonly options = form(
+    signal({ debug: false, mockRoot: false, hideLoc: false })
+  );
 
   public readonly loading = signal<boolean>(false);
 

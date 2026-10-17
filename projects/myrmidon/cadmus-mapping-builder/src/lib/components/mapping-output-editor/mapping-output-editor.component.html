@@ -1,16 +1,17 @@
-<form (submit)="save()">
+<!-- no <form>: this widget is embedded in the mapping editor -->
+<div>
   <!-- metadata -->
   <fieldset>
     <legend>metadata</legend>
     <mat-form-field class="long-text">
       <mat-label>metadata</mat-label>
-      <textarea rows="3" matInput [formControl]="metadata"></textarea>
+      <textarea rows="3" matInput [formField]="form.metadata"></textarea>
       <mat-hint>key=value</mat-hint>
-      @if ( $any(metadata).errors?.pattern && (metadata.dirty ||
-      metadata.touched) ) {
+      @if ( form.metadata().getError("pattern") &&
+      (form.metadata().dirty() || form.metadata().touched()) ) {
       <mat-error>invalid metadata</mat-error>
-      } @if ( $any(metadata).errors?.maxlength && (metadata.dirty ||
-      metadata.touched) ) {
+      } @if ( form.metadata().getError("maxLength") &&
+      (form.metadata().dirty() || form.metadata().touched()) ) {
       <mat-error>metadata too long</mat-error>
       }
     </mat-form-field>
@@ -21,11 +22,13 @@
     <legend>nodes</legend>
     <mat-form-field class="long-text">
       <mat-label>nodes</mat-label>
-      <textarea rows="5" matInput [formControl]="nodes"></textarea>
+      <textarea rows="5" matInput [formField]="form.nodes"></textarea>
       <mat-hint>key uid [label|tag]</mat-hint>
-      @if ($any(nodes).errors?.pattern && (nodes.dirty || nodes.touched)) {
+      @if (form.nodes().getError("pattern") &&
+      (form.nodes().dirty() || form.nodes().touched())) {
       <mat-error>invalid nodes</mat-error>
-      } @if ($any(nodes).errors?.maxlength && (nodes.dirty || nodes.touched)) {
+      } @if (form.nodes().getError("maxLength") &&
+      (form.nodes().dirty() || form.nodes().touched())) {
       <mat-error>nodes too long</mat-error>
       }
     </mat-form-field>
@@ -36,13 +39,14 @@
     <legend>triples</legend>
     <mat-form-field class="long-text">
       <mat-label>triples</mat-label>
-      <textarea rows="5" matInput [formControl]="triples"></textarea>
+      <textarea rows="5" matInput [formField]="form.triples"></textarea>
       <mat-hint>S P O or S P "lit"</mat-hint>
-      @if ( $any(triples).errors?.pattern && (triples.dirty || triples.touched)
+      @if ( form.triples().getError("pattern") &&
+      (form.triples().dirty() || form.triples().touched())
       ) {
       <mat-error>invalid triples</mat-error>
-      } @if ( $any(triples).errors?.maxlength && (triples.dirty ||
-      triples.touched) ) {
+      } @if ( form.triples().getError("maxLength") &&
+      (form.triples().dirty() || form.triples().touched()) ) {
       <mat-error>triples too long</mat-error>
       }
     </mat-form-field>
@@ -59,8 +63,9 @@
       <mat-icon class="mat-warn">cancel</mat-icon>
     </button>
     <button
-      type="submit"
-      [disabled]="form.invalid"
+      type="button"
+      [disabled]="form().invalid()"
+      (click)="save()"
       mat-icon-button
       matTooltip="Save mapping output"
       aria-label="save output"
@@ -68,4 +73,4 @@
       <mat-icon class="mat-primary">check_circle</mat-icon>
     </button>
   </div>
-</form>
+</div>

@@ -20,7 +20,7 @@
       <div class="node-wrapper" [class.selected]="node.id === editedId()">
         <pdb-browser-tree-node
           [node]="node"
-          [debug]="debug.value"
+          [debug]="options.debug().value()"
           [paging]="
             node.expanded &&
             i + 1 < nodes.length &&
@@ -29,7 +29,7 @@
               : undefined
           "
           [hideFilter]="true"
-          [hideLoc]="hideLoc.value"
+          [hideLoc]="options.hideLoc().value()"
           (toggleExpandedRequest)="onToggleExpanded($any($event))"
           (changePageRequest)="onPageChangeRequest($event)"
           (editNodeFilterRequest)="onEditFilterRequest($any($event))"
@@ -80,8 +80,8 @@
     </div>
     }
     <div class="form-row">
-      <mat-checkbox [formControl]="debug">more</mat-checkbox>
-      <mat-checkbox [formControl]="hideLoc">no loc.</mat-checkbox>
+      <mat-checkbox [formField]="options.debug">more</mat-checkbox>
+      <mat-checkbox [formField]="options.hideLoc">no loc.</mat-checkbox>
       <button
         type="button"
         mat-icon-button

@@ -1,20 +1,26 @@
-<form [formGroup]="form" (submit)="transform()">
-  <!-- jmes -->
+<!-- no <form>: this widget is embedded in the mapping editor -->
+<div>
+  <!-- jmes: Enter runs, as the former implicit form submission did -->
   <div class="form-row">
     <mat-form-field class="long-text">
       <mat-label>jmes</mat-label>
-      <input matInput [formControl]="jmes" />
-      @if ($any(jmes).errors?.required && (jmes.dirty || jmes.touched)) {
+      <input
+        matInput
+        [formField]="jmes"
+        (keydown.enter)="$event.preventDefault(); transform()"
+      />
+      @if (jmes().getError("required") && (jmes().dirty() || jmes().touched())) {
         <mat-error>JMES required</mat-error>
       }
-      @if ($any(jmes).errors?.maxlength && (jmes.dirty || jmes.touched)) {
+      @if (jmes().getError("maxLength") && (jmes().dirty() || jmes().touched())) {
         <mat-error>JMES too long</mat-error>
       }
     </mat-form-field>
     <button
-      type="submit"
+      type="button"
       mat-flat-button
-      [disabled]="form.invalid || busy()"
+      [disabled]="!canTransform()"
+      (click)="transform()"
       matTooltip="Run JMES"
     >
       <mat-icon>play_circle</mat-icon> run
@@ -38,16 +44,22 @@
         <mat-label>input</mat-label>
         <div class="editor">
           <ngx-monaco-editor
-            [formControl]="input"
+            [formField]="test.input"
             [language]="'markdown'"
             [options]="editorOptions"
             (editorInitialized)="onInEditorInit($event)"
           />
         </div>
-        @if (input.hasError("required") && (input.touched || input.dirty)) {
+        @if (
+          test.input().getError("required") &&
+          (test.input().touched() || test.input().dirty())
+        ) {
           <mat-error>please enter some text</mat-error>
         }
-        @if (input.hasError("maxlength") && (input.touched || input.dirty)) {
+        @if (
+          test.input().getError("maxLength") &&
+          (test.input().touched() || test.input().dirty())
+        ) {
           <mat-error>input too long</mat-error>
         }
       </div>
@@ -55,7 +67,7 @@
       <fieldset>
         <legend>presets</legend>
         <cadmus-cached-text-picker
-          [text]="input.value"
+          [text]="test.input().value()"
           (textPick)="onTextPick($event)"
           keyPrefix="jms_"
         />
@@ -67,7 +79,7 @@
       <mat-label>output</mat-label>
       <div class="editor">
         <ngx-monaco-editor
-          [formControl]="output"
+          [formField]="test.output"
           [language]="'markdown'"
           [options]="editorOptions"
           (editorInitialized)="onOutEditorInit($event)"
@@ -75,4 +87,4 @@
       </div>
     </div>
   </fieldset>
-</form>
+</div>

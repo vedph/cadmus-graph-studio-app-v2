@@ -1,18 +1,11 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
-  OnDestroy,
-  OnInit,
+  inject,
+  linkedSignal,
 } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-} from '@angular/forms';
-import { AsyncPipe } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormField, form, max, min } from '@angular/forms/signals';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,11 +17,50 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NodeMappingFilter } from '../../models';
 import { NodeMappingListService } from '../../state/node-mapping-list.service';
 
+/**
+ * The editable filter. Text fields use '' as their empty value.
+ */
+interface MappingFilterControls {
+  sourceType: number;
+  name: string;
+  facet: string;
+  group: string;
+  flags: number | null;
+  title: string;
+  partType: string;
+  partRole: string;
+}
+
+function toDraft(filter: NodeMappingFilter): MappingFilterControls {
+  return {
+    sourceType: filter.sourceType || 0,
+    name: filter.name || '',
+    facet: filter.facet || '',
+    group: filter.group || '',
+    flags: filter.flags || 0,
+    title: filter.title || '',
+    partType: filter.partType || '',
+    partRole: filter.partRole || '',
+  };
+}
+
+function toData(draft: MappingFilterControls): NodeMappingFilter {
+  return {
+    sourceType: draft.sourceType || undefined,
+    name: draft.name || undefined,
+    facet: draft.facet || undefined,
+    group: draft.group || undefined,
+    flags: draft.flags || undefined,
+    title: draft.title || undefined,
+    partType: draft.partType || undefined,
+    partRole: draft.partRole || undefined,
+  };
+}
+
 @Component({
   selector: 'cadmus-mapping-filter',
   imports: [
-    AsyncPipe,
-    ReactiveFormsModule,
+    FormField,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
@@ -40,97 +72,55 @@ import { NodeMappingListService } from '../../state/node-mapping-list.service';
   styleUrls: ['./mapping-filter.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MappingFilterComponent implements OnInit, OnDestroy {
-  private _sub?: Subscription;
-  public filter$: Observable<NodeMappingFilter>;
-  public loading$: Observable<boolean | undefined>;
+export class MappingFilterComponent {
+  private readonly _repository = inject(NodeMappingListService);
 
-  public sourceType: FormControl<number>;
-  public name: FormControl<string | null>;
-  public facet: FormControl<string | null>;
-  public group: FormControl<string | null>;
-  public flags: FormControl<number>;
-  public title: FormControl<string | null>;
-  public partType: FormControl<string | null>;
-  public partRole: FormControl<string | null>;
-  public form: FormGroup;
+  /** The current filter in the list (a BehaviorSubject: sync). */
+  public readonly filter = toSignal(this._repository.filter$, {
+    requireSync: true,
+  });
 
-  constructor(
-    private _repository: NodeMappingListService,
-    formBuilder: FormBuilder,
-    private _cdr: ChangeDetectorRef,
-  ) {
-    this.filter$ = _repository.filter$;
-    this.loading$ = _repository.loading$;
-    // form
-    this.sourceType = formBuilder.control(0, { nonNullable: true });
-    this.name = formBuilder.control(null);
-    this.facet = formBuilder.control(null);
-    this.group = formBuilder.control(null);
-    this.flags = formBuilder.control(0, { nonNullable: true });
-    this.title = formBuilder.control(null);
-    this.partType = formBuilder.control(null);
-    this.partRole = formBuilder.control(null);
-    this.form = formBuilder.group({
-      sourceType: this.sourceType,
-      name: this.name,
-      facet: this.facet,
-      group: this.group,
-      flags: this.flags,
-      title: this.title,
-      partType: this.partType,
-      partRole: this.partRole,
-    });
-  }
+  public readonly loading = toSignal(this._repository.loading$);
 
-  ngOnInit(): void {
-    this._sub = this.filter$.subscribe((f) => {
-      this.updateForm(f);
-    });
-  }
+  /**
+   * The edited filter, rebuilt from every filter set in the list (including
+   * the one applied from here, as filters are applied explicitly).
+   */
+  private readonly _draft = linkedSignal(() => toDraft(this.filter()));
 
-  ngOnDestroy(): void {
-    this._sub?.unsubscribe();
-  }
+  public readonly form = form(this._draft, (path) => {
+    // were static min/max attributes, which [formField] does not allow
+    min(path.flags, 0);
+    max(path.flags, 2147483647);
+  });
 
-  private updateForm(filter: NodeMappingFilter): void {
-    this.sourceType.setValue(filter.sourceType || 0);
-    this.name.setValue(filter.name || null);
-    this.facet.setValue(filter.facet || null);
-    this.group.setValue(filter.group || null);
-    this.flags.setValue(filter.flags || 0);
-    this.title.setValue(filter.title || null);
-    this.partType.setValue(filter.partType || null);
-    this.partRole.setValue(filter.partRole || null);
-    this.form.markAsPristine();
-    this._cdr.markForCheck();
-  }
-
-  private getFilter(): NodeMappingFilter {
-    return {
-      sourceType: this.sourceType.value || undefined,
-      name: this.name.value || undefined,
-      facet: this.facet.value || undefined,
-      group: this.group.value || undefined,
-      flags: this.flags.value || undefined,
-      title: this.title.value || undefined,
-      partType: this.partType.value || undefined,
-      partRole: this.partRole.value || undefined,
-    };
+  /** True when the filter can be applied. */
+  public canApply(): boolean {
+    return !this.form().invalid() && !this.loading();
   }
 
   public reset(): void {
-    this.form.reset();
-    this._cdr.markForCheck();
+    // signal forms reset() clears interaction state, not values
+    this.form().reset(toDraft({}));
     this.apply();
   }
 
   public apply(): void {
-    if (this.form.invalid) {
+    if (this.form().invalid()) {
       return;
     }
-    const filter = this.getFilter();
     // update filter in state
-    this._repository.setFilter(filter);
+    this._repository.setFilter(toData(this._draft()));
+  }
+
+  /**
+   * Apply on Enter in an input, as the former implicit form submission did
+   * (it did nothing while the apply button was disabled).
+   */
+  public onEnter(event: Event): void {
+    event.preventDefault();
+    if (this.canApply()) {
+      this.apply();
+    }
   }
 }

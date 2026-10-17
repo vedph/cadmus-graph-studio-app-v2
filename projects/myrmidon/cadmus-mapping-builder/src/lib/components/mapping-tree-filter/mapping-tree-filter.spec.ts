@@ -46,6 +46,36 @@ describe('MappingTreeFilterComponent', () => {
       expect(filterChange).toHaveBeenCalledExactlyOnceWith(undefined);
     });
 
+    it('should apply on Enter', async () => {
+      const { user, filterChange } = await setup();
+      await user.type(screen.getByRole('textbox', { name: 'name' }), 'b{Enter}');
+      expect(filterChange).toHaveBeenCalledExactlyOnceWith({ name: 'b' });
+    });
+
+    it('should keep the typed text when the applied filter echoes back', async () => {
+      const { user, filterChange } = await setup();
+      const name = screen.getByRole('textbox', { name: 'name' });
+      await user.type(name, 'ab ');
+      await user.click(screen.getByRole('button', { name: 'apply filter' }));
+      await user.type(name, 'c');
+      expect(name).toHaveValue('ab c');
+      await user.click(screen.getByRole('button', { name: 'apply filter' }));
+      expect(filterChange).toHaveBeenLastCalledWith({ name: 'ab c' });
+    });
+
+    it('should clear typed text on reset without a filter', async () => {
+      const { user } = await setup();
+      const name = screen.getByRole('textbox', { name: 'name' });
+      await user.type(name, 'x');
+      await user.click(screen.getByRole('button', { name: 'reset filter' }));
+      expect(name).toHaveValue('');
+    });
+
+    it('should render no <form> element', async () => {
+      const { container } = await setup();
+      expect(container.querySelector('form')).toBeNull();
+    });
+
     it('should update when the bound filter changes', async () => {
       const { rerender } = await setup({ name: 'a' });
       await rerender({ inputs: { filter: { name: 'b' } }, partialUpdate: true });

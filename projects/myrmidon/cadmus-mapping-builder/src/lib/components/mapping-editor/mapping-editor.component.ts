@@ -1,18 +1,19 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   effect,
+  linkedSignal,
   model,
   output,
+  untracked,
 } from '@angular/core';
 import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+  FormField,
+  form,
+  maxLength,
+  min,
+  required,
+} from '@angular/forms/signals';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,12 +23,102 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { NgxToolsValidators } from '@myrmidon/ngx-tools';
-
 import { NodeMapping, NodeMappingOutput } from '../../models';
 import { JmesComponent } from '../jmes/jmes.component';
 import { MappingOutputEditorComponent } from '../mapping-output-editor/mapping-output-editor.component';
 import { MappingRunnerComponent } from '../mapping-runner/mapping-runner.component';
+
+/**
+ * The editable mapping. Text fields use '' as their empty value. ID and
+ * parent ID are not editable, so they are not here: they come from the
+ * bound mapping.
+ */
+interface MappingControls {
+  ordinal: number;
+  name: string;
+  sourceType: number;
+  facetFilter: string;
+  groupFilter: string;
+  flagsFilter: number | null;
+  titleFilter: string;
+  partTypeFilter: string;
+  partRoleFilter: string;
+  description: string;
+  source: string;
+  sid: string;
+  scalarPattern: string;
+  output: NodeMappingOutput | null;
+}
+
+/**
+ * Copy an output, so that the draft never shares objects with the bound
+ * mapping or with the saved one.
+ */
+function copyOutput(
+  output: NodeMappingOutput | null | undefined
+): NodeMappingOutput | null {
+  return output ? JSON.parse(JSON.stringify(output)) : null;
+}
+
+/**
+ * Bound mapping -> editable draft. Pure, so it can be called from inside
+ * the linkedSignal computation.
+ */
+function toDraft(mapping: NodeMapping | undefined): MappingControls {
+  return {
+    ordinal: mapping?.ordinal || 0,
+    name: mapping?.name || '',
+    sourceType: mapping?.sourceType || 0,
+    facetFilter: mapping?.facetFilter || '',
+    groupFilter: mapping?.groupFilter || '',
+    flagsFilter: mapping?.flagsFilter || 0,
+    titleFilter: mapping?.titleFilter || '',
+    partTypeFilter: mapping?.partTypeFilter || '',
+    partRoleFilter: mapping?.partRoleFilter || '',
+    description: mapping?.description || '',
+    source: mapping?.source || '',
+    sid: mapping?.sid || '',
+    scalarPattern: mapping?.scalarPattern || '',
+    output: copyOutput(mapping?.output),
+  };
+}
+
+/**
+ * Editable draft -> mapping, with ID and parent ID from the bound mapping.
+ * This maps empty values to undefined, so the draft and the mapping are not
+ * interchangeable: see the echo check on the draft.
+ */
+function toData(
+  draft: MappingControls,
+  mapping: NodeMapping | undefined
+): NodeMapping {
+  return {
+    id: mapping?.id || 0,
+    parentId: mapping?.parentId ?? undefined,
+    ordinal: draft.ordinal || undefined,
+    name: draft.name,
+    sourceType: draft.sourceType,
+    facetFilter: draft.facetFilter || undefined,
+    groupFilter: draft.groupFilter || undefined,
+    flagsFilter: draft.flagsFilter || undefined,
+    titleFilter: draft.titleFilter || undefined,
+    partTypeFilter: draft.partTypeFilter || undefined,
+    partRoleFilter: draft.partRoleFilter || undefined,
+    description: draft.description || undefined,
+    source: draft.source,
+    sid: draft.sid,
+    scalarPattern: draft.scalarPattern || undefined,
+    output: copyOutput(draft.output) || undefined,
+  };
+}
+
+/**
+ * The comparable form of a mapping: its own data only, without the parent
+ * and children references (which may be circular).
+ */
+function toComparable(mapping: NodeMapping | undefined): string {
+  return JSON.stringify(toData(toDraft(mapping), mapping));
+}
 
 /**
  * Single node mapping editor. Note that ID and parent ID are not editable.
@@ -35,7 +126,7 @@ import { MappingRunnerComponent } from '../mapping-runner/mapping-runner.compone
 @Component({
   selector: 'cadmus-mapping-editor',
   imports: [
-    ReactiveFormsModule,
+    FormField,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
@@ -57,73 +148,59 @@ export class MappingEditorComponent {
 
   public readonly editorClose = output();
 
-  public ordinal: FormControl<number | null>;
-  public name: FormControl<string>;
-  public sourceType: FormControl<number>;
-  public facetFilter: FormControl<string | null>;
-  public groupFilter: FormControl<string | null>;
-  public flagsFilter: FormControl<number>;
-  public titleFilter: FormControl<string | null>;
-  public partTypeFilter: FormControl<string | null>;
-  public partRoleFilter: FormControl<string | null>;
-  public description: FormControl<string | null>;
-  public source: FormControl<string>;
-  public sid: FormControl<string>;
-  public scalarPattern: FormControl<string | null>;
-  public output: FormControl<NodeMappingOutput | null>;
-  public form: FormGroup;
+  /**
+   * The editable draft. `previous` tells the echo of our own save (or the
+   * same mapping data sent again by the consumer) apart from a new mapping:
+   * in that case the draft is kept rather than rebuilt.
+   */
+  private readonly _draft = linkedSignal<NodeMapping | undefined, MappingControls>(
+    {
+      source: () => this.mapping(),
+      computation: (mapping, previous) =>
+        previous &&
+        toComparable(mapping) ===
+          JSON.stringify(toData(previous.value, previous.source))
+          ? previous.value
+          : toDraft(mapping),
+    }
+  );
 
-  constructor(formBuilder: FormBuilder, private _cdr: ChangeDetectorRef) {
-    this.ordinal = formBuilder.control(null);
-    this.name = formBuilder.control('', {
-      validators: [Validators.required, Validators.maxLength(100)],
-      nonNullable: true,
-    });
-    this.sourceType = formBuilder.control(0, { nonNullable: true });
-    this.facetFilter = formBuilder.control(null, Validators.maxLength(100));
-    this.groupFilter = formBuilder.control(null, Validators.maxLength(100));
-    this.flagsFilter = formBuilder.control(0, { nonNullable: true });
-    this.titleFilter = formBuilder.control(null, Validators.maxLength(100));
-    this.partTypeFilter = formBuilder.control(null, Validators.maxLength(100));
-    this.partRoleFilter = formBuilder.control(null, Validators.maxLength(100));
-    this.description = formBuilder.control(null, Validators.maxLength(1000));
-    this.source = formBuilder.control('', {
-      validators: [Validators.required, Validators.maxLength(500)],
-      nonNullable: true,
-    });
-    this.sid = formBuilder.control('', {
-      validators: [
-        // SID is required for root mappings only
-        NgxToolsValidators.conditionalValidator(
-          () => !this.isChild(),
-          Validators.required
-        ),
-        Validators.maxLength(500),
-      ],
-      nonNullable: true,
-    });
-    this.scalarPattern = formBuilder.control(null, Validators.maxLength(500));
-    this.output = formBuilder.control(null);
-    this.form = formBuilder.group({
-      ordinal: this.ordinal,
-      name: this.name,
-      sourceType: this.sourceType,
-      facetFilter: this.facetFilter,
-      groupFilter: this.groupFilter,
-      flagsFilter: this.flagsFilter,
-      titleFilter: this.titleFilter,
-      partTypeFilter: this.partTypeFilter,
-      partRoleFilter: this.partRoleFilter,
-      description: this.description,
-      source: this.source,
-      sid: this.sid,
-      scalarPattern: this.scalarPattern,
-      output: this.output,
-    });
+  public readonly form = form(this._draft, (path) => {
+    required(path.name);
+    maxLength(path.name, 100);
+    maxLength(path.facetFilter, 100);
+    maxLength(path.groupFilter, 100);
+    // was a static min attribute, which [formField] does not allow
+    min(path.flagsFilter, 0);
+    maxLength(path.titleFilter, 100);
+    maxLength(path.partTypeFilter, 100);
+    maxLength(path.partRoleFilter, 100);
+    maxLength(path.description, 1000);
+    required(path.source);
+    maxLength(path.source, 500);
+    // SID is required for root mappings only
+    required(path.sid, { when: () => !this.isChild() });
+    maxLength(path.sid, 500);
+    maxLength(path.scalarPattern, 500);
+  });
 
+  constructor() {
+    // once the draft mirrors the bound mapping again, clear interaction
+    // state; keyed on the draft, so an echo of our own save does not run it
     effect(() => {
-      this.updateForm(this.mapping());
+      const draft = this._draft();
+      untracked(() => {
+        if (this.isDraftInSync(draft)) {
+          this.form().reset();
+        }
+      });
     });
+  }
+
+  /** True when the draft still mirrors the bound mapping. */
+  private isDraftInSync(draft: MappingControls): boolean {
+    const mapping = this.mapping();
+    return JSON.stringify(toData(draft, mapping)) === toComparable(mapping);
   }
 
   /**
@@ -135,63 +212,25 @@ export class MappingEditorComponent {
     return !!mapping?.parent || (mapping?.parentId ?? null) !== null;
   }
 
-  private updateForm(mapping: NodeMapping | undefined): void {
-    if (!mapping) {
-      this.form.reset();
-      this._cdr.markForCheck();
-      return;
-    }
-    this.ordinal.setValue(mapping.ordinal || 0);
-    this.name.setValue(mapping.name);
-    this.sourceType.setValue(mapping.sourceType);
-    this.facetFilter.setValue(mapping.facetFilter || null);
-    this.groupFilter.setValue(mapping.groupFilter || null);
-    this.flagsFilter.setValue(mapping.flagsFilter || 0);
-    this.titleFilter.setValue(mapping.titleFilter || null);
-    this.partTypeFilter.setValue(mapping.partTypeFilter || null);
-    this.partRoleFilter.setValue(mapping.partRoleFilter || null);
-    this.description.setValue(mapping.description || null);
-    this.source.setValue(mapping.source);
-    this.sid.setValue(mapping.sid);
-    this.scalarPattern.setValue(mapping.scalarPattern || null);
-    this.output.setValue(mapping.output || null);
-    this.form.markAsPristine();
-    this._cdr.markForCheck();
-  }
-
   public onOutputChange(output: NodeMappingOutput): void {
-    this.output.setValue(output);
-    this.output.markAsDirty();
-    this.output.updateValueAndValidity();
-    this._cdr.markForCheck();
-  }
-
-  private getMapping(): NodeMapping {
-    return {
-      id: this.mapping()?.id || 0,
-      parentId: this.mapping()?.parentId ?? undefined,
-      ordinal: this.ordinal.value || undefined,
-      name: this.name.value,
-      sourceType: this.sourceType.value,
-      facetFilter: this.facetFilter.value || undefined,
-      groupFilter: this.groupFilter.value || undefined,
-      flagsFilter: this.flagsFilter.value || undefined,
-      titleFilter: this.titleFilter.value || undefined,
-      partTypeFilter: this.partTypeFilter.value || undefined,
-      partRoleFilter: this.partRoleFilter.value || undefined,
-      description: this.description.value || undefined,
-      source: this.source.value,
-      sid: this.sid.value,
-      scalarPattern: this.scalarPattern.value || undefined,
-      output: this.output.value || undefined,
-    };
+    this.form.output().value.set(copyOutput(output));
+    this.form.output().markAsDirty();
   }
 
   public onExpressionChange(expression: string): void {
-    this.source.setValue(expression);
-    this.source.markAsDirty();
-    this.source.updateValueAndValidity();
-    this._cdr.markForCheck();
+    this.form.source().value.set(expression);
+    this.form.source().markAsDirty();
+  }
+
+  /**
+   * Save on Enter in a single-line input, as the former implicit form
+   * submission did (it did nothing while the save button was disabled).
+   */
+  public onEnter(event: Event): void {
+    event.preventDefault();
+    if (!this.form().invalid()) {
+      this.save();
+    }
   }
 
   public cancel(): void {
@@ -199,6 +238,11 @@ export class MappingEditorComponent {
   }
 
   public save(): void {
-    this.mapping.set(this.getMapping());
+    if (this.form().invalid()) {
+      this.form().markAsTouched();
+      return;
+    }
+    this.mapping.set(toData(this._draft(), this.mapping()));
+    this.form().reset();
   }
 }

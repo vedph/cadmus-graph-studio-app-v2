@@ -1,4 +1,5 @@
-<form [formGroup]="form" (submit)="run()">
+<!-- no <form>: this widget is embedded in the mapping editor -->
+<div>
   <div id="container">
     <div>
       @if (busy()) {
@@ -18,7 +19,12 @@
         >
           <mat-icon>sort</mat-icon>
         </button>
-        <button type="submit" class="mat-primary" mat-flat-button>
+        <button
+          type="button"
+          class="mat-primary"
+          mat-flat-button
+          (click)="run()"
+        >
           <mat-icon>play_circle</mat-icon>
           run
         </button>
@@ -29,7 +35,7 @@
       <fieldset>
         <legend>presets</legend>
         <cadmus-cached-text-picker
-          [text]="input.value"
+          [text]="form.input().value()"
           keyPrefix="map_"
           (textPick)="onTextPick($event)"
         />
@@ -39,16 +45,18 @@
         <mat-label>input</mat-label>
         <div id="editor">
           <ngx-monaco-editor
-            [formControl]="input"
+            [formField]="form.input"
             [language]="'markdown'"
             [options]="editorOptions"
             (editorInitialized)="onEditorInit($event)"
           />
         </div>
-        @if (input.hasError("required") && (input.touched || input.dirty)) {
+        @if (form.input().getError("required") &&
+            (form.input().touched() || form.input().dirty())) {
           <mat-error>input required</mat-error>
         }
-        @if (input.hasError("maxlength") && (input.touched || input.dirty)) {
+        @if (form.input().getError("maxLength") &&
+            (form.input().touched() || form.input().dirty())) {
           <mat-error>input too long</mat-error>
         }
       </div>
@@ -148,14 +156,15 @@
     </mat-expansion-panel-header>
     <fieldset>
       <legend>metadata</legend>
-      <form [formGroup]="metaForm">
+      <div>
         <div class="form-row">
           <!-- itemId -->
           <mat-form-field>
             <mat-label>item ID</mat-label>
-            <input matInput [formControl]="itemId" />
+            <input matInput [formField]="form.itemId" />
             @if (
-              $any(itemId).errors?.pattern && (itemId.dirty || itemId.touched)
+              form.itemId().getError("pattern") &&
+              (form.itemId().dirty() || form.itemId().touched())
             ) {
               <mat-error>invalid GUID</mat-error>
             }
@@ -163,9 +172,10 @@
           <!-- partId -->
           <mat-form-field>
             <mat-label>part ID</mat-label>
-            <input matInput [formControl]="partId" />
+            <input matInput [formField]="form.partId" />
             @if (
-              $any(partId).errors?.pattern && (partId.dirty || partId.touched)
+              form.partId().getError("pattern") &&
+              (form.partId().dirty() || form.partId().touched())
             ) {
               <mat-error>invalid GUID</mat-error>
             }
@@ -173,10 +183,10 @@
           <!-- partTypeId -->
           <mat-form-field>
             <mat-label>part type ID</mat-label>
-            <input matInput [formControl]="partTypeId" />
+            <input matInput [formField]="form.partTypeId" />
             @if (
-              $any(partTypeId).errors?.maxlength &&
-              (partTypeId.dirty || partTypeId.touched)
+              form.partTypeId().getError("maxLength") &&
+              (form.partTypeId().dirty() || form.partTypeId().touched())
             ) {
               <mat-error>part type ID too long</mat-error>
             }
@@ -184,9 +194,10 @@
           <!-- roleId -->
           <mat-form-field>
             <mat-label>part role ID</mat-label>
-            <input matInput [formControl]="roleId" />
+            <input matInput [formField]="form.roleId" />
             @if (
-              $any(roleId).errors?.maxlength && (roleId.dirty || roleId.touched)
+              form.roleId().getError("maxLength") &&
+              (form.roleId().dirty() || form.roleId().touched())
             ) {
               <mat-error>role ID too long</mat-error>
             }
@@ -194,10 +205,10 @@
           <!-- facetId -->
           <mat-form-field>
             <mat-label>facet ID</mat-label>
-            <input matInput [formControl]="facetId" />
+            <input matInput [formField]="form.facetId" />
             @if (
-              $any(facetId).errors?.maxlength &&
-              (facetId.dirty || facetId.touched)
+              form.facetId().getError("maxLength") &&
+              (form.facetId().dirty() || form.facetId().touched())
             ) {
               <mat-error>facet ID too long</mat-error>
             }
@@ -208,10 +219,10 @@
           <!-- itemTitle -->
           <mat-form-field>
             <mat-label>item title</mat-label>
-            <input matInput [formControl]="itemTitle" />
+            <input matInput [formField]="form.itemTitle" />
             @if (
-              $any(itemTitle).errors?.maxlength &&
-              (itemTitle.dirty || itemTitle.touched)
+              form.itemTitle().getError("maxLength") &&
+              (form.itemTitle().dirty() || form.itemTitle().touched())
             ) {
               <mat-error>item title too long</mat-error>
             }
@@ -219,10 +230,10 @@
           <!-- itemUri -->
           <mat-form-field>
             <mat-label>item URI</mat-label>
-            <input matInput [formControl]="itemUri" />
+            <input matInput [formField]="form.itemUri" />
             @if (
-              $any(itemUri).errors?.maxlength &&
-              (itemUri.dirty || itemUri.touched)
+              form.itemUri().getError("maxLength") &&
+              (form.itemUri().dirty() || form.itemUri().touched())
             ) {
               <mat-error>item URI too long</mat-error>
             }
@@ -230,10 +241,10 @@
           <!-- itemLabel -->
           <mat-form-field>
             <mat-label>item label</mat-label>
-            <input matInput [formControl]="itemLabel" />
+            <input matInput [formField]="form.itemLabel" />
             @if (
-              $any(itemLabel).errors?.maxlength &&
-              (itemLabel.dirty || itemLabel.touched)
+              form.itemLabel().getError("maxLength") &&
+              (form.itemLabel().dirty() || form.itemLabel().touched())
             ) {
               <mat-error>item label too long</mat-error>
             }
@@ -241,10 +252,10 @@
           <!-- itemEid -->
           <mat-form-field>
             <mat-label>item EID</mat-label>
-            <input matInput [formControl]="itemEid" />
+            <input matInput [formField]="form.itemEid" />
             @if (
-              $any(itemEid).errors?.maxlength &&
-              (itemEid.dirty || itemEid.touched)
+              form.itemEid().getError("maxLength") &&
+              (form.itemEid().dirty() || form.itemEid().touched())
             ) {
               <mat-error>item EID too long</mat-error>
             }
@@ -252,10 +263,10 @@
           <!-- metadataPid -->
           <mat-form-field>
             <mat-label>metadata part ID</mat-label>
-            <input matInput [formControl]="metadataPid" />
+            <input matInput [formField]="form.metadataPid" />
             @if (
-              $any(metadataPid).errors?.maxlength &&
-              (metadataPid.dirty || metadataPid.touched)
+              form.metadataPid().getError("maxLength") &&
+              (form.metadataPid().dirty() || form.metadataPid().touched())
             ) {
               <mat-error>metadata PID too long</mat-error>
             }
@@ -265,10 +276,10 @@
           <!-- groupId -->
           <mat-form-field>
             <mat-label>group ID</mat-label>
-            <input matInput [formControl]="groupId" />
+            <input matInput [formField]="form.groupId" />
             @if (
-              $any(groupId).errors?.maxlength &&
-              (groupId.dirty || groupId.touched)
+              form.groupId().getError("maxLength") &&
+              (form.groupId().dirty() || form.groupId().touched())
             ) {
               <mat-error>group ID too long</mat-error>
             }
@@ -276,18 +287,18 @@
           <!-- flags -->
           <mat-form-field class="nr">
             <mat-label>flags</mat-label>
-            <input type="number" matInput [formControl]="flags" />
+            <input type="number" matInput [formField]="form.flags" />
           </mat-form-field>
         </div>
-      </form>
+      </div>
       <button
         type="button"
         mat-flat-button
         class="mat-warn"
-        (click)="metaForm.reset()"
+        (click)="resetMetadata()"
       >
         reset
       </button>
     </fieldset>
   </mat-expansion-panel>
-</form>
+</div>

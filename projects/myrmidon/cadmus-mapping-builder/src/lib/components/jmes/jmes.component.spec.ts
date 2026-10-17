@@ -71,6 +71,46 @@ describe('JmesComponent', () => {
     expect(expressionChange).not.toHaveBeenCalledWith('a');
   });
 
+  it('should not autosave back a value it was just given', async () => {
+    const { expressionChange, rerender } = await setup('  given  ');
+    await rerender({ inputs: { expression: ' other ' }, partialUpdate: true });
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(expressionChange).not.toHaveBeenCalled();
+  });
+
+  it('should keep an in-progress edit across its own autosave', async () => {
+    const { user, expressionChange } = await setup();
+    const jmes = screen.getByRole('textbox', { name: 'jmes' });
+
+    await user.type(jmes, 'abc ');
+    await waitFor(() => expect(expressionChange).toHaveBeenCalledWith('abc '));
+    // the echo of the saved value does not rebuild the field
+    expect(jmes).toHaveValue('abc ');
+
+    await user.type(jmes, 'd');
+    await waitFor(() => expect(expressionChange).toHaveBeenLastCalledWith('abc d'));
+    expect(jmes).toHaveValue('abc d');
+  });
+
+  it('should run the transform on Enter in the expression', async () => {
+    api.jmesTransform.mockReturnValue(of({ value: '1' }));
+    const { user, inputEditor } = await setup('a');
+    await inputEditor.setValue('{"a":1}');
+    await user.type(screen.getByRole('textbox', { name: 'jmes' }), '{Enter}');
+    expect(api.jmesTransform).toHaveBeenCalledExactlyOnceWith('{"a":1}', 'a');
+  });
+
+  it('should not run on Enter when the input is missing', async () => {
+    const { user } = await setup('a');
+    await user.type(screen.getByRole('textbox', { name: 'jmes' }), '{Enter}');
+    expect(api.jmesTransform).not.toHaveBeenCalled();
+  });
+
+  it('should render no <form>, as it is embedded in the mapping editor', async () => {
+    const { container } = await setup('a');
+    expect(container.querySelector('form')).toBeNull();
+  });
+
   it('should disable run until both expression and input are set', async () => {
     const { user, inputEditor } = await setup();
     const run = screen.getByRole('button', { name: /run/ });
@@ -92,12 +132,20 @@ describe('JmesComponent', () => {
     expect(await screen.findByText('JMES required')).toBeInTheDocument();
   });
 
-  it('should reject a too long expression', async () => {
-    const { user } = await setup();
+  it('should cap the typed expression length', async () => {
+    await setup();
+    expect(screen.getByRole('textbox', { name: 'jmes' })).toHaveAttribute(
+      'maxlength',
+      '500'
+    );
+  });
+
+  it('should reject a too long bound expression', async () => {
+    const { user } = await setup('a'.repeat(501));
     await user.click(screen.getByRole('textbox', { name: 'jmes' }));
-    await user.paste('a'.repeat(501));
     await user.tab();
     expect(await screen.findByText('JMES too long')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /run/ })).toBeDisabled();
   });
 
   it('should run the transform and show its output', async () => {

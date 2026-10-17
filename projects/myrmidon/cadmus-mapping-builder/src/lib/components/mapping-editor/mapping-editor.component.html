@@ -1,4 +1,5 @@
-<form aria-label="mapping" (submit)="save()">
+<!-- no <form>: this editor is embedded in the mapping tree editor -->
+<div role="form" aria-label="mapping">
   <mat-tab-group>
     <!-- METADATA -->
     <mat-tab label="metadata">
@@ -9,10 +10,16 @@
         <!-- name -->
         <mat-form-field>
           <mat-label>name</mat-label>
-          <input matInput [formControl]="name" />
-          @if ($any(name).errors?.required && (name.dirty || name.touched)) {
+          <input
+            matInput
+            [formField]="form.name"
+            (keydown.enter)="onEnter($event)"
+          />
+          @if (form.name().getError("required") &&
+          (form.name().dirty() || form.name().touched())) {
           <mat-error>name required</mat-error>
-          } @if ($any(name).errors?.maxlength && (name.dirty || name.touched)) {
+          } @if (form.name().getError("maxLength") &&
+          (form.name().dirty() || form.name().touched())) {
           <mat-error>name too long</mat-error>
           }
         </mat-form-field>
@@ -21,13 +28,13 @@
         @if (!isChild()) {
         <mat-form-field>
           <mat-label>source type</mat-label>
-          <mat-select [formControl]="sourceType">
+          <mat-select [formField]="form.sourceType">
             <mat-option [value]="0">n/a</mat-option>
             <mat-option [value]="1">item</mat-option>
             <mat-option [value]="2">part</mat-option>
           </mat-select>
-          @if ( $any(sourceType).errors?.required && (sourceType.dirty ||
-          sourceType.touched) ) {
+          @if ( form.sourceType().getError("required") &&
+          (form.sourceType().dirty() || form.sourceType().touched()) ) {
           <mat-error>source type required</mat-error>
           }
         </mat-form-field>
@@ -36,9 +43,13 @@
         <!-- scalarPattern -->
         <mat-form-field>
           <mat-label>scalar pattern</mat-label>
-          <input matInput [formControl]="scalarPattern" />
-          @if ( $any(scalarPattern).errors?.maxlength && (scalarPattern.dirty ||
-          scalarPattern.touched) ) {
+          <input
+            matInput
+            [formField]="form.scalarPattern"
+            (keydown.enter)="onEnter($event)"
+          />
+          @if ( form.scalarPattern().getError("maxLength") &&
+          (form.scalarPattern().dirty() || form.scalarPattern().touched()) ) {
           <mat-error>pattern too long</mat-error>
           }
         </mat-form-field>
@@ -46,10 +57,16 @@
         <!-- sid -->
         <mat-form-field>
           <mat-label>SID</mat-label>
-          <input matInput [formControl]="sid" />
-          @if ($any(sid).errors?.required && (sid.dirty || sid.touched)) {
+          <input
+            matInput
+            [formField]="form.sid"
+            (keydown.enter)="onEnter($event)"
+          />
+          @if (form.sid().getError("required") &&
+          (form.sid().dirty() || form.sid().touched())) {
           <mat-error>SID required</mat-error>
-          } @if ($any(sid).errors?.maxlength && (sid.dirty || sid.touched)) {
+          } @if (form.sid().getError("maxLength") &&
+          (form.sid().dirty() || form.sid().touched())) {
           <mat-error>SID too long</mat-error>
           }
         </mat-form-field>
@@ -59,9 +76,13 @@
         <!-- facetFilter -->
         <mat-form-field>
           <mat-label>facet filter</mat-label>
-          <input matInput [formControl]="facetFilter" />
-          @if ( $any(facetFilter).errors?.maxlength && (facetFilter.dirty ||
-          facetFilter.touched) ) {
+          <input
+            matInput
+            [formField]="form.facetFilter"
+            (keydown.enter)="onEnter($event)"
+          />
+          @if ( form.facetFilter().getError("maxLength") &&
+          (form.facetFilter().dirty() || form.facetFilter().touched()) ) {
           <mat-error>facet filter too long</mat-error>
           }
         </mat-form-field>
@@ -69,9 +90,13 @@
         <!-- groupFilter -->
         <mat-form-field>
           <mat-label>group filter</mat-label>
-          <input matInput [formControl]="groupFilter" />
-          @if ( $any(groupFilter).errors?.maxlength && (groupFilter.dirty ||
-          groupFilter.touched) ) {
+          <input
+            matInput
+            [formField]="form.groupFilter"
+            (keydown.enter)="onEnter($event)"
+          />
+          @if ( form.groupFilter().getError("maxLength") &&
+          (form.groupFilter().dirty() || form.groupFilter().touched()) ) {
           <mat-error>group filter too long</mat-error>
           }
         </mat-form-field>
@@ -79,7 +104,12 @@
         <!-- flagsFilter -->
         <mat-form-field class="nr-input">
           <mat-label>flags filter</mat-label>
-          <input type="number" matInput [formControl]="flagsFilter" min="0" />
+          <input
+            type="number"
+            matInput
+            [formField]="form.flagsFilter"
+            (keydown.enter)="onEnter($event)"
+          />
         </mat-form-field>
       </div>
 
@@ -87,9 +117,13 @@
         <!-- partTypeFilter -->
         <mat-form-field>
           <mat-label>part type filter</mat-label>
-          <input matInput [formControl]="partTypeFilter" />
-          @if ( $any(partTypeFilter).errors?.maxlength && (partTypeFilter.dirty
-          || partTypeFilter.touched) ) {
+          <input
+            matInput
+            [formField]="form.partTypeFilter"
+            (keydown.enter)="onEnter($event)"
+          />
+          @if ( form.partTypeFilter().getError("maxLength") &&
+          (form.partTypeFilter().dirty() || form.partTypeFilter().touched()) ) {
           <mat-error>part type filter too long</mat-error>
           }
         </mat-form-field>
@@ -97,9 +131,13 @@
         <!-- partRoleFilter -->
         <mat-form-field>
           <mat-label>part role filter</mat-label>
-          <input matInput [formControl]="partRoleFilter" />
-          @if ( $any(partRoleFilter).errors?.maxlength && (partRoleFilter.dirty
-          || partRoleFilter.touched) ) {
+          <input
+            matInput
+            [formField]="form.partRoleFilter"
+            (keydown.enter)="onEnter($event)"
+          />
+          @if ( form.partRoleFilter().getError("maxLength") &&
+          (form.partRoleFilter().dirty() || form.partRoleFilter().touched()) ) {
           <mat-error>part role filter too long</mat-error>
           }
         </mat-form-field>
@@ -109,9 +147,9 @@
         <!-- description -->
         <mat-form-field class="long-text">
           <mat-label>description</mat-label>
-          <textarea rows="3" matInput [formControl]="description"></textarea>
-          @if ( $any(description).errors?.maxlength && (description.dirty ||
-          description.touched) ) {
+          <textarea rows="3" matInput [formField]="form.description"></textarea>
+          @if ( form.description().getError("maxLength") &&
+          (form.description().dirty() || form.description().touched()) ) {
           <mat-error>description too long</mat-error>
           }
         </mat-form-field>
@@ -124,7 +162,7 @@
         <mat-icon class="tab-icon">login</mat-icon> input
       </ng-template>
       <cadmus-jmes
-        [expression]="source.value"
+        [expression]="form.source().value()"
         (expressionChange)="onExpressionChange($event!)"
       ></cadmus-jmes>
     </mat-tab>
@@ -258,12 +296,13 @@
       <mat-icon>cancel</mat-icon> close
     </button>
     <button
-      type="submit"
-      [disabled]="form.invalid"
+      type="button"
+      [disabled]="form().invalid()"
+      (click)="save()"
       mat-flat-button
       class="mat-primary"
     >
       <mat-icon>check_circle</mat-icon> save
     </button>
   </div>
-</form>
+</div>

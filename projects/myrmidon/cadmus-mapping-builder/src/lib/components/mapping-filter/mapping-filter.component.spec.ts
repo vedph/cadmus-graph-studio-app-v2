@@ -114,6 +114,27 @@ describe('MappingFilterComponent', () => {
     expect(list.getFilter()).toEqual({});
   });
 
+  it('should apply on Enter in a text field', async () => {
+    const { list, user } = await setup();
+    await user.type(screen.getByRole('textbox', { name: 'name' }), 'p{Enter}');
+    await waitFor(() => expect(list.getFilter()).toEqual({ name: 'p' }));
+  });
+
+  it('should reject flags out of range', async () => {
+    const { user } = await setup();
+    const flags = screen.getByRole('spinbutton', { name: 'flags' });
+    expect(flags).toHaveAttribute('min', '0');
+    expect(flags).toHaveAttribute('max', '2147483647');
+    await user.clear(flags);
+    await user.type(flags, '-1');
+    expect(screen.getByRole('button', { name: 'apply filters' })).toBeDisabled();
+  });
+
+  it('should render no <form> element', async () => {
+    const { container } = await setup();
+    expect(container.querySelector('form')).toBeNull();
+  });
+
   it('should disable apply while loading', async () => {
     const pending = new Subject<DataPage<NodeMapping>>();
     const repository = {
@@ -129,6 +150,10 @@ describe('MappingFilterComponent', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'apply filters' })).toBeDisabled()
     );
+
+    // Enter does not apply either
+    await userEvent.type(screen.getByRole('textbox', { name: 'name' }), 'x{Enter}');
+    expect(repository.getMappings).toHaveBeenCalledTimes(1);
 
     pending.next({ pageNumber: 1, pageSize: 20, pageCount: 0, total: 0, items: [] });
     await waitFor(() =>

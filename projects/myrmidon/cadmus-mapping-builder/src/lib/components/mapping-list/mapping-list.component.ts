@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, output } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { ReactiveFormsModule } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
 import { Observable } from 'rxjs';
 
@@ -22,7 +21,6 @@ import { NodeMapping } from '../../models';
   selector: 'cadmus-mapping-list',
   imports: [
     AsyncPipe,
-    ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
