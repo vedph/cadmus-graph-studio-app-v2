@@ -32,7 +32,6 @@
           [hideLoc]="options.hideLoc().value()"
           (toggleExpandedRequest)="onToggleExpanded($any($event))"
           (changePageRequest)="onPageChangeRequest($event)"
-          (editNodeFilterRequest)="onEditFilterRequest($any($event))"
         >
           @if (node.y) {
           <div class="node-ext button-row">

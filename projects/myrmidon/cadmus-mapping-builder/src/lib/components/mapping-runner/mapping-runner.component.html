@@ -162,23 +162,11 @@
           <mat-form-field>
             <mat-label>item ID</mat-label>
             <input matInput [formField]="form.itemId" />
-            @if (
-              form.itemId().getError("pattern") &&
-              (form.itemId().dirty() || form.itemId().touched())
-            ) {
-              <mat-error>invalid GUID</mat-error>
-            }
           </mat-form-field>
           <!-- partId -->
           <mat-form-field>
             <mat-label>part ID</mat-label>
             <input matInput [formField]="form.partId" />
-            @if (
-              form.partId().getError("pattern") &&
-              (form.partId().dirty() || form.partId().touched())
-            ) {
-              <mat-error>invalid GUID</mat-error>
-            }
           </mat-form-field>
           <!-- partTypeId -->
           <mat-form-field>

@@ -26,7 +26,6 @@ import {
   StandaloneEditorConstructionOptions,
 } from '@jean-merelis/ngx-monaco-editor';
 
-import { RamCacheService } from '../../services/ram-cache.service';
 import { GraphStudioApiService } from '../../services/graph-studio-api.service';
 import { CachedTextPickerComponent } from '../cached-text-picker/cached-text-picker.component';
 
@@ -99,21 +98,7 @@ export class JmesComponent {
   public readonly busy = signal<boolean>(false);
   public readonly error = signal<string | undefined>(undefined);
 
-  // samples (not used by the template)
-  public readonly sampleKeys = signal<string[]>([]);
-  public readonly sampleForm = form(signal({ sampleKey: '' }), (path) => {
-    required(path.sampleKey);
-    maxLength(path.sampleKey, 50);
-  });
-
-  constructor(
-    private _apiService: GraphStudioApiService,
-    private _cacheService: RamCacheService,
-  ) {
-    this.sampleKeys.set(
-      Object.keys(this._cacheService.get('jmes') || {}).sort(),
-    );
-
+  constructor(private _apiService: GraphStudioApiService) {
     // once the expression mirrors the model again (a new value from the
     // consumer), clear interaction state; keyed on the draft, so that the
     // echo of our own autosave does not clear it under the user
@@ -181,17 +166,5 @@ export class JmesComponent {
   public onTextPick(text: string): void {
     this.test.input().value.set(text);
     this.test.input().markAsDirty();
-  }
-
-  public addSample(): void {
-    if (this.sampleForm().invalid()) {
-      return;
-    }
-    const sampleKey = this.sampleForm.sampleKey().value();
-    this._cacheService.add('jmes', {
-      ...(this._cacheService.get('jmes') || {}),
-      [sampleKey]: this.test.input().value(),
-    });
-    this.sampleKeys.set([...this.sampleKeys(), sampleKey].sort());
   }
 }

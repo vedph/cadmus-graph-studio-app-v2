@@ -115,7 +115,6 @@ export class MappingPagedTreeStoreService
       if (!mappingId) {
         this._mapping = undefined;
         this._nodes = [];
-        console.log('resetting mapping tree store');
         resolve(true);
         return;
       }
@@ -124,10 +123,6 @@ export class MappingPagedTreeStoreService
         next: (mapping) => {
           this._mapping = mapping || undefined;
           this._nodes = this._mapping ? this.flattenMapping(this._mapping) : [];
-          console.log(
-            `mapping tree store reset with mapping ID ${mappingId}`,
-            this._mapping
-          );
           resolve(true);
         },
         error: (err) => {

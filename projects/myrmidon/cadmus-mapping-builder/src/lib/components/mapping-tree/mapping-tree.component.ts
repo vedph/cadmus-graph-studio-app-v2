@@ -3,7 +3,6 @@ import {
   Component,
   OnDestroy,
   effect,
-  inject,
   input,
   model,
   output,
@@ -13,7 +12,6 @@ import { FormField, form } from '@angular/forms/signals';
 import { AsyncPipe } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
 
-import { MatDialog } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -71,7 +69,6 @@ export class MappingTreeComponent implements OnDestroy {
     MappingPagedTreeNode,
     MappingTreeFilter
   >;
-  private _dialog = inject(MatDialog);
   private _sub?: Subscription;
 
   /**
@@ -101,11 +98,9 @@ export class MappingTreeComponent implements OnDestroy {
 
   /**
    * Display options: debug shows more node data, hideLoc hides node
-   * locations (mockRoot is currently unused).
+   * locations.
    */
-  public readonly options = form(
-    signal({ debug: false, mockRoot: false, hideLoc: false })
-  );
+  public readonly options = form(signal({ debug: false, hideLoc: false }));
 
   public readonly loading = signal<boolean>(false);
 
@@ -161,26 +156,9 @@ export class MappingTreeComponent implements OnDestroy {
   }
 
   public onFilterChange(filter: MappingTreeFilter | null | undefined): void {
-    console.log('filter change', filter);
     this.loading.set(true);
     this._store.setFilter(filter || {}).finally(() => {
       this.loading.set(false);
-    });
-  }
-
-  public onEditFilterRequest(node: MappingPagedTreeNode): void {
-    const dialogRef = this._dialog.open(MappingTreeFilterComponent, {
-      data: {
-        filter: node.filter,
-      },
-    });
-    dialogRef.afterClosed().subscribe((filter) => {
-      // undefined = user dismissed without changes
-      if (filter === null) {
-        this._store.setNodeFilter(node.id, null);
-      } else if (filter) {
-        this._store.setNodeFilter(node.id, filter);
-      }
     });
   }
 
