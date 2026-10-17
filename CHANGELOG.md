@@ -1,5 +1,7 @@
 # History
 
+## 2.0.2
+
 - 2026-10-17: fixed: going back to the home page reloaded the sample mappings, discarding all edits; a deep link (or page reload) to a mapping opened an empty editor. Removed dead code and leftover `console.log` calls.
 - 2026-10-17: ⚠️ migrated from reactive forms to signal forms (see [migration log](./signal-forms-migration.md)). Behavior changes: text length limits now stop typing at the limit instead of showing an error afterwards; negative or out-of-range flags (mapping editor, mappings filter) are now invalid; no component renders a `<form>` any more, while Enter still confirms where it did before.
 - 2026-10-17:

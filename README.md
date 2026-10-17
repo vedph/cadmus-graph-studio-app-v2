@@ -16,7 +16,7 @@ The Cadmus Graph Studio App is a minimalist editor for helping users build and t
 4. build image (change version number accordingly):
 
 ```bash
-docker build . -t vedph2020/cadmus-graph-studio-app:2.0.1 -t vedph2020/cadmus-graph-studio-app:latest
+docker build . -t vedph2020/cadmus-graph-studio-app:2.0.2 -t vedph2020/cadmus-graph-studio-app:latest
 ```
 
 🚀 For production:
@@ -27,7 +27,7 @@ docker build . -t vedph2020/cadmus-graph-studio-app:2.0.1 -t vedph2020/cadmus-gr
 ```js
 // ... leave the rest unchanged except for API URL and version:
 window.__env.apiUrl = "https://cadmus-graph-studio-api.fusi-soft.com/api/";
-window.__env.version = "2.0.0";
+window.__env.version = "2.0.2";
 ```
 
 ## Debug Hints

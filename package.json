@@ -15,7 +15,7 @@
     "test:coverage": "ng test @myrmidon/cadmus-mapping-builder --watch=false --coverage && ng test cadmus-graph-studio-app --watch=false --coverage"
   },
   "private": true,
-  "packageManager": "pnpm@12.8.1",
+  "packageManager": "pnpm@12.14.0",
   "dependencies": {
     "@angular/cdk": "^22.2.3",
     "@angular/common": "^22.2.3",
@@ -42,11 +42,11 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/user-event": "^14.6.8",
-    "@vitest/coverage-v8": "5.0.3",
-    "jsdom": "^30.1.1",
+    "@vitest/coverage-v8": "5.0.5",
+    "jsdom": "^30.1.3",
     "ng-packagr": "^22.0.0",
     "typescript": "~6.0.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.5"
   },
   "optionalDependencies": {
     "@rollup/rollup-win32-arm64-msvc": "^4.64.7"
