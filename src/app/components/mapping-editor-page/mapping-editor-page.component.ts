@@ -29,11 +29,19 @@ export class MappingEditorPageComponent {
     private _router: Router,
     private _listService: NodeMappingListService
   ) {
-    // get mapping from id parameter
-    const id = route.snapshot.paramMap.get('id');
-    if (id) {
+    // get mapping from id parameter: 0 means a new mapping
+    const id = +(route.snapshot.paramMap.get('id') || 0);
+    if (!id) {
+      this.editedMapping.set({
+        id: 0,
+        name: 'new mapping',
+        sourceType: 1,
+        source: '',
+        sid: '',
+      });
+    } else {
       mappingService
-        .getMapping(+id)
+        .getMapping(id)
         .pipe(take(1))
         .subscribe((m) => {
           this.editedMapping.set(m || undefined);
@@ -41,9 +49,13 @@ export class MappingEditorPageComponent {
     }
   }
 
+  /**
+   * Save the mapping whenever the tree editor changes it (also when adding
+   * or deleting a child), staying in the editor: the user leaves it by
+   * closing it.
+   */
   public onMappingChange(mapping: NodeMapping): void {
     this._listService.addMapping(mapping);
-    this.close();
   }
 
   public close(): void {

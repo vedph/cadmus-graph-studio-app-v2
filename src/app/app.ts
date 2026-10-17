@@ -62,10 +62,11 @@ export class App {
     this.version.set(envService.get('version') || '');
 
     this._sampleService.json$.pipe(takeUntilDestroyed()).subscribe((json) => {
-      // import mappings
-      _mappingService.importMappings(json);
-      // reset the list
-      _listService.reset();
+      // import mappings, then reset the list
+      _mappingService
+        .importMappings(json)
+        .pipe(take(1))
+        .subscribe(() => _listService.reset());
     });
 
     this._sampleService.presets$
@@ -84,8 +85,10 @@ export class App {
       .pipe(take(1))
       .subscribe((yes) => {
         if (yes) {
-          this._mappingService.clear();
-          this._listService.reset();
+          this._mappingService
+            .clear()
+            .pipe(take(1))
+            .subscribe(() => this._listService.reset());
         }
       });
   }
@@ -94,7 +97,7 @@ export class App {
     this._router.navigate(['/mappings-doc']);
   }
 
-  public async export() {
+  public export(): void {
     this._mappingService
       .exportMappings()
       .pipe(take(1))

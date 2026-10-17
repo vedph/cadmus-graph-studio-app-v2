@@ -99,14 +99,29 @@ export class MappingDocPageComponent {
     });
   }
 
+  private reportImportError(error: unknown): void {
+    this._snackbar.open(
+      'Error importing mappings: ' +
+        (error instanceof Error ? error.message : String(error)),
+      'OK'
+    );
+  }
+
   public importFromDocument() {
-    this._mappingService
-      .importMappings(this.json.value)
-      .subscribe((mappings) => {
-        this._repository.reset();
-        this._snackbar.open('Mappings imported: ' + mappings.length, 'OK', {
-          duration: 3000,
-        });
+    // a valid JSON document may still be an invalid mappings document,
+    // which makes the import throw
+    try {
+      this._mappingService.importMappings(this.json.value).subscribe({
+        next: (mappings) => {
+          this._repository.reset();
+          this._snackbar.open('Mappings imported: ' + mappings.length, 'OK', {
+            duration: 3000,
+          });
+        },
+        error: (error) => this.reportImportError(error),
       });
+    } catch (error) {
+      this.reportImportError(error);
+    }
   }
 }

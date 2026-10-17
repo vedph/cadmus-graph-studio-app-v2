@@ -19,6 +19,12 @@
     - `MappingListComponent`: the delete confirmation dialog had title and prompt swapped.
     - `NodeMappingListService.setPage`: changing the page size returned the cached page of the old size (`PagedListStore` cache keys ignore the page size).
     - added accessible names to icon-only buttons; declared the missing peer dependencies in the library's `package.json`.
+  - app: full test suite (services with Vitest + TestBed; components with Angular Testing Library), and these fixes:
+    - mapping editor page: any change in the tree editor (including adding or deleting a child) saved the mapping and left the page, so a newly added child could never be edited; now changes are saved and the editor stays open until it is closed (closing returns to the home page).
+    - mapping editor page: "add mapping" (route ID 0) opened an empty editor which could not save anything; it now starts a new mapping.
+    - mappings document page: importing a valid JSON document with invalid mappings (e.g. a malformed triple) threw an unhandled error; it is now reported.
+    - app shell: importing sample mappings and clearing mappings did not subscribe to the mapping service, relying on the RAM service doing its work eagerly.
+  - removed the unused `@angular/animations` package.
 - 2026-10-03: updated Angular and packages.
 - 2026-09-04: updated packages.
 - 2026-07-29: updated packages.

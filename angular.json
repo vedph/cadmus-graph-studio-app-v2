@@ -85,7 +85,10 @@
             "setupFiles": [
               "setup-test.ts"
             ],
-            "providersFile": "test-providers.ts"
+            "providersFile": "test-providers.ts",
+            "coverageInclude": [
+              "src/app/**/*.ts"
+            ]
           }
         }
       }
@@ -116,7 +119,10 @@
             "setupFiles": [
               "setup-test.ts"
             ],
-            "providersFile": "test-providers.ts"
+            "providersFile": "test-providers.ts",
+            "coverageInclude": [
+              "projects/myrmidon/cadmus-mapping-builder/src/lib/**/*.ts"
+            ]
           }
         }
       }
