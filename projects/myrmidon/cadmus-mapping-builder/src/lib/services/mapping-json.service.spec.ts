@@ -255,7 +255,7 @@ describe('MappingJsonService', () => {
       expect(child2.parentId).toBe(result[0].id);
     });
 
-    it('should distinguish between named references and regular children with same name', () => {
+    it('should expand every child having the name of a named mapping, as the backend does', () => {
       const json = JSON.stringify({
         namedMappings: {
           template_name: {
@@ -300,15 +300,57 @@ describe('MappingJsonService', () => {
       expect(result[0].children?.length).toBe(2);
 
       const reference = result[0].children![0];
-      const regularChild = result[0].children![1];
+      const sameNameChild = result[0].children![1];
 
       // the reference should be expanded from template
       expect(reference.source).toBe('template_source');
       expect(reference.output?.triples![0].s).toBe('template:subject');
 
-      // the regular child should keep its own properties
-      expect(regularChild.source).toBe('different_source');
-      expect(regularChild.output?.triples![0].s).toBe('different:subject');
+      // a child with the same name is replaced too (as in the backend
+      // NodeMappingDocument, and in the database, where named children
+      // are shared by name), keeping its own ID
+      expect(sameNameChild.source).toBe('template_source');
+      expect(sameNameChild.output?.triples![0].s).toBe('template:subject');
+      expect(sameNameChild.id).not.toBe(reference.id);
+    });
+
+    it('should replace a document mapping having the name of a named mapping', () => {
+      const json = JSON.stringify({
+        namedMappings: {
+          shared: { name: 'shared', source: 'named_source', sid: 'n' },
+        },
+        documentMappings: [{ name: 'shared', sourceType: 2, source: 'x' }],
+      });
+
+      const result = service.readMappingsDocument(json);
+
+      expect(result.length).toBe(1);
+      expect(result[0].source).toBe('named_source');
+      expect(result[0].id).toBeTruthy();
+    });
+
+    it('should not recurse endlessly into a named mapping including itself', () => {
+      const json = JSON.stringify({
+        namedMappings: {
+          loop: { name: 'loop', source: 'l', children: [{ name: 'loop' }] },
+        },
+        documentMappings: [
+          {
+            name: 'root',
+            sourceType: 2,
+            source: 'r',
+            children: [{ name: 'loop' }],
+          },
+        ],
+      });
+
+      const result = service.readMappingsDocument(json);
+
+      const loop = result[0].children![0];
+      expect(loop.source).toBe('l');
+      // the inner self-reference is left as is
+      expect(loop.children![0].name).toBe('loop');
+      expect(loop.children![0].source).toBe('');
     });
 
     it('should handle complex nodes and triples in named mappings', () => {
@@ -786,6 +828,30 @@ describe('MappingJsonService', () => {
         { s: '{?a}', p: 'a', o: 'crm:E21_Person' },
         { s: '{?a}', p: 'crm:P3_has_note', ol: '"a note with spaces"@en' },
       ]);
+    });
+
+    it('should parse triples with several spaces between their terms', () => {
+      const json = JSON.stringify({
+        documentMappings: [
+          {
+            name: 'm',
+            sourceType: 2,
+            source: 's',
+            output: {
+              triples: ['x:a  rdfs:label   "a b  c"@en', 'x:a a  x:b'],
+            },
+          },
+        ],
+      });
+
+      const triples = service.readMappingsDocument(json)[0].output!.triples!;
+
+      expect(triples[0]).toEqual({
+        s: 'x:a',
+        p: 'rdfs:label',
+        ol: '"a b  c"@en',
+      });
+      expect(triples[1]).toEqual({ s: 'x:a', p: 'a', o: 'x:b' });
     });
 
     it('should throw on an invalid triple', () => {

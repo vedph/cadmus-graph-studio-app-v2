@@ -137,12 +137,14 @@ export class MappingRunnerComponent {
   public readonly busy = signal<boolean>(false);
   public readonly error = signal<string | undefined>(undefined);
   public readonly graphSet = signal<GraphSet | undefined>(undefined);
+  public readonly warnings = signal<string[]>([]);
 
   constructor(private _apiService: GraphStudioApiService) {
     effect(() => {
       // a new mapping invalidates the previous result
       this.mapping();
       this.graphSet.set(undefined);
+      this.warnings.set([]);
     });
   }
 
@@ -203,12 +205,14 @@ export class MappingRunnerComponent {
     }
     this.busy.set(true);
     this.error.set(undefined);
+    this.warnings.set([]);
     this._apiService
       .runMappings(this.form.input().value(), [this.mapping()!], this.getMetadata())
       .pipe(take(1))
       .subscribe({
         next: (w) => {
           this.busy.set(false);
+          this.warnings.set(w.warnings || []);
           if (w.error) {
             this.error.set(w.error);
           } else {

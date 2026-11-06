@@ -109,6 +109,23 @@ export interface UriTriple {
 export interface GraphSet {
   nodes: UriNode[];
   triples: UriTriple[];
+  /**
+   * The IDs of the sources whose graph is fully represented by this set.
+   */
+  sourceIds?: string[];
+}
+
+/**
+ * The result of running mappings: a graph set, or an error.
+ */
+export interface RunMappingResult {
+  value?: GraphSet;
+  error?: string;
+  /**
+   * Warnings about the mappings: e.g. filters which would prevent them
+   * from being applied in Cadmus to a source with the specified metadata.
+   */
+  warnings?: string[];
 }
 
 export interface ErrorWrapper<T> {

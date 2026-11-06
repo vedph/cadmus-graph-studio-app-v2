@@ -206,12 +206,13 @@ describe('RamNodeMappingService', () => {
       ],
     };
 
-    it('should import mappings sorted by name, replacing existing ones', async () => {
+    it('should import mappings in document order, listing them by name, replacing existing ones', async () => {
       await seed(mapping(100, 'old'));
       const imported = await firstValueFrom(
         service.importMappings(JSON.stringify(doc))
       );
-      expect(imported.map((m) => m.name)).toEqual(['alpha', 'zeta']);
+      // the document order is their order of application in Cadmus
+      expect(imported.map((m) => m.name)).toEqual(['zeta', 'alpha']);
       expect((await getItems()).map((m) => m.name)).toEqual(['alpha', 'zeta']);
     });
 
@@ -220,11 +221,12 @@ describe('RamNodeMappingService', () => {
       const json = await firstValueFrom(service.exportMappings());
       expect(json).toContain('\n  "documentMappings": [');
       const exported = JSON.parse(json);
+      // the document order is preserved
       expect(exported.documentMappings.map((m: any) => m.name)).toEqual([
-        'alpha',
         'zeta',
+        'alpha',
       ]);
-      expect(exported.documentMappings[1].children[0].name).toBe('zeta_child');
+      expect(exported.documentMappings[0].children[0].name).toBe('zeta_child');
     });
 
     it('should export an empty document', async () => {
@@ -236,8 +238,8 @@ describe('RamNodeMappingService', () => {
       await firstValueFrom(service.importMappings(JSON.stringify(doc)));
       const json = await firstValueFrom(service.exportMappings());
       const reimported = await firstValueFrom(service.importMappings(json));
-      expect(reimported.map((m) => m.name)).toEqual(['alpha', 'zeta']);
-      expect(reimported[1].children![0].parentId).toBe(reimported[1].id);
+      expect(reimported.map((m) => m.name)).toEqual(['zeta', 'alpha']);
+      expect(reimported[0].children![0].parentId).toBe(reimported[0].id);
     });
   });
 });

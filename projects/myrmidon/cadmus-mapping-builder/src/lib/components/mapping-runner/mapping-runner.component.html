@@ -32,6 +32,13 @@
       @if (error()) {
         <div class="error" role="alert">{{ error() }}</div>
       }
+      @if (warnings().length) {
+        <ul class="warnings" role="status">
+          @for (w of warnings(); track $index) {
+            <li><mat-icon class="warning-icon">warning</mat-icon> {{ w }}</li>
+          }
+        </ul>
+      }
       <fieldset>
         <legend>presets</legend>
         <cadmus-cached-text-picker
@@ -80,6 +87,7 @@
               <tr>
                 <th>label</th>
                 <th>uri</th>
+                <th>tag</th>
                 <th>sid</th>
               </tr>
             </thead>
@@ -88,6 +96,7 @@
                 <tr>
                   <td>{{ n.label }}</td>
                   <td class="uri">{{ n.uri }}</td>
+                  <td>{{ n.tag }}</td>
                   <td>{{ n.sid }}</td>
                 </tr>
               }
@@ -123,7 +132,8 @@
                   <td [class.tol]="t.objectLiteral" [class.to]="t.objectUri">
                     {{ t.objectUri || t.objectLiteral }}
                     @if (
-                      t.literalType || t.literalLanguage || t.literalNumber
+                      t.literalType || t.literalLanguage ||
+                      t.literalNumber !== undefined && t.literalNumber !== null
                     ) {
                       <ul>
                         @if (t.literalType) {
@@ -132,7 +142,10 @@
                         @if (t.literalLanguage) {
                           <li>language: {{ t.literalLanguage }}</li>
                         }
-                        @if (t.literalNumber) {
+                        @if (
+                          t.literalNumber !== undefined &&
+                          t.literalNumber !== null
+                        ) {
                           <li>
                             numeric: {{ t.literalNumber | number: "1.0-2" }}
                           </li>

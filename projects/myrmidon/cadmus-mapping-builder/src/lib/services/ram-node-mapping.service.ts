@@ -62,8 +62,12 @@ export class RamNodeMappingService implements NodeMappingService {
     pageNumber: number,
     pageSize: number
   ): Observable<DataPage<NodeMapping>> {
-    const mappings = this._mappings.value;
-    const filtered = mappings.filter((m) => this.filterMapping(m, filter));
+    // mappings are listed by name, while the store keeps them in their
+    // document order, which is their order of application in Cadmus
+    // (for mappings with the same ordinal)
+    const filtered = this._mappings.value
+      .filter((m) => this.filterMapping(m, filter))
+      .sort((a, b) => a.name.localeCompare(b.name));
     return of({
       pageNumber: pageNumber,
       pageSize: pageSize || filtered.length,
@@ -102,8 +106,6 @@ export class RamNodeMappingService implements NodeMappingService {
       }
       mappings.push(mapping);
     }
-    // sort mappings by name
-    mappings.sort((a, b) => a.name.localeCompare(b.name));
     this._mappings.next(mappings);
     return of(mapping);
   }
@@ -138,10 +140,8 @@ export class RamNodeMappingService implements NodeMappingService {
   }
 
   public importMappings(json: string): Observable<NodeMapping[]> {
+    // keep the document order (see getMappings)
     const mappings = this._jsonService.readMappingsDocument(json);
-    // sort mappings by name
-    mappings.sort((a, b) => a.name.localeCompare(b.name));
-
     this._mappings.next(mappings);
     return of(mappings);
   }

@@ -274,17 +274,13 @@ export class MappingJsonService {
       return undefined;
     }
     return triples.map((t) => {
-      // split on first two spaces only
-      const firstSpace = t.indexOf(' ');
-      const secondSpace = t.indexOf(' ', firstSpace + 1);
-
-      if (firstSpace === -1 || secondSpace === -1) {
+      // split on the first two runs of spaces only (as the backend's
+      // MappedTriple.Parse does): the object may contain spaces
+      const m = /^(\S+) +(\S+) +(\S.*)$/s.exec(t);
+      if (!m) {
         throw new Error(`Invalid triple format: ${t}`);
       }
-
-      const s = t.substring(0, firstSpace);
-      const p = t.substring(firstSpace + 1, secondSpace);
-      const o = t.substring(secondSpace + 1);
+      const [, s, p, o] = m;
 
       // check if 'o' starts with a quote to determine if it's a literal or URI
       const isLiteral = o.startsWith('"');
@@ -324,71 +320,55 @@ export class MappingJsonService {
   }
 
   /**
+   * Get a copy of the specified named mapping, ready to replace a mapping
+   * with the same name: its IDs are cleared (the hydration phase will assign
+   * fresh unique IDs), except for the ID and parent ID of the replaced
+   * mapping, which are preserved.
+   */
+  private getNamedCopy(named: NodeMapping, replaced: NodeMapping): NodeMapping {
+    const copy = deepCopy(named);
+    this.clearIds(copy);
+    copy.id = replaced.id;
+    copy.parentId = replaced.parentId;
+    // the parent reference will be set during the hydration phase
+    return copy;
+  }
+
+  /**
    * Recursively expands named mapping references within a mapping tree.
-   * This function modifies the input mapping in place.
+   * This function modifies the input mapping in place. As in the backend
+   * (NodeMappingDocument.GetMappings), every child whose name is the name
+   * of a named mapping is replaced by a copy of that named mapping, whatever
+   * its other properties: so a child reference is just an object with
+   * the name only. This is also consistent with the graph database, where
+   * named children mappings are shared by name.
    * @param mapping The current mapping to process.
    * @param namedMappings A dictionary of named mappings for reference.
-   * @param serializedMapping The original serialized mapping for reference checking.
-   * @param doc The full document for looking up named mappings.
+   * @param path The names of the named mappings being expanded, used to
+   * prevent endless recursion for named mappings including themselves.
    * @returns The mapping with named references expanded.
    */
   private expandNamedMappingReferences(
     mapping: NodeMapping,
     namedMappings: { [key: string]: NodeMapping },
-    serializedMapping?: SerializedMappedNode,
-    doc?: NodeMappingDocument
+    path: Set<string> = new Set<string>()
   ): NodeMapping {
     if (!mapping.children) {
       return mapping;
     }
 
     for (let i = 0; i < mapping.children.length; i++) {
-      let child = mapping.children[i];
-      const serializedChild = serializedMapping?.children?.[i];
+      const child = mapping.children[i];
+      const named = child.name ? namedMappings[child.name] : undefined;
 
-      // check if this child is a named mapping reference.
-      // A reference has only the `name` property and no `source` property,
-      // as specified in the JSON document description.
-      if (
-        namedMappings[child.name] &&
-        serializedChild &&
-        serializedChild.source === undefined
-      ) {
-        const namedRef = deepCopy(namedMappings[child.name]);
-
-        // Clear all IDs from the copied named mapping to ensure uniqueness
-        // The hydration phase will assign fresh unique IDs
-        this.clearIds(namedRef);
-
-        // preserve the ID, parentId, and parent from the placeholder child
-        namedRef.id = child.id;
-        namedRef.parentId = child.parentId;
-        // Note: don't set parent here to avoid circular references during deepCopy
-        // The parent reference will be set during the hydration phase
-
-        // replace the child with the expanded named mapping
-        mapping.children[i] = namedRef;
-
-        // recursively expand children of the newly inserted named mapping
-        // For named mappings, we need to find the original serialized version to check references
-        if (namedRef.children && doc?.namedMappings) {
-          // Find the original serialized named mapping
-          const originalNamedMapping = doc.namedMappings[child.name];
-          this.expandNamedMappingReferences(
-            namedRef,
-            namedMappings,
-            originalNamedMapping,
-            doc
-          );
-        }
+      if (named && !path.has(child.name)) {
+        const copy = this.getNamedCopy(named, child);
+        mapping.children[i] = copy;
+        path.add(child.name);
+        this.expandNamedMappingReferences(copy, namedMappings, path);
+        path.delete(child.name);
       } else {
-        // if it's not a named reference, just recurse into its children
-        this.expandNamedMappingReferences(
-          child,
-          namedMappings,
-          serializedChild,
-          doc
-        );
+        this.expandNamedMappingReferences(child, namedMappings, path);
       }
     }
     return mapping;
@@ -438,9 +418,13 @@ export class MappingJsonService {
     }
 
     // 2. read document mappings and perform initial hydration
-    // (IDs and parents)
+    // (IDs and parents). As in the backend, a document mapping having
+    // the name of a named mapping is replaced by that named mapping.
     const mappings = doc.documentMappings.map((m) => {
-      const mapping = this.getMapping(m);
+      let mapping = this.getMapping(m);
+      if (mapping.name && named[mapping.name]) {
+        mapping = this.getNamedCopy(named[mapping.name], mapping);
+      }
       // initial hydration for document mappings
       this.visitMappings(mapping, true);
       return mapping;
@@ -448,12 +432,7 @@ export class MappingJsonService {
 
     // 3. expand named mapping references in document mappings
     for (let i = 0; i < mappings.length; i++) {
-      this.expandNamedMappingReferences(
-        mappings[i],
-        named,
-        doc.documentMappings[i],
-        doc
-      );
+      this.expandNamedMappingReferences(mappings[i], named);
       // after expansion, re-hydrate to ensure all new nodes
       // (from expansion) have correct IDs and parent references.
       // This handles nested expansions.

@@ -216,6 +216,35 @@ describe('MappingRunnerComponent', () => {
     expect(screen.queryByText('Petrarch')).not.toBeInTheDocument();
   });
 
+  it('should show the warnings returned by the run, with the result', async () => {
+    api.runMappings.mockReturnValue(
+      of({ value: GRAPH, warnings: ['person: would not be applied'] })
+    );
+    const { user, editor } = await setup();
+    await editor.setValue('{}');
+    await run(user);
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'person: would not be applied'
+    );
+    expect(screen.getByText('Petrarch')).toBeInTheDocument();
+  });
+
+  it('should show node tags and a zero numeric literal value', async () => {
+    api.runMappings.mockReturnValue(
+      of({
+        value: {
+          nodes: [{ ...GRAPH.nodes[0], tag: 'person-tag' }],
+          triples: [{ ...GRAPH.triples[1], literalNumber: 0 }],
+        },
+      })
+    );
+    const { user, editor } = await setup();
+    await editor.setValue('{}');
+    await run(user);
+    expect(await screen.findByText('person-tag')).toBeInTheDocument();
+    expect(screen.getByText(/numeric: 0/)).toBeInTheDocument();
+  });
+
   it('should show the HTTP error', async () => {
     api.runMappings.mockReturnValue(throwError(() => 'Server error: down'));
     const { user, editor } = await setup();

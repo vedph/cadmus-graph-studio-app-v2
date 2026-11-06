@@ -101,6 +101,20 @@
           }
         </mat-form-field>
 
+        <!-- titleFilter -->
+        <mat-form-field>
+          <mat-label>title filter</mat-label>
+          <input
+            matInput
+            [formField]="form.titleFilter"
+            (keydown.enter)="onEnter($event)"
+          />
+          @if ( form.titleFilter().getError("maxLength") &&
+          (form.titleFilter().dirty() || form.titleFilter().touched()) ) {
+          <mat-error>title filter too long</mat-error>
+          }
+        </mat-form-field>
+
         <!-- flagsFilter -->
         <mat-form-field class="nr-input">
           <mat-label>flags filter</mat-label>
@@ -197,7 +211,7 @@
         <a
           rel="noopener"
           target="_blank"
-          href="https://vedph.github.io/cadmus-doc/migration/graph/mappings.html"
+          href="https://vedph.github.io/cadmus-doc/migration/export/graph/mappings.html"
           >full documentation</a
         >
         for more.
@@ -213,43 +227,76 @@
           expression defining input data.
         </li>
         <li>
-          <strong>SID</strong>: for root mappings only. The SID identifies the
-          source of mapped data; when updating an item or a part, all the
-          nodes/triples <em>starting with</em> the item or part's GUID are
-          included in the graph update.
+          <strong>SID</strong>: usually set in root mappings, and inherited by
+          children unless overridden. The SID identifies the source of mapped
+          data, and must always start with the item or part's GUID
+          (e.g. <code>&lcub;$part-id&rcub;/&lcub;&#64;eid&rcub;</code>): when
+          updating an item or a part, all the nodes/triples whose SID
+          <em>starts with</em> its GUID are replaced.
         </li>
-        <li><strong>facet filter</strong></li>
-        <li><strong>group filter</strong></li>
         <li>
-          <strong>flags filter</strong>: numeric value representing flags bits.
-          All the flags must be matched.
+          <strong>filters</strong> (root mappings only): in Cadmus, a mapping
+          is applied only to the sources matching all its filters; a filter on
+          a value missing from the source never matches. The test tab runs the
+          mapping anyway, but warns when its filters do not match the test
+          metadata.
+          <ul>
+            <li><strong>facet filter</strong>: equal to the item's facet ID.</li>
+            <li>
+              <strong>group filter</strong>: regular expression matching the
+              item's group ID.
+            </li>
+            <li>
+              <strong>title filter</strong>: regular expression matching the
+              item's title.
+            </li>
+            <li>
+              <strong>flags filter</strong>: numeric value representing flags
+              bits. The item must have all these flags.
+            </li>
+            <li><strong>part type filter</strong>: equal to the part's type ID.</li>
+            <li><strong>part role filter</strong>: equal to the part's role ID.</li>
+          </ul>
         </li>
-        <li><strong>part type filter</strong></li>
-        <li><strong>part role filter</strong></li>
         <li><strong>description</strong></li>
         <li>
           <strong>output</strong>:
           <ul>
             <li>
               <strong>nodes</strong>: nodes to emit (here
-              <code>key uid [label|tag]</code>, one per line);
+              <code>key uid [label|tag]</code>, one per line). URIs ending
+              with <code>##</code> are unique: they get a numeric suffix when
+              already used by another source;
             </li>
             <li>
               <strong>triples</strong>: triples to emit (here
-              <code>S P O</code> or <code>S P "literal"</code>, one per line);
+              <code>S P O</code> or <code>S P "literal"</code>, optionally
+              followed by <code>@lang</code> or <code>^^type</code>, one per
+              line; <code>a</code> stands for <code>rdf:type</code>);
             </li>
             <li>
               <strong>metadata</strong>: metadata to consume within the mapping
               context (here <code>key=value</code>, one per line). Presets:
               <ul>
                 <li><strong>item-id</strong>: item GUID.</li>
+                <li><strong>item-title</strong>: item's title.</li>
+                <li><strong>item-facet</strong>: item's facet ID.</li>
+                <li>
+                  <strong>item-group</strong>: item's group ID; for composite
+                  IDs (e.g. <code>a/b</code>), also
+                  <strong>item-group@1</strong>,
+                  <strong>item-group@2</strong>, etc.
+                </li>
                 <li>
                   <strong>item-eid</strong>: item EID (from metadata part).
                 </li>
+                <li>
+                  <strong>metadata-pid</strong>: the ID of the item's metadata
+                  part.
+                </li>
                 <li><strong>part-id</strong>: part GUID.</li>
-                <li><strong>group-id</strong>: item's group ID.</li>
-                <li><strong>facet-id</strong>: item's facet ID.</li>
-                <li><strong>flags</strong>: item's flags.</li>
+                <li><strong>part-type-id</strong>: part's type ID.</li>
+                <li><strong>part-role-id</strong>: part's role ID.</li>
                 <li><strong>.</strong>: current leaf node in source JSON.</li>
                 <li>
                   <strong>index</strong>: index of processed element from a
@@ -267,24 +314,30 @@
         <li>
           <code>&lcub;?...&rcub;</code>: node key (may be suffixed by
           <code>:uri</code> (default), <code>:label</code>, <code>:sid</code>,
-          <code>:src-type</code>).
+          <code>:src_type</code>).
         </li>
         <li><code>&lcub;$...&rcub;</code>: metadata key.</li>
         <li>
-          <code>&lcub;!...&rcub;</code>: macro. Currently the only macro is
-          <code>_hdate(json & property)</code>, which handles a Cadmus
-          historical date and returns either its sort value, or its
-          human-friendly, machine-parsable text value. Arguments:
-          <ol>
+          <code>&lcub;!...&rcub;</code>: macro, with arguments separated by
+          <code> &amp; </code>. Macros:
+          <ul>
             <li>
-              <code>json</code>: the JSON code representing the Cadmus
-              historical date.
+              <code>_hdate(json &amp; property)</code>: handles a Cadmus
+              historical date and returns either its sort value, or its
+              human-friendly, machine-parsable text value. Arguments:
+              <code>json</code>, the JSON code representing the Cadmus
+              historical date; <code>property</code>, either
+              <code>value</code> or <code>text</code>.
             </li>
             <li>
-              <code>property</code>: either <code>value</code> or
-              <code>text</code>
+              <code>_substring(string &amp; index &amp; [length])</code>:
+              substring.
             </li>
-          </ol>
+            <li>
+              <code>cod-loc</code>: codicological location (from
+              Cadmus.Codicology.Mapping).
+            </li>
+          </ul>
         </li>
       </ul>
     </mat-tab>

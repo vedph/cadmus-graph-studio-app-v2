@@ -1,5 +1,12 @@
 # History
 
+- 2026-11-06: updated packages and Angular and aligned with Cadmus 17.1.0 (requires the Graph Studio API of the same date for warnings; older APIs still work, without warnings):
+  - 🐛 test runs with item flags failed, as the API expected them as a string (fixed in the API).
+  - `MappingJsonService`: named mappings are now expanded like in the backend (`NodeMappingDocument`), so that the studio shows the same mappings which get imported into Cadmus: every child mapping having the name of a named mapping is replaced by it, even when it has its own definition (previously only children without `source` were replaced: in the database, the two would anyway share the same mapping, as named children are shared by name); a document mapping having the name of a named mapping is replaced by it too; named mappings including themselves no longer recurse endlessly. Triples with several spaces between their terms are parsed as in the backend.
+  - `RamNodeMappingService`: mappings are kept (and exported) in their document order, which is their order of application in Cadmus, rather than being sorted by name; the list still shows them sorted by name.
+  - mapping runner: shows the warnings returned by the API (e.g. a filter which would prevent the mapping from being applied in Cadmus to the test source), the tags of the resulting nodes (now applied by Cadmus), and numeric literal values equal to 0.
+  - mapping editor: added the missing title filter field; updated the quick help (metadata names, filters semantics, unique UIDs, literal suffixes, macros, `:src_type` node suffix) and the link to the documentation.
+
 ## 2.0.2
 
 - 2026-10-17: fixed: going back to the home page reloaded the sample mappings, discarding all edits; a deep link (or page reload) to a mapping opened an empty editor. Removed dead code and leftover `console.log` calls.

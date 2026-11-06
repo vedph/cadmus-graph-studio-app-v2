@@ -102,3 +102,19 @@ div#output {
       "output";
   }
 }
+.warnings {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  color: var(--mat-sys-on-tertiary-container);
+  background-color: var(--mat-sys-tertiary-container);
+}
+.warnings li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+}
+.warning-icon {
+  flex: none;
+}

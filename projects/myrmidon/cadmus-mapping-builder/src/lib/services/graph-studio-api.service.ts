@@ -10,7 +10,7 @@ import {
   deepCopy,
 } from '@myrmidon/ngx-tools';
 
-import { GraphSet, NodeMapping } from '../models';
+import { NodeMapping, RunMappingResult } from '../models';
 import { MappingJsonService } from './mapping-json.service';
 
 export interface NodeMappingMetadata {
@@ -39,11 +39,20 @@ export class GraphStudioApiService {
     private _mappingJsonService: MappingJsonService
   ) {}
 
+  /**
+   * Run the specified mappings on the specified source.
+   *
+   * @param source The source JSON.
+   * @param mappings The mappings to run.
+   * @param metadata The metadata of the mocked item and part.
+   * @returns The resulting graph set or error, with warnings about
+   * mappings which would not be applied in Cadmus to such a source.
+   */
   public runMappings(
     source: string,
     mappings: NodeMapping[],
     metadata?: NodeMappingMetadata
-  ): Observable<ErrorWrapper<GraphSet>> {
+  ): Observable<RunMappingResult> {
     const url = this._env.get('apiUrl') + 'mappings/run';
     // remove references, make a copy and restore them
     for (let i = 0; i < mappings.length; i++) {
@@ -58,7 +67,7 @@ export class GraphStudioApiService {
     }
 
     return this._http
-      .post<ErrorWrapper<GraphSet>>(
+      .post<RunMappingResult>(
         url,
         { ...metadata, source: source, mappings: txMappings }
       )

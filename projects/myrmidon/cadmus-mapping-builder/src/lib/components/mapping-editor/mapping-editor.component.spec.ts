@@ -68,6 +68,7 @@ describe('MappingEditorComponent', () => {
     expect(field('SID')).toHaveValue('{$part-id}');
     expect(field('facet filter')).toHaveValue('person');
     expect(field('group filter')).toHaveValue('g');
+    expect(field('title filter')).toHaveValue('t');
     expect(screen.getByRole('spinbutton', { name: 'flags filter' })).toHaveValue(4);
     expect(field('part type filter')).toHaveValue('it.vedph.events');
     expect(field('part role filter')).toHaveValue('r');
